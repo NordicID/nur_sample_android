@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"  >
+    
+    <TextView 
+        android:id="@+id/selected_tag_epc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:layout_marginLeft="15dp"
+        android:paddingRight="5dp"
+        android:textSize="18sp" />
+    
+    <TextView
+        android:id="@+id/selected_tag_rssi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="15dp"
+        android:paddingRight="5dp"
+        android:textSize="18sp" />
+    
+    <TextView
+        android:id="@+id/selected_tag_timestamp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="15dp"
+        android:paddingRight="5dp"
+        android:textSize="18sp" />
+    
+    <TextView
+        android:id="@+id/selected_tag_freq"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="15dp"
+        android:paddingRight="5dp"
+        android:textSize="18sp" />
+    
+    <TextView
+        android:id="@+id/selected_tag_found"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="15dp"
+        android:paddingRight="5dp"
+        android:textSize="18sp" />
+    
+    <TextView
+        android:id="@+id/selected_tag_foundpercent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginBottom="20dp"
+        android:paddingRight="5dp"
+        android:textSize="18sp" />
+
+    <Button
+        android:id="@+id/selected_tag_locate_button"
+        style="@style/ButtonBarButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:text="@string/locate"
+        android:layout_gravity="right"
+        android:layout_marginRight="10dp" />
+        
+        <Button
+	        android:id="@+id/selected_tag_close_button"
+	        style="@style/ButtonBarButton"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:padding="5dp"
+	        android:text="@string/close"
+	        android:layout_gravity="right"
+	        android:layout_marginRight="10dp" />
+
+</LinearLayout>

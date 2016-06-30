@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">DemoApp</string>
+    
+    <string name="average_speed_textview">AVG. SPEED</string>
+    <string name="peak_textview">PEAK</string>
+    <string name="tags_per_second_textview">TAGS/S</string>
+    
+    <string name="start">START</string>
+    <string name="stop">STOP</string>
+    <string name="clear">CLEAR</string>
+    <string name="locate">LOCATE</string>
+    <string name="write">WRITE</string>
+    <string name="cancel">CANCEL</string>
+    <string name="refresh">REFRESH</string>
+    <string name="refresh_list">REFRESH LIST</string>
+    <string name="restore_default_settings">RESTORE DEFAULT SETTINGS</string>
+    <string name="restore">Restore</string>
+    
+    <string name="hint">HINT</string>
+    
+    <string name="inventory_started">Inventory started</string>
+    <string name="inventory_stopped">Inventory stopped</string>
+    
+    <string name="no_reader_attached">No reader attached</string>
+    <string name="attached_reader_info">Attached reader info:</string>
+    <string name="about_dialog_model">Model:</string>
+    <string name="about_dialog_serial">Serial:</string>
+    <string name="about_dialog_firmware">Firmware:</string>
+    
+    <string name="write_tag_hint">Select a tag to write</string>
+    <string name="locatable_epc_hint">Locatable tags EPC..</string>
+    <string name="new_epc_hint">New EPC..</string>
+    
+    <string name="location_stopped">Trace stopped</string>
+    <string name="location_started">Trace started</string>
+    
+    <string name="default_settings_restored">Default settings restored!</string>
+    
+    <string name="inventory_clear_notice">Clear all current readings?</string>
+    <string name="no_tags">No tags read yet</string>
+    <string name="start_location">Start location</string>
+    <string name="start_location_notice">Do you want to start location for </string>
+    
+    <string name="no_tags_found">No tags found</string>
+    <string name="write_app_top_hint">Select a tag to write from list</string>
+    
+    <string name="reader_connection_error">Reader not connected</string>
+    <string name="unexpected_error">Unexpected error has occurred</string>
+    
+    <string name="cannot_clear">Cannot clear while inventory is running</string>
+    
+    <string name="reader_connected">Reader connected</string>
+    <string name="reader_disconnected">Reader disconnected</string>
+    
+    <string name="title_activity_settings">Settings</string>
+    <string name="region_spinner">Region</string>
+    <string name="tx_level_spinner">TX-level</string>
+    <string name="link_freg_spinner">Link frequency</string>
+    <string name="rx_decod_spinner">RX-decoding</string>
+    <string name="tx_modul_spinner">TX-modulation</string>
+    <string name="q_spinner">Q</string>
+    <string name="rounds_spinner">Rounds</string>
+    <string name="session_spinner">Session</string>
+    <string name="target_spinner">Target</string>
+    <string name="antenna_spinner">Enabled Antennas</string>
+    <string name="autotune_checkbox">Autotune</string>
+    
+    <string name="dialog_epc">TAGS EPC:</string>
+    <string name="dialog_rssi">RSSI:</string>
+    <string name="dialog_timestamp">TIMESTAMP:</string>
+    <string name="dialog_freg">FREQUENCY:</string>
+    <string name="dialog_found">FOUND (TIMES):</string>
+    <string name="dialog_found_precent">FOUND (% OF TIME):</string>
+    
+    <string name="scanning">Scanning for devices...</string>
+    <string name="select_device">Select a device</string>
+    <string name="paired">paired</string>
+    <string name="ble_not_supported">Bluetooth Low Energy not supported</string>
+    <string name="scan">SCAN</string>
+
+</resources>

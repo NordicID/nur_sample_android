@@ -1,0 +1,122 @@
+<resources>
+    <string name="app_name">NUR Accessory Demo (BLE)</string>
+
+    <string name="connect">Connect to known device</string>
+    <string name="text_connecting">Connecting...</string>
+
+    <string name="text_connected">Connected</string>
+    <string name="text_disconnected">Disconnected</string>
+    <string name="text_disconnect">Disconnect</string>
+    <string name="text_restart">Restarting...</string>
+
+    <string name="text_accessory_actions">Accessory actions</string>
+
+    <string name="text_reader_settings">Accessory / reader settings</string>
+    <string name="text_reader_restart">Accessory /reader restart</string>
+    <string name="text_app_settings">Application settings</string>
+
+    <string name="text_search_or_view">Start device search / view known devices</string>
+    <string name="text_search_devices">Start device search</string>
+    <string name="text_reader_information">View accessory / reader information</string>
+
+    <string name="text_start_search">Start device search</string>
+    <string name="text_stop_device_search">Stop device search</string>
+
+    <string name="text_ok">OK</string>
+    <string name="text_cancel">Cancel</string>
+    <string name="text_exit">Exit</string>
+    <string name="text_quit">Quit</string>
+
+    <string name="ble_not_supported">Bluetooth Low Energy not supported</string>
+
+    <string name="title_tx_level">Transmission level</string>
+    <string name="title_q">Inventory: Q</string>
+    <string name="title_session">Inventory: session</string>
+    <string name="title_rounds">Inventory: rounds</string>
+    <string name="title_target">Inventory: target</string>
+    <string name="text_antennas">Select antennas</string>
+    <string name="title_hid_enable">HID enabling</string>
+    <string name="title_accessory">Accessory</string>
+    <string name="text_set_name">Set name</string>
+
+    <string name="text_rfid_hid">RFID HID enabled</string>
+    <string name="text_barcode_hid">Barcode HID enabled</string>
+
+    <!-- Application settings -->
+    <string name="text_bt_wait_timeout">Bluetooth wait timeout</string>
+    <string name="text_ble_search_timeout">Device search timeout</string>
+    <string name="text_barcode_scan_timeout">Barcode scan timeout</string>
+    <string name="text_autoconnect">Remember connected device</string>
+    <string name="text_remember">Remember devices</string>
+    <string name="text_connection_timeout">Connection timeout</string>
+    <string name="text_forget_device">Forget current device</string>
+    <string name="text_apply_app_settings">Apply settings</string>
+
+    <string-array name="arr_tx_levels_1W">
+        <item>Low (around 100mW)</item>
+        <item>Medium (around 250mW)</item>
+        <item>High (1W)</item>
+    </string-array>
+
+    <string-array name="arr_tx_levels_500mW">
+        <item>Low (around 50mW)</item>
+        <item>Medium (around 200mW)</item>
+        <item>High (500mW)</item>
+    </string-array>
+
+    <string-array name="arr_q_setting">
+        <item>Automatic</item>
+        <item>Use Q = 4</item>
+        <item>Use Q = 5</item>
+        <item>Use Q = 6</item>
+    </string-array>
+
+    <string-array name="arr_sessions">
+        <item>Session 0</item>
+        <item>Session 1</item>
+        <item>Session 2</item>
+        <item>Session 3</item>
+    </string-array>
+
+    <string-array name="arr_rounds">
+        <item>Automatic</item>
+        <item>1 round </item>
+        <item>2 rounds</item>
+        <item>3 rounds</item>
+        <item>4 rounds</item>
+    </string-array>
+
+    <string-array name="arr_targets">
+        <item>Target A</item>
+        <item>Target B</item>
+        <item>Toggle A &lt;-&gt; B</item>
+    </string-array>
+
+    <string-array name="arr_timeouts">
+        <item>4 seconds</item>
+        <item>5 seconds</item>
+        <item>6 seconds</item>
+        <item>7 seconds</item>
+    </string-array>
+
+    <string name="text_store_setup">When OK, also store setup</string>
+
+    <!-- Actions activity. -->
+    <string name="text_inventory_count">Tap item for operations</string>
+    <string name="text_search_locate">Search/locate</string>
+
+    <string name="text_start_tag_count">Start count</string>
+    <string name="text_stop_tag_count">Stop count</string>
+    <string name="text_clear_tags">Clear tags</string>
+
+    <string name="text_epc_filter">Select filter</string>
+    <string name="text_count_session">Session</string>
+
+    <string name="text_start_tag_search">Start search</string>
+    <string name="text_stop_tag_search">Stop search</string>
+
+    <string name="text_ok_write">OK, write</string>
+    <string name="text_barcode_scan">Scan barcode</string>
+    <string name="text_barcode_cancel">Cancel barcode scan</string>
+
+</resources>

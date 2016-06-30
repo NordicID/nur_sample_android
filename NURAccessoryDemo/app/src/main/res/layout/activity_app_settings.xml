@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.nordicid.accessorydemo.AppSettingsActivity">
+
+    <!-- Device search timeout. -->
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_weight="10"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:layout_marginLeft="10dp">
+
+            <TextView
+                android:layout_height="match_parent"
+                android:layout_weight="55"
+                android:layout_width="0dp"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:gravity="center_vertical"
+                android:text="@string/text_ble_search_timeout">
+            </TextView>
+
+            <Spinner
+                android:id="@+id/spin_search_timeout"
+                android:layout_height="match_parent"
+                android:layout_weight="45"
+                android:layout_width="0dp"
+                android:gravity="center_vertical"
+                android:textAlignment="center"
+                android:entries="@array/arr_timeouts">
+            </Spinner>
+    </TableRow>
+
+    <!-- Asynchronous barcode scan timeout. -->
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_weight="10"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:layout_marginLeft="10dp">
+
+        <TextView
+            android:layout_height="match_parent"
+            android:layout_weight="55"
+            android:layout_width="0dp"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:gravity="center_vertical"
+            android:text="@string/text_barcode_scan_timeout">
+        </TextView>
+
+        <Spinner
+            android:id="@+id/spin_barcode_scan_timeout"
+            android:layout_height="match_parent"
+            android:layout_weight="45"
+            android:layout_width="0dp"
+            android:gravity="center_vertical"
+            android:textAlignment="center"
+            android:entries="@array/arr_timeouts">
+        </Spinner>
+    </TableRow>
+
+    <CheckBox
+        android:id="@+id/chk_remember_device"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/text_autoconnect">
+    </CheckBox>
+
+    <Button
+        android:id="@+id/btn_forget_device"
+        android:layout_weight="10"
+        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:text="@string/text_forget_device"
+        android:onClick="handleButtonClick">
+    </Button>
+
+    <Button
+        android:id="@+id/btn_apply_app_settings"
+        android:layout_weight="10"
+        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:text="@string/text_apply_app_settings"
+        android:onClick="handleButtonClick">
+    </Button>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_weight="40"
+        android:layout_height="0dp">
+    </TextView>
+
+</LinearLayout>

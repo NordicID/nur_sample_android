@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent">
+	
+	<LinearLayout
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="vertical"
+	    android:paddingLeft="15dp"
+	    android:paddingRight="15dp"
+	    android:paddingTop="30dp"
+	    android:paddingBottom="20dp" >
+	    
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/q_spinner" />
+	        <Spinner
+	            android:id="@+id/q_spinner"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content" />
+	    
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/rounds_spinner" />
+	        <Spinner
+	            android:id="@+id/rounds_spinner"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content" />
+	   
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/session_spinner" />
+	        <Spinner
+	            android:id="@+id/session_spinner"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content" />
+	   
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/target_spinner" />
+	        <Spinner
+	            android:id="@+id/target_spinner"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content" />
+
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/tx_level_spinner" />
+	        <Spinner
+	            android:id="@+id/txlevel_spinner"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content" />
+	    
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/antenna_spinner" />
+	        <com.nordicid.rfiddemo.MultiSelectionSpinner
+	            android:id="@+id/antenna_spinner"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content" />
+	    
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/region_spinner" />
+	
+	        <Spinner
+	            android:id="@+id/region_spinner"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content" />
+	            
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/link_freg_spinner" />
+	        <Spinner
+	            android:id="@+id/linkfreq_spinner"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content" />
+	  
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/rx_decod_spinner" />
+	        <Spinner
+	            android:id="@+id/rxdecod_spinner"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content" />
+	   
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/tx_modul_spinner" />
+	        <Spinner
+	            android:id="@+id/txmodul_spinner"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content" />
+	    
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/autotune_checkbox" />
+
+	        <CheckBox
+	            android:id="@+id/autotune_checkbox"
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content"
+	            android:text="@string/autotune_checkbox" />
+
+	        	        
+	</LinearLayout>
+</ScrollView>
+

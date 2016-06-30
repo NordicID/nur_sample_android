@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/RFIDDemo.iml" filepath="$PROJECT_DIR$/RFIDDemo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apptemplate/apptemplate.iml" filepath="$PROJECT_DIR$/apptemplate/apptemplate.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nurapiandroid/nurapiandroid.iml" filepath="$PROJECT_DIR$/nurapiandroid/nurapiandroid.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+    
+	<TextView
+        android:id="@+id/inventory_dialog_clear_notice" 
+    	android:layout_height="wrap_content"
+    	android:layout_width="wrap_content"
+    	android:paddingTop="20dp"
+    	android:textSize="20sp"
+    	android:text="@string/inventory_clear_notice"
+    	android:layout_gravity="center_horizontal" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2" 
+        android:layout_marginTop="20dp"
+        android:layout_gravity="right" >
+        
+        <Button 
+            android:id="@+id/dialog_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            android:padding="5dp"
+            android:layout_marginRight="15dp"
+            android:textSize="15sp"
+            style="@style/BorderlessButton" />
+        
+        <Button
+            android:id="@+id/dialog_clear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/clear"
+            android:padding="5dp"
+            android:textSize="15sp"
+            style="@style/BorderlessButton"
+            android:textColor="@android:color/holo_red_light" />
+        
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,11 @@
+<resources>
+
+    <string name="app_name">App Template</string>
+    <string name="no_layout">No layout for app defined</string>
+    <string name="empty_button_text">-</string>
+    <string name="drawer_open">Open drawer</string>
+    <string name="drawer_close">Close drawer</string>
+    <string name="gridview_item_desc">Apps icon</string>
+	<string name="close">Close</string>
+    
+</resources>

@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="10dp"
+    android:layout_marginTop="10dp"
+    android:layout_marginRight="10dp"
+    android:layout_marginBottom="10dp"
+    tools:context="com.nordicid.accessorydemo.SettingsActivity">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_weight="85"
+        android:layout_height="0dp">
+
+        <!-- TX level row -->
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <!-- TX level -->
+            <TextView
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:gravity="right|center_vertical"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:text="@string/title_tx_level">
+            </TextView>
+
+            <Spinner
+                android:id="@+id/spin_tx_level"
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="match_parent">
+            </Spinner>
+        </TableRow>
+
+        <!-- Inventory Q row -->
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <!-- Inventory: Q -->
+            <TextView
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:gravity="right|center_vertical"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:text="@string/title_q">
+            </TextView>
+            <Spinner
+                android:id="@+id/spin_inventory_q"
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:entries="@array/arr_q_setting">
+            </Spinner>
+        </TableRow>
+
+        <!-- Inventory session row -->
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <!-- Inventory: session -->
+            <TextView
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:gravity="right|center_vertical"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:text="@string/title_session">
+            </TextView>
+            <Spinner
+                android:id="@+id/spin_inventory_session"
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:entries="@array/arr_sessions">
+            </Spinner>
+        </TableRow>
+
+        <!-- Inventory rounds row -->
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <!-- Inventory: rounds -->
+            <TextView
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:gravity="right|center_vertical"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:text="@string/title_rounds">
+            </TextView>
+            <Spinner
+                android:id="@+id/spin_inventory_rounds"
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:entries="@array/arr_rounds">
+            </Spinner>
+        </TableRow>
+
+        <!-- Inventory target row -->
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <!-- Inventory: target -->
+            <TextView
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:gravity="right|center_vertical"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:text="@string/title_target">
+            </TextView>
+            <Spinner
+                android:id="@+id/spin_inventory_target"
+                android:layout_weight="5"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:entries="@array/arr_targets">
+            </Spinner>
+        </TableRow>
+
+        <!-- Antenna selection -->
+        <Button
+            android:id="@+id/btn_antennas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/text_antennas"
+            android:onClick="handleButton">
+        </Button>
+
+        <!-- HID enable checkboxes. -->
+        <!-- "Separator" -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:background="#000000">
+        </TextView>
+
+        <TextView
+            android:id="@+id/text_accessory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:text="@string/title_accessory">
+        </TextView>
+
+        <CheckBox
+            android:id="@+id/chk_name_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/text_set_name">
+        </CheckBox>
+        <EditText
+            android:id="@+id/edit_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </EditText>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="10dp">
+        </TextView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:textStyle="bold"
+            android:text="@string/title_hid_enable">
+        </TextView>
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <CheckBox
+                android:id="@+id/chk_rfid_hid"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/text_rfid_hid">
+            </CheckBox>
+            <CheckBox
+                android:id="@+id/chk_barcode_hid"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/text_barcode_hid">
+            </CheckBox>
+        </TableRow>
+
+        <!-- Separator -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="25dp">
+        </TextView>
+        <CheckBox
+            android:id="@+id/chk_store_setup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/text_store_setup">
+        </CheckBox>
+
+    </LinearLayout>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_weight="15"
+        android:layout_height="0dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_settings_cancel"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:text="@string/text_cancel"
+            android:onClick="handleButton"
+            />
+        <Button
+            android:id="@+id/btn_settings_ok"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:text="@string/text_ok"
+            android:onClick="handleButton"
+            />
+    </TableRow>
+
+</LinearLayout>

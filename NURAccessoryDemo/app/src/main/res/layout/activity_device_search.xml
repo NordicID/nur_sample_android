@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.nordicid.accessorydemo.DeviceSearchActivity">
+
+
+    <ListView
+        android:id="@+id/found_devices"
+        android:layout_width="match_parent"
+        android:layout_weight="70"
+        android:layout_height="0dp"
+        android:layout_gravity="center_horizontal">
+    </ListView>
+
+    <ProgressBar
+        android:id="@+id/progress_search"
+        android:layout_width="match_parent"
+        android:layout_weight="10"
+        android:layout_height="0dp"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:foreground="#0a1aef">
+    </ProgressBar>
+
+    <Button
+        android:id="@+id/dtb_device_search_control"
+        android:layout_width="match_parent"
+        android:layout_weight="20"
+        android:layout_height="0dp"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:text="@string/text_start_search"
+        android:onClick="onSearchControlButtonClick">
+    </Button>
+
+</LinearLayout>

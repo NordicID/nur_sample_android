@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+    
+    <TextView 
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:text="@string/write_app_top_hint"
+         android:padding="5dp"
+         android:textSize="20sp"
+         android:gravity="center_horizontal" />
+    
+    <include
+        layout="@layout/taglist"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+       	android:layout_margin="25dp" />
+    
+    <RelativeLayout
+        android:id="@+id/listview_empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:gravity="center"
+            android:text="@string/no_tags" />
+        
+    </RelativeLayout>
+
+</LinearLayout>

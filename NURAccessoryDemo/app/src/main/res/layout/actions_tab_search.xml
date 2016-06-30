@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/locator_tab">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_weight="10"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:text="@string/text_search_locate">
+    </TextView>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_weight="70"
+        android:layout_height="0dp">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <ProgressBar
+                android:id="@+id/pbar_tag_rssi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progressDrawable="@drawable/custom_progressbar"
+                android:background="@drawable/custom_progressbar_bg"
+                android:max="100"
+                android:progress="50"
+                android:indeterminateOnly="false"
+                android:indeterminate="false"
+                android:layout_centerInParent="true"
+                style="?android:attr/progressBarStyleLarge">
+            </ProgressBar>
+
+            <TextView
+                android:id="@+id/text_search_rssi"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textSize="48sp"
+                android:gravity="center"
+                android:layout_alignStart="@id/pbar_tag_rssi"
+                android:layout_alignEnd="@id/pbar_tag_rssi"
+                android:background="@android:color/transparent"
+                android:text="">
+            </TextView>
+        </RelativeLayout>
+    </TableRow>
+
+    <TextView
+        android:id="@+id/text_search_epc"
+        android:layout_width="match_parent"
+        android:layout_weight="10"
+        android:layout_height="0dp"
+        android:layout_margin="10dp"
+        android:textSize="18sp"
+        android:gravity="center"
+        android:text="">
+    </TextView>
+    <Button
+        android:id="@+id/btn_tag_search_control"
+        android:layout_width="match_parent"
+        android:layout_weight="10"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:textSize="22sp"
+        android:text="@string/text_start_tag_search"
+        android:onClick="handleSearchTabButton">
+    </Button>
+
+</LinearLayout>

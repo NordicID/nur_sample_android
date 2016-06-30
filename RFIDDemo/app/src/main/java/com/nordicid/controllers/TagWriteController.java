@@ -1,0 +1,167 @@
+package com.nordicid.controllers;
+
+import com.nordicid.nurapi.NurApi;
+import com.nordicid.nurapi.NurApiListener;
+import com.nordicid.nurapi.NurEventAutotune;
+import com.nordicid.nurapi.NurEventClientInfo;
+import com.nordicid.nurapi.NurEventDeviceInfo;
+import com.nordicid.nurapi.NurEventEpcEnum;
+import com.nordicid.nurapi.NurEventFrequencyHop;
+import com.nordicid.nurapi.NurEventIOChange;
+import com.nordicid.nurapi.NurEventInventory;
+import com.nordicid.nurapi.NurEventNxpAlarm;
+import com.nordicid.nurapi.NurEventProgrammingProgress;
+import com.nordicid.nurapi.NurEventTagTrackingChange;
+import com.nordicid.nurapi.NurEventTagTrackingData;
+import com.nordicid.nurapi.NurEventTraceTag;
+import com.nordicid.nurapi.NurEventTriggeredRead;
+import com.nordicid.nurapi.NurRespInventory;
+import com.nordicid.nurapi.NurTag;
+import com.nordicid.nurapi.NurTagStorage;
+
+public class TagWriteController {
+	
+	private NurApi mApi;
+	private WriteTagControllerListener mWriteListener;
+	private NurApiListener mThisClassListener = null;
+	
+	public TagWriteController(NurApi an) {
+		mApi = an;
+		setApi();
+	}
+	
+	public NurApiListener getNurApiListener()
+	{
+		return mThisClassListener;
+	}
+	
+	private void setApi() {
+		mThisClassListener = new NurApiListener() {			
+			@Override 
+			public void connectedEvent() {
+				if (mWriteListener != null) {
+					mWriteListener.readerConnected();
+				}
+			}
+			
+			@Override 
+			public void disconnectedEvent() {
+				if (mWriteListener != null) {
+					mWriteListener.readerDisconnected();
+				}
+			}
+
+			@Override public void IOChangeEvent(NurEventIOChange arg0) {}
+			@Override public void bootEvent(String arg0) {}
+			@Override public void clientConnectedEvent(NurEventClientInfo arg0) {}
+			@Override public void clientDisconnectedEvent(NurEventClientInfo arg0) {}
+			@Override public void deviceSearchEvent(NurEventDeviceInfo arg0) {}
+			@Override public void frequencyHopEvent(NurEventFrequencyHop arg0) {}
+			@Override public void inventoryExtendedStreamEvent(NurEventInventory event) { }
+			@Override public void nxpEasAlarmEvent(NurEventNxpAlarm arg0) {}
+			@Override public void programmingProgressEvent(NurEventProgrammingProgress arg0) {}
+			@Override public void traceTagEvent(NurEventTraceTag arg0)  { }
+			@Override public void triggeredReadEvent(NurEventTriggeredRead arg0) {}
+			@Override public void logEvent(int arg0, String arg1) {}
+			@Override public void debugMessageEvent(String arg0) {}
+			@Override public void inventoryStreamEvent(NurEventInventory event) { }
+			@Override public void epcEnumEvent(NurEventEpcEnum event) { }
+			@Override public void autotuneEvent(NurEventAutotune event) { }
+			@Override public void tagTrackingScanEvent(NurEventTagTrackingData event) { }
+			@Override public void tagTrackingChangeEvent(NurEventTagTrackingChange event) { }			
+		};
+	}
+	
+	public void performSingleRead() {
+		
+		if (mApi.isConnected()) {
+			
+			try {
+				NurRespInventory inventoryResp = mApi.inventory();
+				
+				if (inventoryResp.numTagsFound > 0) {
+					
+					try {
+						mApi.fetchTags();
+						
+						synchronized (mApi.getStorage()) {
+							
+							NurTagStorage tagStorage = mApi.getStorage();
+							
+							for (int i = 0; i < tagStorage.size(); i++) {
+								NurTag tag = tagStorage.get(i);
+								mWriteListener.singleReadTagFound(tag);
+							}
+							
+							tagStorage.clear();
+							
+						}
+						
+					} catch (Exception err) {
+						err.printStackTrace();
+					}
+				}
+				
+			} catch (Exception err) {
+				err.printStackTrace();
+			}
+		}
+	}
+	
+	public boolean writeTagByEpc(byte[] epcBuffer, int epcBufferLength, 
+			int newEpcBufferLength, byte[] newEpcBuffer) {
+		
+		boolean ret = true;
+		int savedTxLevel = 0;
+		int savedAntMask = 0;
+		
+		try {
+			savedTxLevel = mApi.getSetupTxLevel();
+			savedAntMask = mApi.getSetupAntennaMaskEx();
+			
+			// Attempt to use circular antenna
+			int circMask = TraceAntennaSelector.getPhysicalAntennaMask(mApi.getAntennaMapping(), "Circular");
+			if (circMask != 0)
+				mApi.setSetupAntennaMaskEx(circMask);
+			
+			// Full power
+			mApi.setSetupTxLevel(0);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			ret = false;
+		}
+
+		if (ret)
+		{
+			try {
+				// Write tag
+				mApi.writeEpcByEpc(epcBuffer, epcBufferLength, newEpcBufferLength, newEpcBuffer);
+				ret = true;
+			} catch (Exception err) {			
+			}
+		}
+		
+		// Restore
+		try {
+			mApi.setSetupTxLevel(savedTxLevel);
+			mApi.setSetupAntennaMaskEx(savedAntMask);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
+	public void setListener(WriteTagControllerListener l) {
+		mWriteListener = l;
+	}
+	
+	public interface WriteTagControllerListener {
+		
+		public void readerDisconnected();
+		public void readerConnected();
+		public void singleReadTagFound(NurTag tag);
+	}
+	
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/NURAccessoryDemo.iml" filepath="$PROJECT_DIR$/NURAccessoryDemo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nurapiandroid/NurApiAndroid.iml" filepath="$PROJECT_DIR$/nurapiandroid/NurApiAndroid.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Vendor ID and product ID for  NordicID Sampo -->
+    <usb-device vendor-id="1254" product-id="274" />
+</resources>
+
+
