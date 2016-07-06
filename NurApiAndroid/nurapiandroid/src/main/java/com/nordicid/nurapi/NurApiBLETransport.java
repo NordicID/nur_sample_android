@@ -81,13 +81,16 @@ public class NurApiBLETransport implements NurApiTransport
 			return -1;
 		}
 		
-		synchronized (readLock) {
-			try {
-				readLock.wait();
-			} catch (InterruptedException e) {
-				return 0;
+		if (mRxBuf.isEmpty())
+		{
+			synchronized (readLock) {
+				try {
+					readLock.wait();
+				} catch (InterruptedException e) {
+					return 0;
+				}
 			}
-		} 
+		}
 		
 		/*if (mRxBuf.isEmpty()) 
 		{
