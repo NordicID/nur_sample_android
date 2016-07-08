@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Nur FW Update</string>
+    <string name="text_not_connected">Not connected</string>
+    <string name="text_mode_error">Mode error!</string>
+    <string name="text_curmode_app">Application</string>
+    <string name="text_curmode_loader">Bootloader</string>
+
+    <string name="text_search_devices">Search devices</string>
+    <string name="text_disconnect">Disconnect</string>
+
+    <string name="text_mode_change">Change mode</string>
+
+    <string name="text_file_select">Select file</string>
+
+    <string name="text_file_program">Upload NUR FW</string>
+    <string name="text_appfile_program">Program application</string>
+    <string name="text_ldrfile_program">Program bootloader</string>
+    <string name="text_upload_complete_ok">FW update completed OK.</string>
+
+    <string name="text_file_na">File: N/A</string>
+    <string name="text_idle">Idle</string>
+
+    <string name="text_start_device_search">Start device search</string>
+    <string name="text_stop_device_search">Stop device search</string>
+
+    <string name="text_connected">Connected</string>
+
+</resources>
