@@ -233,6 +233,6 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 
 	@Override
 	public String getDetails() {
-		return "";
+		return "USB OTG connection";
 	}
 }

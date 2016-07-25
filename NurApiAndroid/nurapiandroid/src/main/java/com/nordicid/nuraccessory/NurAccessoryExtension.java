@@ -53,6 +53,9 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	/** An error code from the accessory stating that the barcode reader is not present (13 = "not ready"). */
 	public static final int BARCODE_READER_NOT_PRESENT_ERROR = NurApiErrors.NOT_READY;
 
+	/** Trigger source number of I/O change. */
+	public static final int TRIGGER_SOURCE = 100;
+
 	/** A configuration (or any other class') value indicating that this integer value is either not initialized, not used or both. */
 	public static final int INTVALUE_NOT_VALID = -1;
 	
@@ -84,7 +87,7 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	private String mBarcodeCharSet = "UTF-8";
 
 	/** Indicates whether the barcode scan was canceled during the response wait. */
-	private boolean mBarcodeCanceled = false;
+	// private boolean mBarcodeCanceled = false;
 
 	/**
 	 * Basic constructor.
@@ -354,6 +357,7 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 		payload[0] = (byte)ACC_EXT_READ_BARCODE_ASYNC;
 		NurPacket.PacketWord(payload, 1, timeout);
 
+		// mBarcodeCanceled = false;
 		doCustomCommand(payload);
 	}
 
@@ -476,7 +480,7 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 		payload[0] = (byte)0xFF;
 		mApi.getTransport().writeData(payload, 1);
 
-		mBarcodeCanceled = true;
+		// mBarcodeCanceled = true;
 	}
 
 	/**
@@ -495,17 +499,17 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	public boolean interpretEventData(int status, byte []data, AccessoryBarcodeResult result)
 	{
 		boolean retry = false;
-		if (mBarcodeCanceled)
+		/* if (mBarcodeCanceled)
 		{
 			// This causes no event.
 			mBarcodeCanceled = false;
 			return false;
-		}
+		} */
 
 		// All others cause an event so that errors such as timeout can be detected.
 		result.status = status;
 
-		if (data != null && data[0] == EVENT_BARCODE_ID) {
+		if (status == NurApiErrors.NUR_SUCCESS && data != null && data[0] == EVENT_BARCODE_ID) {
 			try {
 				result.strBarcode = new String(data, 1, data.length - 1, mBarcodeCharSet);
 			} catch (Exception e) {
