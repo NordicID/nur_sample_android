@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
     // Bluetooth support detection.
     private BluetoothAdapter mMainBTAdapter = null;
     // Combines the device address and its name.
-    private BLEDeviceDescription mAutoConnectDevice = null;
+    private NurDeviceSpec mAutoConnectDevice = null;
 
     // "Disconnecting".
     private boolean mDisconnectOnResume = false;
@@ -330,11 +330,9 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
      */
     private void startBLEScan()
     {
-        Intent dsIntent;
-
-        // Create an intent targeting the device search.
-        dsIntent = new Intent(MainActivity.this, DeviceSearchActivity.class);
-        startActivityForResult(dsIntent, ApplicationConstants.REQ_BLE_DEVICESEARCH);
+        int timeout;
+        timeout = DataBroker.getDeviceSearchTimeout();
+        NurDeviceListActivity.startDeviceRequest(MainActivity.this, NurDeviceListActivity.REQ_BLE_DEVICES, timeout, false);
     }
 
     /**
@@ -378,7 +376,7 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
      *
      * @param deviceDescription Address and name ofthe device.
      */
-    private void tryConnect(BLEDeviceDescription deviceDescription)
+    private void tryConnect(NurDeviceSpec deviceDescription)
     {
         try {
             if (mAutoConnectTransport == null)
@@ -400,31 +398,31 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
     /**
      * Handle any result coming from the other activities such as the device search activity.
      *
-     * @param request This is the code what was requested.
-     * @param result The generic result / error code from the operation.
+     * @param requestCode This is the code what was requested.
+     * @param resultCode The generic result / error code from the operation.
      * @param data Data related to the result if any.
      *
      * @see com.nordicid.accessorydemo.ApplicationConstants
      */
-    private void handleActivityResult(int request, int result, Intent data)
+    private void handleActivityResult(int requestCode, int resultCode, Intent data)
     {
         int knownDevCount = 0;
         mSwappingActivity = false;
 
         Log.d(TAG, "activityResult: known devices = " + knownDevCount);
 
-        if (request == ApplicationConstants.REQ_BLE_DEVICESEARCH)
-        {
-            if (result == ApplicationConstants.RESULT_OK)
+        if (requestCode == NurDeviceListActivity.REQUEST_SELECT_DEVICE) {
+            if (resultCode == NurDeviceListActivity.RESULT_BLE)
             {
                 String name, address;
 
                 address = data.getStringExtra(ApplicationConstants.BLE_SELECTED_ADDRESS);
                 name = data.getStringExtra(ApplicationConstants.BLE_SELECTED_NAME);
 
-                mAutoConnectDevice = new BLEDeviceDescription(address, name);
+                mAutoConnectDevice = new NurDeviceSpec(address, name, NurDeviceSpec.BLE_TYPESTR, 0);
                 mDataBroker.setAutoconnectDevice(address, name);
             }
+
             if (mAutoConnectDevice != null) {
                 String connectionText = "Connect: " + mAutoConnectDevice.getAddress();
                 mConnectionText.setTextColor(CONN_YELLOW);
@@ -432,9 +430,9 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
                 tryConnect(mAutoConnectDevice);
             }
         }
-        else if (request == ApplicationConstants.REQ_READER_SETTINGS)
+        else if (requestCode == ApplicationConstants.REQ_READER_SETTINGS)
         {
-            if (result == ApplicationConstants.RESULT_OK_BLE_RESTART)
+            if (resultCode == ApplicationConstants.RESULT_OK_BLE_RESTART)
             {
                 String name, address;
 
@@ -450,22 +448,22 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
 
                 address = mAutoConnectDevice.getAddress();
 
-                mAutoConnectDevice = new BLEDeviceDescription(address, name);
+                mAutoConnectDevice = new NurDeviceSpec(address, name, NurDeviceSpec.BLE_TYPESTR, 0);
                 mDataBroker.setAutoconnectDevice(address, name);
 
                 startReaderAccessoryRestart();
             }
         }
-        else if (request == ApplicationConstants.REQ_APP_SETTINGS)
+        else if (requestCode == ApplicationConstants.REQ_APP_SETTINGS)
         {
-            if (result == ApplicationConstants.RESULT_OK_FORGET_DEVICE) {
+            if (resultCode == ApplicationConstants.RESULT_OK_FORGET_DEVICE) {
                 // Application settings already removed it.
                 mHelpers.shortToast("Forgetting device...");
                 mAutoConnectDevice = null;
                 mDisconnectOnResume = true;
             }
         }
-        else if (request == ApplicationConstants.REQ_ACCESSORY_ACTIONS && result == ApplicationConstants.RESULT_UNEXPECTED_DISCONNECT)
+        else if (requestCode == ApplicationConstants.REQ_ACCESSORY_ACTIONS && resultCode == ApplicationConstants.RESULT_UNEXPECTED_DISCONNECT)
         {
             disconnectedEvent();
         }
@@ -523,7 +521,7 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
         mBLERestart = false;
         mDevSearchBtn.setEnabled(true);
 
-        mAccessoryExtension = new NurAccessoryExtension(mApi);
+        // mAccessoryExtension = new NurAccessoryExtension(mApi);
 
         // For example
         // mAccessoryExtension.setBarcodeDecodingScheme("Shift_JIS");
@@ -567,11 +565,7 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
             mConnectionText.setText(R.string.text_disconnected);
         }
 
-        mAccessoryExtension.unregisterBarcodeResultListener();
-        mAccessoryExtension = null;
-        DataBroker.setAccessoryExtension(null);
         DataBroker.setAutoTransport(null);
-
         buttonDisconnectState();
 
         showVersions(false);
@@ -591,6 +585,9 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
     public void onResume() {
         super.onResume();
         mApi.setListener(this);
+
+        if (mAccessoryExtension == null)
+            mAccessoryExtension = new NurAccessoryExtension(mApi);
 
         Log.d(TAG, "onResume");
 

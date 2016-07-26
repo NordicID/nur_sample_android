@@ -20,15 +20,11 @@
             </intent-filter>
         </activity>
 
-        <!-- Declaration of the BLE device search activity. -->
+        <!-- Device listing. -->
         <activity
-            android:name=".DeviceSearchActivity"
-            android:label="BLE Device Search"
-            android:theme="@style/AppTheme">
-            <intent-filter>
-                <action android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
+            android:name="com.nordicid.nurapi.NurDeviceListActivity"
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme.Dialog" />
 
         <service
             android:name="com.nordicid.nurapi.UartService"

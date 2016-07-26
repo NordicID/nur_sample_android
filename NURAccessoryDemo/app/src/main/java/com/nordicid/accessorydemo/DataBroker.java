@@ -52,7 +52,7 @@ public class DataBroker {
     private static final String PREF_SEARCH_TIMEOUT = "SEARCH_TIMEOUT";
     private static final String PREF_BARCODE_SCAN_TIMEOUT = "BARCODE_SCAN_TIMEOUT";
 
-    private static BLEDeviceDescription _autoconnectDevice = null;
+    private static NurDeviceSpec _autoconnectDevice = null;
 
     public static DataBroker getInstance()
     {
@@ -185,8 +185,9 @@ public class DataBroker {
         strAutoAddr = prefs.getString (PREF_AUTO_ADDRESS, "");
         strAutoName = prefs.getString(PREF_AUTO_NAME, "");
 
+        // public NurDeviceSpec(String connectionAddress, String name, String connectionType, int port)
         if (!strAutoAddr.isEmpty() && !strAutoName.isEmpty() && checkForOkMac(strAutoAddr))
-            _autoconnectDevice = new BLEDeviceDescription(strAutoAddr, strAutoName);
+            _autoconnectDevice = new NurDeviceSpec(strAutoAddr, strAutoName, NurDeviceSpec.BLE_TYPESTR, 0);
         else
             _autoconnectDevice = null;
 
@@ -214,7 +215,7 @@ public class DataBroker {
             SharedPreferences prefs = _preferenceContext.getSharedPreferences(ApplicationConstants.APP_PREFERENCES_NAME, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
 
-            _autoconnectDevice = new BLEDeviceDescription(strAddress, strName);
+            _autoconnectDevice = new NurDeviceSpec(strAddress, strName, NurDeviceSpec.BLE_TYPESTR, 0);
             editor.putString(PREF_AUTO_ADDRESS, strAddress);
             editor.putString(PREF_AUTO_NAME, strName);
 
@@ -240,7 +241,7 @@ public class DataBroker {
         }
     }
 
-    public BLEDeviceDescription getAutoconnectDevice()
+    public NurDeviceSpec getAutoconnectDevice()
     {
         return _autoconnectDevice;
     }

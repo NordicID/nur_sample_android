@@ -44,17 +44,12 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
 
     /** Requesting file for uploading. */
     private static final int REQ_FILE_OPEN = 1;
-    /** Requesting BLE device search. */
-    public static final int REQ_BLE_DEVICESEARCH = 2;
 
     /** Device seach timeout in ms. */
-    public static final int DEVICE_SEARCH_TIMEOUT_MS = 3000;
+    public static final int DEVICE_SEARCH_TIMEOUT_MS = 4000;
 
     /** Action was canceled. */
     public static final int RESULT_CANCELED = 100;
-
-    /** String defining the selected device's address. */
-    public static final String BLE_SELECTED_ADDRESS = "DEVICE_ADDRESS";
 
     /** String defining the selected BLE device's name. */
     public static final String BLE_SELECTED_NAME = "DEVICE_NAME";
@@ -319,11 +314,7 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
 
     // Starts the device scan activity.
     private void scanForDevice() {
-        Intent dsIntent;
-
-        // Create an intent targeting the device search.
-        dsIntent = new Intent(MainActivity.this, DeviceSearchActivity.class);
-        startActivityForResult(dsIntent, REQ_BLE_DEVICESEARCH);
+        NurDeviceListActivity.startDeviceRequest(MainActivity.this, NurDeviceListActivity.REQ_BLE_DEVICES, DEVICE_SEARCH_TIMEOUT_MS, false);
     }
 
     // Tries to get the FW version.
@@ -352,10 +343,10 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == REQ_BLE_DEVICESEARCH) {
-            if (resultCode == RESULT_OK) {
-                mDeviceAddress = data.getStringExtra(BLE_SELECTED_ADDRESS);
-                //mConnectBtn.setEnabled(false);
+        if (requestCode == NurDeviceListActivity.REQUEST_SELECT_DEVICE && resultCode != NurDeviceListActivity.RESULT_CANCELED) {
+            if (data != null)
+            {
+                mDeviceAddress = data.getStringExtra(NurDeviceListActivity.DEVICE_ADDRESS);
                 disableAll();
                 mAcTr = new NurApiBLEAutoConnect(MainActivity.this, mApi);
                 mAcTr.setAddress(mDeviceAddress);

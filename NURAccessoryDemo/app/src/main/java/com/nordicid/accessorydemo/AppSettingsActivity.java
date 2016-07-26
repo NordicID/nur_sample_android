@@ -28,6 +28,8 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Spinner;
 
+import com.nordicid.nurapi.NurDeviceSpec;
+
 public class AppSettingsActivity extends AppCompatActivity {
     /** Some helper functionalities. */
     private Helpers mHelpers;
@@ -201,7 +203,7 @@ public class AppSettingsActivity extends AppCompatActivity {
         mBarcodeTmpSpinner.setSelection(mBarcodeIndex);
         mDeviceRememberChk.setChecked(mRememberDevice);
 
-        BLEDeviceDescription devDesc = DataBroker.getInstance().getAutoconnectDevice();
+        NurDeviceSpec devDesc = DataBroker.getInstance().getAutoconnectDevice();
         if (devDesc != null) {
             mForgetButton.setEnabled(true);
             mForgetButton.setText("Forget: " + devDesc.getAddress());
