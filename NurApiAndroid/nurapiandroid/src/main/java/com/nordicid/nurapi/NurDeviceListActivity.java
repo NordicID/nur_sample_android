@@ -90,7 +90,7 @@ public class NurDeviceListActivity extends Activity  {
     private int mRequestedDevices = 0;
 
     private static final String NID_FILTER = "nordicid_";
-    private boolean mCheckNordicID = true;
+    private boolean mCheckNordicID = false;
 
     List<NurDeviceSpec> mDeviceList;
 
@@ -586,12 +586,12 @@ public class NurDeviceListActivity extends Activity  {
 
     public static void startDeviceRequest(Activity activity) throws InvalidParameterException
     {
-        startDeviceRequest(activity, ALL_DEVICES, 0, true);
+        startDeviceRequest(activity, ALL_DEVICES, 0, false);
     }
 
     public static void startDeviceRequest(Activity activity, int devMask) throws InvalidParameterException
     {
-        startDeviceRequest(activity, devMask, 0, true);
+        startDeviceRequest(activity, devMask, 0, false);
     }
 
     public static void startDeviceRequest(Activity activity, int devMask, long scanTimeout, boolean filterNID) throws InvalidParameterException

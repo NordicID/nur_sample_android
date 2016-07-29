@@ -6,7 +6,8 @@
     <string name="average_speed_textview">AVG. SPEED</string>
     <string name="peak_textview">PEAK</string>
     <string name="tags_per_second_textview">TAGS/S</string>
-    
+    <string name="text_current_demo_version">Nordic ID RFID Demo V1.0.16</string>
+
     <string name="start">START</string>
     <string name="stop">STOP</string>
     <string name="clear">CLEAR</string>

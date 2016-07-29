@@ -88,7 +88,7 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	
 	/**
 	 * Gets the SubAppLists Context
-	 * @return Activitys context
+	 * @return Activity's context
 	 */
 	public Context getContext() {
 		return getActivity();
@@ -96,11 +96,22 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	
 	/**
 	 * Adds SubApp to the ArrayList of SubApp objects
-	 * @param SubApp app
+	 * @param app SubApp
 	 */
 	public void addSubApp(SubApp app) {
 		mSubApps.add(app);
 		mSubAppNames.add(app.getAppName());
+	}
+
+	public void removeSubApp(SubApp app) {
+		try {
+			mSubAppNames.remove(app.getAppName());
+			mSubApps.remove(app);
+		}
+		catch (Exception ex)
+		{
+			ex.printStackTrace();
+		}
 	}
 	
 	/**
@@ -147,7 +158,7 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	
 	/**
 	 * Sets open SubApps index. Used Internally.
-	 * @param SubApps index
+	 * @param i SubApps index
 	 */
 	public void setCurrentOpenSubApp(int i) {
 		SubApp cur = getCurrentOpenSubApp();
@@ -162,7 +173,7 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 
 	/**
 	 * Gets SubApp object from ArrayList with index
-	 * @param index of and SubApp
+	 * @param i Index of and SubApp
 	 * @return SubApp
 	 */
 	public SubApp getApp(int i) {
@@ -187,7 +198,7 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	
 	/**
 	 * Gets the SubApps name
-	 * @param index
+	 * @param i index
 	 * @return Name of the SubApp
 	 */
 	public String getAppName(int i) {

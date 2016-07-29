@@ -4,33 +4,14 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.nordicid.apptemplate.AppTemplate;
+import com.nordicid.apptemplate.SubApp;
 import com.nordicid.apptemplate.SubAppList;
-import com.nordicid.nurapi.NurApi;
-import com.nordicid.nurapi.NurApiAutoConnectTransport;
-import com.nordicid.nurapi.NurApiBLEAutoConnect;
-import com.nordicid.nurapi.NurApiListener;
-import com.nordicid.nurapi.NurApiUsbAutoConnect;
-import com.nordicid.nurapi.NurEventAutotune;
-import com.nordicid.nurapi.NurEventClientInfo;
-import com.nordicid.nurapi.NurEventDeviceInfo;
-import com.nordicid.nurapi.NurEventEpcEnum;
-import com.nordicid.nurapi.NurEventFrequencyHop;
-import com.nordicid.nurapi.NurEventIOChange;
-import com.nordicid.nurapi.NurEventInventory;
-import com.nordicid.nurapi.NurEventNxpAlarm;
-import com.nordicid.nurapi.NurEventProgrammingProgress;
-import com.nordicid.nurapi.NurEventTagTrackingChange;
-import com.nordicid.nurapi.NurEventTagTrackingData;
-import com.nordicid.nurapi.NurEventTraceTag;
-import com.nordicid.nurapi.NurEventTriggeredRead;
-import com.nordicid.nurapi.NurRespReaderInfo;
+import com.nordicid.nuraccessory.NurAccessoryExtension;
+import com.nordicid.nurapi.*;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Handler;
@@ -40,23 +21,27 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class Main extends AppTemplate {
-	
+
 	Timer timer;
-    TimerTask timerTask;
-    final Handler timerHandler = new Handler();
-	
+	TimerTask timerTask;
+	final Handler timerHandler = new Handler();
+
 	private NurApiAutoConnectTransport mAcTr;
-	
+
+	// These are used to toggle the visibility of the barcode app - not all readers support the accessory extension.
+	private SubAppList localAppList;
+	private SubApp localBarcodeApp;
+
 	public void startTimer() {
-		
+
 		stopTimer();
-		
+
 		//set a new Timer
 		timer = new Timer();
-		
+
 		//initialize the TimerTask's job
 		initializeTimerTask();
-		
+
 		//schedule the timer, after the first 10000ms the TimerTask will run every 10000ms
 		timer.schedule(timerTask, 10000, 10000); //
 	}
@@ -70,7 +55,7 @@ public class Main extends AppTemplate {
 	}
 
 	public void initializeTimerTask() {
-		
+
 		timerTask = new TimerTask() {
 			@Override
 			public void run() {
@@ -84,9 +69,8 @@ public class Main extends AppTemplate {
 			}
 		};
 	}
-	
-	void saveSettings()
-	{
+
+	void saveSettings() {
 		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = pref.edit();
 		if (mAcTr == null) {
@@ -97,92 +81,125 @@ public class Main extends AppTemplate {
 			editor.putString("connAddr", mAcTr.getAddress());
 		}
 		editor.commit();
-		
+
 		updateStatus();
 	}
-	
-	void loadSettings()
-	{
+
+	void loadSettings() {
 		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
 		String type = pref.getString("connType", "");
 		if (type.equals("BLE")) {
 			mAcTr = new NurApiBLEAutoConnect(this, getNurApi());
-		}
-		else if (type.equals("USB")) {
+		} else if (type.equals("USB")) {
 			mAcTr = new NurApiUsbAutoConnect(this, getNurApi());
-		}
-		else {
+		} else {
 			mAcTr = null;
 		}
 		if (mAcTr != null) {
 			mAcTr.setAddress(pref.getString("connAddr", ""));
 		}
-		
+
 		updateStatus();
 	}
-	
-	void updateStatus()
-	{
+
+	void updateStatus() {
 		String str;
 		if (mAcTr != null) {
-			
+
 			str = mAcTr.getType() + " " + mAcTr.getAddress();
 			if (getNurApi().isConnected())
 				str += " CONNECTED";
 			else
 				str += " DISCONNECTED";
-			
+
 			String details = mAcTr.getDetails();
 			if (!details.equals(""))
-				str +="; " + details;
-			
+				str += "; " + details;
+
 		} else {
 			str = "No connection defined";
 		}
 		setStatusText(str);
+
+		// getWindow().getDecorView().invalidate();
 	}
-	
+
 	@Override
 	protected void onPause() {
-		super.onPause();	
-		
+		super.onPause();
+
 		stopTimer();
-		
+
 		if (mAcTr != null) {
 			mAcTr.onPause();
 		}
 	}
-	
+
 	@Override
 	protected void onResume() {
 		super.onResume();
-		
+
 		if (mAcTr == null)
 			loadSettings();
-		
-		if (mAcTr != null) {			
+
+		if (mAcTr != null) {
 			mAcTr.onResume();
 		}
-		
+
 		startTimer();
 	}
-	
+
 	@Override
 	protected void onStop() {
-		super.onStop();		
-		
+		super.onStop();
+
 		if (mAcTr != null) {
 			mAcTr.onStop();
-		}		
+		}
 	}
-	
+
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		
+
 		if (mAcTr != null) {
 			mAcTr.onDestroy();
-		}		
+		}
+	}
+
+	// Test sub-apps that depend on FW version or accessory presence here.
+	private void testAddConditionalApps() {
+		boolean okToAdd = false;
+
+		if (localAppList == null) {
+			syncViewContents();
+			return;
+		}
+
+		try {
+			okToAdd = (new NurAccessoryExtension(getNurApi())).isSupported();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		if (okToAdd)
+			localAppList.addSubApp(localBarcodeApp);
+
+		syncViewContents();
+	}
+
+	void removeConditionalApps()
+	{
+		// Remove sub-app via AppTemplate : checks if the application is currently exiting
+		// thus eliminating any possible conflicts when destroying.
+		removeSubApp(localBarcodeApp);
+	}
+
+	// Visible app choices / not.
+	public void syncViewContents()
+	{
+		super.onResume();
 	}
 
 	@Override
@@ -191,7 +208,6 @@ public class Main extends AppTemplate {
 		NurApi theApi = getNurApi();
 
 		/* Reader settings application. */
-		//subAppList.addSubApp(new SettingsApp(this, this, theApi));
 		subAppList.addSubApp(new SettingsAppTabbed(this, this, theApi));
 		
 		if (AppTemplate.LARGE_SCREEN) 
@@ -208,19 +224,29 @@ public class Main extends AppTemplate {
 		subAppList.addSubApp(new WriteApp(this, this, theApi));
 
 		/* Barcode application. */
-		subAppList.addSubApp(new BarcodeApp(this, this, theApi));
-		
+		// subAppList.addSubApp(new BarcodeApp(this, this, theApi));
+		// Add this later if accessory extension is present.
+		localBarcodeApp = new BarcodeApp(this, this, theApi);
+
+		localAppList = subAppList;
 		theApi.setLogLevel(NurApi.LOG_ERROR);// | NurApi.LOG_USER | NurApi.LOG_VERBOSE);
 		
 		setAppListener(new NurApiListener() {
 			@Override
-			public void disconnectedEvent() { 
+			public void disconnectedEvent() {
+				removeConditionalApps();
+
+				if (exitingApplication())
+					return;
+
 				updateStatus();
 				Toast.makeText(Main.this, getString(R.string.reader_disconnected), Toast.LENGTH_SHORT).show();
 			}
 			@Override
-			public void connectedEvent() { 
-				updateStatus(); 
+			public void connectedEvent() {
+				testAddConditionalApps();
+				updateStatus();
+
 				Toast.makeText(Main.this, getString(R.string.reader_connected), Toast.LENGTH_SHORT).show();
 			}
 
@@ -257,15 +283,9 @@ public class Main extends AppTemplate {
 			@Override
 			public void IOChangeEvent(NurEventIOChange event) { }
 			@Override
-			public void tagTrackingScanEvent(NurEventTagTrackingData event) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void tagTrackingScanEvent(NurEventTagTrackingData event) { }
 			@Override
-			public void tagTrackingChangeEvent(NurEventTagTrackingChange event) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void tagTrackingChangeEvent(NurEventTagTrackingChange event) { }
 		});
 	}
 
@@ -313,79 +333,55 @@ public class Main extends AppTemplate {
 		builder.show();
 	}
 	
-	//NurApiBLETransport bleTr;
-	
-	private static final int REQUEST_SELECT_DEVICE = 1;
-	
 	@Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
 
-        case REQUEST_SELECT_DEVICE:
-        	//When the DeviceListActivity return, with the selected device address
-            if (resultCode == Activity.RESULT_OK && data != null) {
-                final String deviceAddress = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
-                //mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress);
-               
-                try {
-                	if (mAcTr != null) {
-	    				System.out.println("Dispose transport");            	
-    					mAcTr.dispose();
-    				}
+			case NurDeviceListActivity.REQUEST_SELECT_DEVICE: {
+				if (data == null || (resultCode != NurDeviceListActivity.RESULT_BLE && resultCode != NurDeviceListActivity.RESULT_USB))
+					return;
 
-					System.out.println("New BLE transport: " + deviceAddress);
-					mAcTr = new NurApiBLEAutoConnect(Main.this, getNurApi());
-        			mAcTr.setAddress(deviceAddress);
-        			saveSettings();		
-                	
-        		} catch (Exception e) {
-        			// TODO Auto-generated catch block
-        			e.printStackTrace();
-        		}
-            }
-            break;
-        }
+				if (data != null) {
+					String deviceAddress, transportType;
+
+					try {
+						deviceAddress = data.getStringExtra(NurDeviceListActivity.DEVICE_ADDRESS);
+						if (resultCode == NurDeviceListActivity.RESULT_BLE)
+							transportType = NurDeviceSpec.BLE_TYPESTR;
+						else
+							transportType = NurDeviceSpec.USB_TYPESTR;
+
+						if (mAcTr != null) {
+							System.out.println("Dispose transport");
+							mAcTr.dispose();
+						}
+
+						mAcTr = NurDeviceSpec.getAutoConnectTransport(this, transportType, getNurApi());
+						mAcTr.setAddress(deviceAddress);
+						saveSettings();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			break;
+		}
 	}
-	
+
 	void handleConnectionClick()
 	{
-		AlertDialog.Builder builder = new Builder(this);
-		
-		final CharSequence[] items = { "USB", "BLE" };
+		if (mAcTr != null)
+			mAcTr.dispose();
 
-		builder.setTitle("Select connection")
-        .setItems(items, new DialogInterface.OnClickListener() {
-            	@Override
-				public void onClick(DialogInterface dialog, int which) {
-            		switch (which)
-            		{
-            		case 0:
-            			{
-            				if (mAcTr != null)
-            					mAcTr.dispose();
-            				
-            				mAcTr = new NurApiUsbAutoConnect(Main.this, getNurApi());
-            				mAcTr.setAddress("USB");
-            				saveSettings();
-            			}
-            			break;
-            		case 1:
-            			{
-            				Intent newIntent = new Intent(Main.this, DeviceListActivity.class);
-            				startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
-            			}
-            			break;
-            		}
-            	}
-        });
-		builder.show();
+		// Request for "all devices", not filtering "nordicid_*".
+		NurDeviceListActivity.startDeviceRequest(this);
 	}
 
 	@Override
 	public void onDrawerItemClick(AdapterView<?> parent, View view, int position, long id) 
 	{
 		switch (position) {
-		case 0:
+			case 0:
 			handleAboutClick();
 			break;
 		case 1:

@@ -85,8 +85,7 @@ public class AppTemplate extends FragmentActivity {
 	private NurApiListener mCurrentListener = null;	
 	private NurApiListener mNurApiListener = new NurApiListener() {		
 		@Override
-		public void triggeredReadEvent(NurEventTriggeredRead event) {
-		}
+		public void triggeredReadEvent(NurEventTriggeredRead event) { }
 		
 		@Override
 		public void traceTagEvent(NurEventTraceTag event) {
@@ -95,12 +94,9 @@ public class AppTemplate extends FragmentActivity {
 		}
 		
 		@Override
-		public void programmingProgressEvent(NurEventProgrammingProgress event) {
-		}
-		
+		public void programmingProgressEvent(NurEventProgrammingProgress event) { }
 		@Override
-		public void nxpEasAlarmEvent(NurEventNxpAlarm event) {
-		}
+		public void nxpEasAlarmEvent(NurEventNxpAlarm event) { }
 		
 		@Override
 		public void logEvent(int level, String txt) {
@@ -129,12 +125,10 @@ public class AppTemplate extends FragmentActivity {
 		}
 		
 		@Override
-		public void frequencyHopEvent(NurEventFrequencyHop event) {
-		}
+		public void frequencyHopEvent(NurEventFrequencyHop event) { }
 		
 		@Override
-		public void epcEnumEvent(NurEventEpcEnum event) {
-		}
+		public void epcEnumEvent(NurEventEpcEnum event) { }
 		
 		@Override
 		public void disconnectedEvent() {
@@ -145,12 +139,10 @@ public class AppTemplate extends FragmentActivity {
 		}
 		
 		@Override
-		public void deviceSearchEvent(NurEventDeviceInfo event) {
-		}
+		public void deviceSearchEvent(NurEventDeviceInfo event) { }
 		
 		@Override
-		public void debugMessageEvent(String event) {
-		}
+		public void debugMessageEvent(String event) { }
 		
 		@Override
 		public void connectedEvent() {
@@ -161,12 +153,9 @@ public class AppTemplate extends FragmentActivity {
 		}
 		
 		@Override
-		public void clientDisconnectedEvent(NurEventClientInfo event) {
-		}
-		
+		public void clientDisconnectedEvent(NurEventClientInfo event) { }
 		@Override
-		public void clientConnectedEvent(NurEventClientInfo event) {
-		}
+		public void clientConnectedEvent(NurEventClientInfo event) { }
 		
 		@Override
 		public void bootEvent(String event) {
@@ -183,21 +172,11 @@ public class AppTemplate extends FragmentActivity {
 		}
 
 		@Override
-		public void autotuneEvent(NurEventAutotune event) {
-			// TODO Auto-generated method stub
-		}
-
+		public void autotuneEvent(NurEventAutotune event) { }
 		@Override
-		public void tagTrackingScanEvent(NurEventTagTrackingData event) {
-			// TODO Auto-generated method stub
-			
-		}
-
+		public void tagTrackingScanEvent(NurEventTagTrackingData event) { }
 		@Override
-		public void tagTrackingChangeEvent(NurEventTagTrackingChange event) {
-			// TODO Auto-generated method stub
-			
-		}
+		public void tagTrackingChangeEvent(NurEventTagTrackingChange event) { }
 	};
 
 	private void changeSubAppListener()
@@ -221,22 +200,6 @@ public class AppTemplate extends FragmentActivity {
 	 * Indicates if the current device has a large screen
 	 */
 	public static boolean LARGE_SCREEN;
-/*
-	private String screenSizeToStrr(int size)
-	{
-		String ret = "";
-		switch (size)
-		{
-			case Configuration.SCREENLAYOUT_SIZE_UNDEFINED: ret = "undefined"; break;
-			case Configuration.SCREENLAYOUT_SIZE_SMALL: ret = "small"; break;
-			case Configuration.SCREENLAYOUT_SIZE_NORMAL: ret = "normal"; break;
-			case Configuration.SCREENLAYOUT_SIZE_LARGE: ret = "large"; break;
-			case Configuration.SCREENLAYOUT_SIZE_XLARGE: ret = "extra large"; break;
-			default: ret = String.format("unknown value (%d, 0x%08X)", size, size); break;
-		}
-		return ret;
-	}	
-*/
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -267,61 +230,10 @@ public class AppTemplate extends FragmentActivity {
 		
 		//Set the drawer and add items to it
 		setDrawer(true);
-		
-/*
-		screenLayout = getResources().getConfiguration().screenLayout;
-		layoutMask = Configuration.SCREENLAYOUT_SIZE_MASK;
-		maskResult = (screenLayout & layoutMask);
-		System.out.println("*********** S C R E E N ***********");
-		System.out.println("SREEN: size = " + screenSizeToStrr(maskResult));
-		
-		System.out.println(String.format("SCREEN layout value = %d (0x%08X)", screenLayout, screenLayout));
-		System.out.println(String.format("SCREEN layout mask = %d (0x%08X)", layoutMask, layoutMask));
-		System.out.println(String.format("SCREEN mask result = %d (0x%08X)", maskResult, maskResult));
-		System.out.println("******* E N D   S C R E E N *******");		
-*/	
-		//Prevents orientation if device has small,normal or undefined screen size
-		/*if (maskResult != Configuration.SCREENLAYOUT_SIZE_LARGE) 
-		{
-			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-			//System.out.println("SCREEN: LARGE = false, 1.");
-			LARGE_SCREEN = false;
-		} 
-		else if (maskResult == Configuration.SCREENLAYOUT_SIZE_UNDEFINED) 
-		{
-			LARGE_SCREEN = false;
-			//System.out.println("SCREEN: LARGE = false, 2.");
-			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		} 
-		else 
-		{
-			//System.out.println("SCREEN: LARGE = true.");
-			LARGE_SCREEN = true;
-		}*/
-		
+
 		// FIXME!
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		LARGE_SCREEN = false;
-		
-/*
-		//Prevents orientation if device has small,normal or undefined screen size
-		if ((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) != 
-			    Configuration.SCREENLAYOUT_SIZE_LARGE) 
-		{
-			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-			LARGE_SCREEN = false;
-		} 
-		else if ((getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) ==
-				Configuration.SCREENLAYOUT_SIZE_UNDEFINED) 
-		{
-			LARGE_SCREEN = false;
-			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		} 
-		else 
-		{
-			LARGE_SCREEN = true;
-		}
-*/
 
 		mSubAppList = new SubAppList(this);
 		
@@ -358,13 +270,13 @@ public class AppTemplate extends FragmentActivity {
         super.onPostCreate(savedInstanceState);
         mDrawerToggle.syncState();
     }
-	
+
 	public int getTemplateTheme() {
 		return R.style.TemplateDefaultTheme;
 	}
 	
 	/**
-	 * Creates the action/tittlebar. Used internally.
+	 * Creates the action / title bar. Used internally.
 	 */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -389,10 +301,19 @@ public class AppTemplate extends FragmentActivity {
 	/**
 	 * Method that is executed when SubAppList created. Use 
 	 * this method to add SubApps to SubAppList.
-	 * @see com.nordicid.SubappList.addSubApp
+	 *
+	 * @see com.nordicid.apptemplate.SubAppList#addSubApp(SubApp)
 	 */
 	protected void onCreateSubApps(SubAppList subAppList) { }
-	
+
+	protected void removeSubApp(SubApp toRemove)
+	{
+		if (mExitingApplication)
+			return;	// Don't go poking around when already exiting.
+
+		mSubAppList.removeSubApp(toRemove);
+	}
+
 	/**
 	 * Gets all the SubApp objects from
 	 * SubAppList in a ArrayList.
@@ -405,7 +326,7 @@ public class AppTemplate extends FragmentActivity {
 	
 	/**
 	 * Gets the SubApp with index
-	 * @param index of SubApp in ArrayList of SubApps
+	 * @param i Index of SubApp in ArrayList of SubApps
 	 * @return SubApp
 	 * @see SubApp
 	 */
@@ -480,9 +401,8 @@ public class AppTemplate extends FragmentActivity {
 	 * must return false to execute this method fully. If orientation is landscape 
 	 * current open SubApp wont be closed, method will execute doubleOnBackPressExit 
 	 * to exit.
-	 * @see doubleOnBackPressExit.
-	 * @see com.nordicid.apptemplate.Subapp.onFragmentBackPressed
-
+	 * @see #doubleOnBackPressExit
+	 * @see com.nordicid.apptemplate.AppTemplate
 	 */
 	@Override
 	public void onBackPressed() {
@@ -525,12 +445,22 @@ public class AppTemplate extends FragmentActivity {
 			doubleOnBackPressExit();
 		}
 	}
-	
+
+	private boolean mExitingApplication = false;
+
+	// Return the "exiting now" status; may be required for not to
+	// poke around the sub-apps too much at the wrong time.
+	public boolean exitingApplication()
+	{
+		return mExitingApplication;
+	}
+
 	/**
 	 * Method to exit the app if called twice in 2 seconds
 	 */
 	private void doubleOnBackPressExit() {
 		if (backPressedOnce) {
+			mExitingApplication = true;
 			super.onBackPressed();
 			//this.finish();
 	        return;
@@ -542,7 +472,8 @@ public class AppTemplate extends FragmentActivity {
 	    new Handler().postDelayed(new Runnable() {
 	        @Override
 	        public void run() {
-	            backPressedOnce = false;                       
+	            backPressedOnce = false;
+				mExitingApplication = false;
 	        }
 	    }, 2000);
 	}
@@ -550,8 +481,8 @@ public class AppTemplate extends FragmentActivity {
 	/**
 	 * Method to open SubApp with index (apps index).
 	 * If SubApp with index given not found, a Toast will be shown.
-	 * @param index of the app in ArrayList of SubApps 
-	 * @param params for to be opened SubApp
+	 * @param index Index of the app in ArrayList of SubApps
+	 * @param bundle Parameters for to be opened SubApp
 	 */
 	public void setApp(int index, Bundle bundle) {
 		openSubApp(index, bundle);
@@ -561,9 +492,11 @@ public class AppTemplate extends FragmentActivity {
 	/**
 	 * Method to open another SubApp with its name.
 	 * If SubApp with given name not found, a Toast will be shown.
+	 *
 	 *  @param name of the SubApp
-	 *  @param params for to be opened SubApp
-	 *  @see SubApp.getAppName
+	 *  @param bundle PArameters for to be opened SubApp
+	 *
+	 *  @see SubAppList#getAppName(int)
 	 */
 	public void setApp(String name, Bundle bundle) {
 
@@ -582,8 +515,8 @@ public class AppTemplate extends FragmentActivity {
 	/**
 	 *  If SubApp to be open with the index not found, method shows a Toast. 
 	 *  Used internally to open SubApps.
-	 * @param index of an SubApp
-	 * @param params
+	 * @param i Index of an SubApp
+	 * @param bundle Parameters.
 	 */
 	private void openSubApp(int i, Bundle bundle) {
  

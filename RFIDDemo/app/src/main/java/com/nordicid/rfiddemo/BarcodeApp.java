@@ -34,7 +34,7 @@ public class BarcodeApp extends SubApp {
 
 	private NurApiListener mThisClassListener = null;
 
-	private NurAccessoryExtension mBleExt;
+	private NurAccessoryExtension mAccessoryExt;
 	private boolean mIsBle = false;
 	private NurAccessoryConfig mBleCfg = null;
 
@@ -48,8 +48,8 @@ public class BarcodeApp extends SubApp {
 	public BarcodeApp(Context c, AppTemplate t, NurApi na) {
 		super(c, t, na);
 
-		mBleExt = new NurAccessoryExtension(na);
-		mBleExt.registerBarcodeResultListener(new AccessoryBarcodeResultListener() {
+		mAccessoryExt = new NurAccessoryExtension(na);
+		mAccessoryExt.registerBarcodeResultListener(new AccessoryBarcodeResultListener() {
 			@Override
 			public void onBarcodeResult(AccessoryBarcodeResult result) {
 				if (result.status == NurApiErrors.NO_TAG) {
@@ -62,7 +62,7 @@ public class BarcodeApp extends SubApp {
 					mText = result.strBarcode;
 					try {
 						// Beep on success
-						mBleExt.beepAsync(200);
+						mAccessoryExt.beepAsync(200);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -79,82 +79,48 @@ public class BarcodeApp extends SubApp {
 			}
 
 			@Override
-			public void disconnectedEvent() {
-			}
-
+			public void disconnectedEvent() { }
 			@Override
-			public void logEvent(int level, String txt) {
-			}
-
+			public void logEvent(int level, String txt) { }
 			@Override
-			public void bootEvent(String event) {
-			}
-
+			public void bootEvent(String event) { }
 			@Override
-			public void inventoryStreamEvent(NurEventInventory event) {
-			}
+			public void inventoryStreamEvent(NurEventInventory event) { }
 
 			@Override
 			public void IOChangeEvent(NurEventIOChange event) {
-				if (event.source == 100)
+				if (event.source == NurAccessoryExtension.TRIGGER_SOURCE)
 					bleTrigger(event.direction);
 			}
 
 			@Override
-			public void traceTagEvent(NurEventTraceTag event) {
-			}
-
+			public void traceTagEvent(NurEventTraceTag event) { }
 			@Override
-			public void triggeredReadEvent(NurEventTriggeredRead event) {
-			}
-
+			public void triggeredReadEvent(NurEventTriggeredRead event) { }
 			@Override
-			public void frequencyHopEvent(NurEventFrequencyHop event) {
-			}
-
+			public void frequencyHopEvent(NurEventFrequencyHop event) { }
 			@Override
-			public void debugMessageEvent(String event) {
-			}
-
+			public void debugMessageEvent(String event) { }
 			@Override
-			public void inventoryExtendedStreamEvent(NurEventInventory event) {
-			}
-
+			public void inventoryExtendedStreamEvent(NurEventInventory event) { }
 			@Override
-			public void programmingProgressEvent(NurEventProgrammingProgress event) {
-			}
-
+			public void programmingProgressEvent(NurEventProgrammingProgress event) { }
 			@Override
-			public void deviceSearchEvent(NurEventDeviceInfo event) {
-			}
-
+			public void deviceSearchEvent(NurEventDeviceInfo event) { }
 			@Override
-			public void clientConnectedEvent(NurEventClientInfo event) {
-			}
-
+			public void clientConnectedEvent(NurEventClientInfo event) { }
 			@Override
-			public void clientDisconnectedEvent(NurEventClientInfo event) {
-			}
-
+			public void clientDisconnectedEvent(NurEventClientInfo event) { }
 			@Override
-			public void nxpEasAlarmEvent(NurEventNxpAlarm event) {
-			}
-
+			public void nxpEasAlarmEvent(NurEventNxpAlarm event) { }
 			@Override
-			public void epcEnumEvent(NurEventEpcEnum event) {
-			}
-
+			public void epcEnumEvent(NurEventEpcEnum event) { }
 			@Override
-			public void autotuneEvent(NurEventAutotune event) {
-			}
-
+			public void autotuneEvent(NurEventAutotune event) { }
 			@Override
-			public void tagTrackingScanEvent(NurEventTagTrackingData event) {
-			}
-
+			public void tagTrackingScanEvent(NurEventTagTrackingData event) { }
 			@Override
-			public void tagTrackingChangeEvent(NurEventTagTrackingChange event) {
-			}
+			public void tagTrackingChangeEvent(NurEventTagTrackingChange event) { }
 		};
 	}
 
@@ -181,11 +147,11 @@ public class BarcodeApp extends SubApp {
 	}
 
 	private void testBleReader() {
-		mIsBle = mBleExt.isSupported();
+		mIsBle = mAccessoryExt.isSupported();
 		mBleCfg = null;
 		if (mIsBle) {
 			try {
-				mBleCfg = mBleExt.getConfig();
+				mBleCfg = mAccessoryExt.getConfig();
 			} catch (Exception e) {
 			}
 		}
@@ -219,7 +185,7 @@ public class BarcodeApp extends SubApp {
 
 		if (mIsActive) {
 			try {
-				mBleExt.cancelBarcodeAsync();
+				mAccessoryExt.cancelBarcodeAsync();
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -235,7 +201,7 @@ public class BarcodeApp extends SubApp {
 		mText = "";
 
 		try {
-			mBleExt.readBarcodeAsync(5000);
+			mAccessoryExt.readBarcodeAsync(5000);
 			mIsActive = true;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
