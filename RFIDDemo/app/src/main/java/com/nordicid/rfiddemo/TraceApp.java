@@ -49,9 +49,9 @@ public class TraceApp extends SubApp {
 	
 	private TraceTagController mTraceController;
 	
-	public TraceApp(Context c, AppTemplate t, NurApi na) {
-		super(c,t, na);
-		mTraceController = new TraceTagController(na);
+	public TraceApp() {
+		super();
+		mTraceController = new TraceTagController(getNurApi());
 	}
 	
 	@Override

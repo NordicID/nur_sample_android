@@ -20,11 +20,6 @@ public class InventoryAppFoundTab extends Fragment {
 
 	public SimpleAdapter mFoundTagsListViewAdapter;
 	private ListView mInventoryTagList;
-	private InventoryAppTabbed mParent;
-	
-	public InventoryAppFoundTab(InventoryAppTabbed parent) {
-		mParent = parent;
-	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -113,7 +108,7 @@ public class InventoryAppFoundTab extends Fragment {
 				Bundle b = new Bundle();
 				b.putString("epc", tagData.get("epc"));
 				dialog.dismiss();
-				mParent.getAppTemplate().setApp("Locate", b);
+				InventoryAppTabbed.getInstance().getAppTemplate().setApp("Locate", b);
 			}			
 		});
 		

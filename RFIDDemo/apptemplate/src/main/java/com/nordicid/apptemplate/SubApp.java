@@ -25,37 +25,22 @@ public class SubApp extends Fragment {
 	private LinearLayout mButtonBar;
 	private int mButtonBarButtonCount;
 	
-	private Context mContext;
-	private AppTemplate mAppTemplate;
-	private NurApi mApi;
-	
 	private int[] default_animations = {
 			R.anim.default_enter_app,
 			R.anim.default_exit_app
 		};
 	
 	public Context getContext()
-	{		
-		return mContext;
+	{
+		return AppTemplate.getAppTemplate();
 	}
 	public AppTemplate getAppTemplate()
-	{		
-		return mAppTemplate;
+	{
+		return AppTemplate.getAppTemplate();
 	}
 	public NurApi getNurApi()
-	{		
-		return mApi;
-	}
-	
-	/**
-	 * Use this constructor to create a subapp that
-	 * can directly open another subapp
-	 * @param t AppTemplate (use getAppTemplate() in your MainActivity)
-	 */
-	public SubApp(Context c, AppTemplate t, NurApi na) {
-		mContext = c;
-		mAppTemplate = t;
-		mApi = na;
+	{
+		return AppTemplate.getAppTemplate().getNurApi();
 	}
 	
 	public SubApp() { }

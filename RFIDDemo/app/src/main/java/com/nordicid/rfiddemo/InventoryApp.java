@@ -53,10 +53,10 @@ public class InventoryApp extends SubApp {
 		return mInventoryController.getNurApiListener();	
 	}
 
-	public InventoryApp(Context c,AppTemplate t, NurApi na) {
-		super(c,t, na);
+	public InventoryApp() {
+		super();
 		mHandler = new Handler(Looper.getMainLooper());
-		mInventoryController = new InventoryController(na);
+		mInventoryController = new InventoryController(getNurApi());
 	}
 
 	@Override

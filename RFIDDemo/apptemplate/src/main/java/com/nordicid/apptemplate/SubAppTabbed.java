@@ -25,8 +25,8 @@ public class SubAppTabbed extends SubApp {
 	protected ArrayList<Fragment> mFragments = new ArrayList<Fragment>();
 	protected ArrayList<String> mFragmentNames = new ArrayList<String>();
 	
-	public SubAppTabbed(Context c, AppTemplate t, NurApi na) {
-		super(c,t,na);
+	public SubAppTabbed() {
+		super();
 	}
 	
 	protected int onGetFragments(ArrayList<Fragment> fragments, ArrayList<String> fragmentNames) throws Exception

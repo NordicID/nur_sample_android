@@ -59,9 +59,9 @@ public class SettingsAppSettingsTab extends Fragment
 		return mThisClassListener;
 	}
 	
-	public SettingsAppSettingsTab(SettingsAppTabbed owner) {
-		mOwner = owner;
-		mApi = owner.getNurApi();
+	public SettingsAppSettingsTab() {
+		mOwner = SettingsAppTabbed.getInstance();
+		mApi = mOwner.getNurApi();
 		
 		mThisClassListener =  new NurApiListener() {
 			@Override

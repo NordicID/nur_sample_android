@@ -45,10 +45,10 @@ public class BarcodeApp extends SubApp {
 		return mThisClassListener;
 	}
 
-	public BarcodeApp(Context c, AppTemplate t, NurApi na) {
-		super(c, t, na);
+	public BarcodeApp() {
+		super();
 
-		mAccessoryExt = new NurAccessoryExtension(na);
+		mAccessoryExt = new NurAccessoryExtension(getNurApi());
 		mAccessoryExt.registerBarcodeResultListener(new AccessoryBarcodeResultListener() {
 			@Override
 			public void onBarcodeResult(AccessoryBarcodeResult result) {

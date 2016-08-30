@@ -204,29 +204,29 @@ public class Main extends AppTemplate {
 
 	@Override
 	public void onCreateSubApps(SubAppList subAppList) {
-		
+
 		NurApi theApi = getNurApi();
 
 		/* Reader settings application. */
-		subAppList.addSubApp(new SettingsAppTabbed(this, this, theApi));
+		subAppList.addSubApp(new SettingsAppTabbed());
 		
 		if (AppTemplate.LARGE_SCREEN) 
 		{
-			subAppList.addSubApp(new InventoryApp(this, this, theApi));
+			subAppList.addSubApp(new InventoryApp());
 		} else {
-			subAppList.addSubApp(new InventoryAppTabbed(this, this, theApi));
+			subAppList.addSubApp(new InventoryAppTabbed());
 		}
 		
 		/* Tag trace application. */
-		subAppList.addSubApp(new TraceApp(this, this, theApi));
+		subAppList.addSubApp(new TraceApp());
 		
 		/* Tag write application. */
-		subAppList.addSubApp(new WriteApp(this, this, theApi));
+		subAppList.addSubApp(new WriteApp());
 
 		/* Barcode application. */
 		// subAppList.addSubApp(new BarcodeApp(this, this, theApi));
 		// Add this later if accessory extension is present.
-		localBarcodeApp = new BarcodeApp(this, this, theApi);
+		localBarcodeApp = new BarcodeApp();
 
 		localAppList = subAppList;
 		theApi.setLogLevel(NurApi.LOG_ERROR);// | NurApi.LOG_USER | NurApi.LOG_VERBOSE);

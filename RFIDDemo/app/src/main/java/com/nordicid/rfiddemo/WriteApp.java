@@ -41,9 +41,9 @@ public class WriteApp extends SubApp {
 	
 	private TagWriteController mTagWriteController;
 	
-	public WriteApp(Context c, AppTemplate t, NurApi na) {
-		super(c,t, na);
-		mTagWriteController = new TagWriteController(na);
+	public WriteApp() {
+		super();
+		mTagWriteController = new TagWriteController(getNurApi());
 		
 	}
 

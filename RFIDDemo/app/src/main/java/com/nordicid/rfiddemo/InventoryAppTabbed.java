@@ -41,6 +41,12 @@ public class InventoryAppTabbed extends SubAppTabbed {
 	long mLastUpdateTagCount = 0;
 	
 	Handler mHandler;
+
+	private static InventoryAppTabbed gInstance = null;
+	public static InventoryAppTabbed getInstance()
+	{
+		return gInstance;
+	}
 	
 	public InventoryController getInventoryController()
 	{		
@@ -53,18 +59,19 @@ public class InventoryAppTabbed extends SubAppTabbed {
 		return mInventoryController.getNurApiListener();	
 	}
 	
-	public InventoryAppTabbed(Context c, AppTemplate t, NurApi na) {
-		super(c,t,na);
+	public InventoryAppTabbed() {
+		super();
+		gInstance = this;
 		mHandler = new Handler(Looper.getMainLooper());
-		mInventoryController = new InventoryController(na);
+		mInventoryController = new InventoryController(getNurApi());
 	}
 	
 	@Override
 	protected int onGetFragments(ArrayList<Fragment> fragments, ArrayList<String> fragmentNames) throws Exception
 	{
 		//create instances to fragments and pager.
-		mReadingTab = new InventoryAppReadingTab(this);
-		mFoundTab = new InventoryAppFoundTab(this);
+		mReadingTab = new InventoryAppReadingTab();
+		mFoundTab = new InventoryAppFoundTab();
 		
 		fragmentNames.add("Reading");
 		fragments.add(mReadingTab);

@@ -58,11 +58,11 @@ public class SettingsApp extends SubApp {
 		return mThisClassListener;
 	}
 	
-	public SettingsApp(Context c, AppTemplate t, NurApi na) {
-		super(c, t, na);
+	public SettingsApp() {
+		super();
 		
-		mApi = na;
-		
+		mApi = getNurApi();
+
 		mThisClassListener =  new NurApiListener() {
 			@Override
 			public void connectedEvent() {

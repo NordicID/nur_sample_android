@@ -67,7 +67,13 @@ public class AppTemplate extends FragmentActivity {
 	
 	private boolean mConfigurationChanged = false;
 	private boolean mNoConfigChangeCheck = false;
-	
+
+	private static AppTemplate gInstance = null;
+	public static AppTemplate getAppTemplate()
+	{
+		return gInstance;
+	}
+
 	public boolean isRecentConfigurationChange()
 	{
 		boolean rc = mConfigurationChanged;
@@ -203,6 +209,9 @@ public class AppTemplate extends FragmentActivity {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+
+		gInstance = this;
+
 		super.onCreate(savedInstanceState);
 		//int screenLayout = 0;
 		//int layoutMask = 0;

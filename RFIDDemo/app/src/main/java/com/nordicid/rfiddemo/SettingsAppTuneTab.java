@@ -30,8 +30,8 @@ public class SettingsAppTuneTab extends Fragment
 	Handler mHandler;
 	NurApi mApi;
 	
-	public SettingsAppTuneTab(SettingsAppTabbed owner) {
-		mOwner = owner;
+	public SettingsAppTuneTab() {
+		mOwner = SettingsAppTabbed.getInstance();
 		mApi = mOwner.getNurApi();
 	}
 	

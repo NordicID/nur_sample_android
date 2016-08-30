@@ -43,8 +43,8 @@ public class SettingsAppHidTab extends Fragment {
 		return mThisClassListener;
 	}
 	
-	public SettingsAppHidTab(SettingsAppTabbed owner) {
-		mOwner = owner;
+	public SettingsAppHidTab() {
+		mOwner = SettingsAppTabbed.getInstance();
 		mApi = mOwner.getNurApi();
 		mExt = new NurAccessoryExtension(mApi);
 		

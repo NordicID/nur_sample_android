@@ -9,16 +9,10 @@ import android.widget.TextView;
 
 public class InventoryAppReadingTab extends Fragment {
 
-	private InventoryAppTabbed mParent;
-	
 	private TextView mInventoryCountTextView;
 	private TextView mInventoryTotalTime;
 	private TextView mInventoryTagsInTime;
 
-	public InventoryAppReadingTab(InventoryAppTabbed parent) {
-		mParent = parent;
-	}
-	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -43,13 +37,13 @@ public class InventoryAppReadingTab extends Fragment {
 
 	public void updateNumTags(long numTags) {
 		if (lastTagCount != numTags) {
-			mInventoryTagsInTime.setText(String.format("%.1f", mParent.getInventoryController().getElapsedSecs()));
+			mInventoryTagsInTime.setText(String.format("%.1f", InventoryAppTabbed.getInstance().getInventoryController().getElapsedSecs()));
 			lastTagCount = numTags;
 		}		
 		if (numTags < 0)
 			numTags = 0;
 		mInventoryCountTextView.setText(Long.toString(numTags));
-		mInventoryTotalTime.setText(String.format("%.1f", mParent.getInventoryController().getElapsedSecs()));
+		mInventoryTotalTime.setText(String.format("%.1f", InventoryAppTabbed.getInstance().getInventoryController().getElapsedSecs()));
 	}	
 	
 }

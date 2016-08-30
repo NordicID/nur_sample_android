@@ -30,6 +30,12 @@ public class SettingsAppTabbed extends SubAppTabbed {
 	private SettingsAppHidTab mSettingsHidTab;
 	
 	private NurApiListener mThisClassListener = null;
+
+	private static SettingsAppTabbed gInstance = null;
+	public static SettingsAppTabbed getInstance()
+	{
+		return gInstance;
+	}
 	
 	@Override
 	public NurApiListener getNurApiListener()
@@ -37,12 +43,13 @@ public class SettingsAppTabbed extends SubAppTabbed {
 		return mThisClassListener;
 	}
 	
-	public SettingsAppTabbed(Context c, AppTemplate t, NurApi na) {
-		super(c, t, na);		
+	public SettingsAppTabbed() {
+		super();
+		gInstance = this;
 		
-		mSettingsTab = new SettingsAppSettingsTab(this);
-		mSettingsTuneTab = new SettingsAppTuneTab(this);
-		mSettingsHidTab = new SettingsAppHidTab(this);
+		mSettingsTab = new SettingsAppSettingsTab();
+		mSettingsTuneTab = new SettingsAppTuneTab();
+		mSettingsHidTab = new SettingsAppHidTab();
 		
 		mThisClassListener =  new NurApiListener() {
 			@Override
