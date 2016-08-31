@@ -22,6 +22,8 @@ import android.widget.Toast;
 
 public class Main extends AppTemplate {
 
+	public static final int AUTH_REQUIRED_VERSION = 0x050500 + ('A' & 0xFF);
+	public static final String AUTH_REQUIRED_VERSTRING = "5.5-A";
 	Timer timer;
 	TimerTask timerTask;
 	final Handler timerHandler = new Handler();
@@ -31,6 +33,7 @@ public class Main extends AppTemplate {
 	// These are used to toggle the visibility of the barcode app - not all readers support the accessory extension.
 	private SubAppList localAppList;
 	private SubApp localBarcodeApp;
+	private SubApp localAuthApp;
 
 	public void startTimer() {
 
@@ -167,9 +170,37 @@ public class Main extends AppTemplate {
 		}
 	}
 
+	private int getFwIntVersion(NurApi api)
+	{
+		int iVersion = 0;
+		mDetectedFw = "";
+
+		if (api != null && api.isConnected()) {
+			try {
+				NurRespReaderInfo ri;
+				ri = api.getReaderInfo();
+
+				mDetectedFw = ri.swVersion;
+
+				iVersion = ri.swVerMajor & 0xFF;
+				iVersion <<= 8;
+				iVersion |= (ri.swVerMinor & 0xFF);
+				iVersion <<= 8;
+				iVersion |= (ri.swVerDev & 0xFF);
+
+			} catch (Exception ex) {
+
+			}
+		}
+
+		return iVersion;
+	}
+
+	private String mDetectedFw = "";
 	// Test sub-apps that depend on FW version or accessory presence here.
 	private void testAddConditionalApps() {
 		boolean okToAdd = false;
+		mAuthAppAdded = false;
 
 		if (localAppList == null) {
 			syncViewContents();
@@ -186,6 +217,11 @@ public class Main extends AppTemplate {
 		if (okToAdd)
 			localAppList.addSubApp(localBarcodeApp);
 
+		if (getFwIntVersion(getNurApi()) >= AUTH_REQUIRED_VERSION) {
+			localAppList.addSubApp(localAuthApp);
+			mAuthAppAdded = true;
+		}
+
 		syncViewContents();
 	}
 
@@ -194,6 +230,8 @@ public class Main extends AppTemplate {
 		// Remove sub-app via AppTemplate : checks if the application is currently exiting
 		// thus eliminating any possible conflicts when destroying.
 		removeSubApp(localBarcodeApp);
+		removeSubApp(localAuthApp);
+		mAuthAppAdded = false;
 	}
 
 	// Visible app choices / not.
@@ -201,6 +239,8 @@ public class Main extends AppTemplate {
 	{
 		super.onResume();
 	}
+
+	private boolean mAuthAppAdded = false;
 
 	@Override
 	public void onCreateSubApps(SubAppList subAppList) {
@@ -228,6 +268,8 @@ public class Main extends AppTemplate {
 		// Add this later if accessory extension is present.
 		localBarcodeApp = new BarcodeApp();
 
+		localAuthApp = new AuthenticationAppTabbed(this, this, theApi);
+
 		localAppList = subAppList;
 		theApi.setLogLevel(NurApi.LOG_ERROR);// | NurApi.LOG_USER | NurApi.LOG_VERBOSE);
 		
@@ -244,10 +286,20 @@ public class Main extends AppTemplate {
 			}
 			@Override
 			public void connectedEvent() {
+				String msg = getString(R.string.reader_connected);
+				int toastLength = Toast.LENGTH_SHORT;
+
 				testAddConditionalApps();
+
+				if (!mAuthAppAdded && !mDetectedFw.isEmpty())
+				{
+					msg += ("\nAuthentication app not added.\nFW = " + mDetectedFw + "\nMinimum required=" + AUTH_REQUIRED_VERSTRING);
+					toastLength = Toast.LENGTH_LONG;
+				}
+
 				updateStatus();
 
-				Toast.makeText(Main.this, getString(R.string.reader_connected), Toast.LENGTH_SHORT).show();
+				Toast.makeText(Main.this, msg, toastLength).show();
 			}
 
 			@Override

@@ -41,6 +41,9 @@
     
     <string name="inventory_clear_notice">Clear all current readings?</string>
     <string name="no_tags">No tags read yet</string>
+
+    <string name="no_auth_yet">No tags authenticated yet</string>
+
     <string name="start_location">Start location</string>
     <string name="start_location_notice">Do you want to start location for </string>
     
@@ -80,5 +83,13 @@
     <string name="paired">paired</string>
     <string name="ble_not_supported">Bluetooth Low Energy not supported</string>
     <string name="scan">SCAN</string>
+
+    <string name="text_tags_processed">TAGS PROCESSED</string>
+    <string name="text_tags_ok">TAGS OK</string>
+    <string name="text_tags_failed">TAGS FAILED</string>
+
+    <string name="text_authenticating">Authenticating (TAM1)</string>
+    <string name="text_tags_auth_ok">Tags authenticated OK</string>
+    <string name="text_tags_auth_failed">Failed authentications</string>
 
 </resources>
