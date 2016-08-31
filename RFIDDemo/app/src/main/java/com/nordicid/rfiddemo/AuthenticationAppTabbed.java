@@ -43,6 +43,9 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 	boolean mIsActive = false;
 	private View mView;
 
+	private static AuthenticationAppTabbed gInstance;
+	public static AuthenticationAppTabbed getInstance() { return gInstance; }
+
 	@Override
 	public NurApiListener getNurApiListener()
 	{
@@ -51,11 +54,14 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 		return null;
 	}
 
-	public AuthenticationAppTabbed(Context c, AppTemplate t, NurApi na) {
-		super(c, t, na);
+	//public AuthenticationAppTabbed(Context c, AppTemplate t, NurApi na) {
+		//super(c, t, na);
+	public AuthenticationAppTabbed() {
+		super();
 
+		gInstance = this;
 		mHandler = new Handler(Looper.getMainLooper());
-		mAuthController = new AuthenticationController(na);
+		mAuthController = new AuthenticationController(getNurApi());
 
 		mAuthListener = new AuthenticationController.AuthenticationControllerListener() {
 			@Override
@@ -186,9 +192,9 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 	@Override
 	protected int onGetFragments(ArrayList<Fragment> fragments, ArrayList<String> fragmentNames) throws Exception {
 		//create instances to fragments and pager.
-		mAuthTab = new AuthenticationTab(this);
-		mOkTagsTab = new AuthenticationAppFoundTab(this);
-		mFailedTagsTab = new AuthenticationAppFoundTab(this);
+		mAuthTab = new AuthenticationTab();
+		mOkTagsTab = new AuthenticationAppFoundTab();
+		mFailedTagsTab = new AuthenticationAppFoundTab();
 
 		fragmentNames.add(getString(R.string.text_authenticating));
 		fragments.add(mAuthTab);

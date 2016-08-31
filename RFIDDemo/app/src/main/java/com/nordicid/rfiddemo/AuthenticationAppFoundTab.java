@@ -18,12 +18,13 @@ import android.widget.TextView;
 
 public class AuthenticationAppFoundTab extends Fragment {
 
+	private AuthenticationAppTabbed mOwner;
 	public SimpleAdapter mFoundTagsListViewAdapter;
 	private ListView mInventoryTagList;
 	private AuthenticationAppTabbed mParent;
 	
-	public AuthenticationAppFoundTab(AuthenticationAppTabbed parent) {
-		mParent = parent;
+	public AuthenticationAppFoundTab() {
+		mOwner = AuthenticationAppTabbed.getInstance();
 	}
 
 	@Override
@@ -40,9 +41,7 @@ public class AuthenticationAppFoundTab extends Fragment {
 		mInventoryTagList = (ListView) view.findViewById(R.id.tags_listview);
 		
 		mFoundTagsListViewAdapter = new SimpleAdapter(
-				getActivity(), 
-				/* InventoryApp.FOUND ! */
-				//mParent.foundTags,
+				getActivity(),
 				InventoryApp.FOUND_TAGS,
 				R.layout.taglist_row, 
 				new String[] {"epc"}, 

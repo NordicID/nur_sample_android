@@ -264,14 +264,14 @@ public class Main extends AppTemplate {
 		subAppList.addSubApp(new WriteApp());
 
 		/* Barcode application. */
-		// subAppList.addSubApp(new BarcodeApp(this, this, theApi));
 		// Add this later if accessory extension is present.
 		localBarcodeApp = new BarcodeApp();
-
-		localAuthApp = new AuthenticationAppTabbed(this, this, theApi);
+		/* Authentication application. */
+		// Add this later if module's FW version supports version 2 commands.
+		localAuthApp = new AuthenticationAppTabbed();
 
 		localAppList = subAppList;
-		theApi.setLogLevel(NurApi.LOG_ERROR);// | NurApi.LOG_USER | NurApi.LOG_VERBOSE);
+		theApi.setLogLevel(NurApi.LOG_ERROR);
 		
 		setAppListener(new NurApiListener() {
 			@Override

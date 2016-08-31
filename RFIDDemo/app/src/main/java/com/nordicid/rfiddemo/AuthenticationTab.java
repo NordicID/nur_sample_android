@@ -9,14 +9,14 @@ import android.widget.TextView;
 
 public class AuthenticationTab extends Fragment {
 
-	private AuthenticationAppTabbed mParent;
+	private AuthenticationAppTabbed mOwner;
 	
 	private TextView mTagsProcessed;
 	private TextView mTagsOk;
 	private TextView mTagsFailed;
 
-	public AuthenticationTab(AuthenticationAppTabbed parent) {
-		mParent = parent;
+	public AuthenticationTab() {
+		mOwner = AuthenticationAppTabbed.getInstance();
 	}
 	
 	@Override
