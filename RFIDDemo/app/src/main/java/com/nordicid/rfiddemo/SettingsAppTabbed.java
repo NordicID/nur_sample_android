@@ -28,6 +28,7 @@ public class SettingsAppTabbed extends SubAppTabbed {
 	private SettingsAppSettingsTab mSettingsTab;
 	private SettingsAppTuneTab mSettingsTuneTab;
 	private SettingsAppHidTab mSettingsHidTab;
+	private SettingsAppAuthTab mSettingsAuthTab;
 	
 	private NurApiListener mThisClassListener = null;
 
@@ -50,6 +51,7 @@ public class SettingsAppTabbed extends SubAppTabbed {
 		mSettingsTab = new SettingsAppSettingsTab();
 		mSettingsTuneTab = new SettingsAppTuneTab();
 		mSettingsHidTab = new SettingsAppHidTab();
+		mSettingsAuthTab = new SettingsAppAuthTab();
 		
 		mThisClassListener =  new NurApiListener() {
 			@Override
@@ -102,14 +104,17 @@ public class SettingsAppTabbed extends SubAppTabbed {
 	@Override
 	protected int onGetFragments(ArrayList<Fragment> fragments, ArrayList<String> fragmentNames) throws Exception
 	{
-		fragmentNames.add("Settings");
+		fragmentNames.add("Reader settings");
 		fragments.add(mSettingsTab);
 
-		fragmentNames.add("Tune");
+		fragmentNames.add("Antenna tuning");
 		fragments.add(mSettingsTuneTab);
 
-		fragmentNames.add("HID");
-		fragments.add(mSettingsHidTab);		
+		fragmentNames.add("Accessory HID");
+		fragments.add(mSettingsHidTab);
+
+		fragmentNames.add("Authentication");
+		fragments.add(mSettingsAuthTab);
 		
 		return R.id.pager;
 	}

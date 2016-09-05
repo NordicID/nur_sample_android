@@ -14,6 +14,8 @@ import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.view.View;
 import android.widget.AdapterView;
@@ -22,18 +24,23 @@ import android.widget.Toast;
 
 public class Main extends AppTemplate {
 
+	// Authentication app requirements.
 	public static final int AUTH_REQUIRED_VERSION = 0x050500 + ('A' & 0xFF);
 	public static final String AUTH_REQUIRED_VERSTRING = "5.5-A";
+
+	/** Requesting file for key reading. */
+	public static final int REQ_FILE_OPEN = 4242;
+
 	Timer timer;
 	TimerTask timerTask;
 	final Handler timerHandler = new Handler();
 
 	private NurApiAutoConnectTransport mAcTr;
 
-	// These are used to toggle the visibility of the barcode app - not all readers support the accessory extension.
-	private SubAppList localAppList;
-	private SubApp localBarcodeApp;
-	private SubApp localAuthApp;
+	public static final String KEYFILE_PREFNAME = "TAM1_KEYFILE";
+	public static final String KEYNUMBER_PREFNAME = "TAM1_KEYNUMBER";
+
+	private static Main gInstance;
 
 	public void startTimer() {
 
@@ -73,6 +80,31 @@ public class Main extends AppTemplate {
 		};
 	}
 
+	public static Main getInstance()
+	{
+		return gInstance;
+	}
+
+	public void handleKeyFile()
+	{
+		Intent intent;
+		Intent chooser;
+
+		intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+		intent.addCategory(Intent.CATEGORY_OPENABLE);
+		intent.setType("*/*");
+
+		chooser = Intent.createChooser(intent, "Select file");
+
+		try {
+			startActivityForResult(chooser, REQ_FILE_OPEN);
+		} catch (Exception ex) {
+			String strErr = ex.getMessage();
+			Toast.makeText(this, "Error:\n" + strErr, Toast.LENGTH_SHORT).show();
+		}
+	}
+
+
 	void saveSettings() {
 		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = pref.edit();
@@ -86,6 +118,42 @@ public class Main extends AppTemplate {
 		editor.commit();
 
 		updateStatus();
+	}
+
+	public void saveKeyFilename(String fileName)
+	{
+		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = pref.edit();
+
+		editor.putString(KEYFILE_PREFNAME, fileName);
+
+		editor.commit();
+	}
+
+	public String getKeyFileName()
+	{
+		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
+		String keyFileName = pref.getString(KEYFILE_PREFNAME, "");
+
+		return keyFileName;
+	}
+
+	public void saveUsedKeyNumber(int keyNumber)
+	{
+		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = pref.edit();
+
+		editor.putInt(KEYNUMBER_PREFNAME, keyNumber);
+
+		editor.commit();
+	}
+
+	public int getUsedKeyNumber()
+	{
+		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
+		int keyNumber = pref.getInt(KEYNUMBER_PREFNAME, -1);
+
+		return keyNumber;
 	}
 
 	void loadSettings() {
@@ -140,6 +208,7 @@ public class Main extends AppTemplate {
 
 	@Override
 	protected void onResume() {
+
 		super.onResume();
 
 		if (mAcTr == null)
@@ -197,42 +266,6 @@ public class Main extends AppTemplate {
 	}
 
 	private String mDetectedFw = "";
-	// Test sub-apps that depend on FW version or accessory presence here.
-	private void testAddConditionalApps() {
-		boolean okToAdd = false;
-		mAuthAppAdded = false;
-
-		if (localAppList == null) {
-			syncViewContents();
-			return;
-		}
-
-		try {
-			okToAdd = (new NurAccessoryExtension(getNurApi())).isSupported();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		if (okToAdd)
-			localAppList.addSubApp(localBarcodeApp);
-
-		if (getFwIntVersion(getNurApi()) >= AUTH_REQUIRED_VERSION) {
-			localAppList.addSubApp(localAuthApp);
-			mAuthAppAdded = true;
-		}
-
-		syncViewContents();
-	}
-
-	void removeConditionalApps()
-	{
-		// Remove sub-app via AppTemplate : checks if the application is currently exiting
-		// thus eliminating any possible conflicts when destroying.
-		removeSubApp(localBarcodeApp);
-		removeSubApp(localAuthApp);
-		mAuthAppAdded = false;
-	}
 
 	// Visible app choices / not.
 	public void syncViewContents()
@@ -244,7 +277,7 @@ public class Main extends AppTemplate {
 
 	@Override
 	public void onCreateSubApps(SubAppList subAppList) {
-
+		gInstance = this;
 		NurApi theApi = getNurApi();
 
 		/* Reader settings application. */
@@ -264,19 +297,16 @@ public class Main extends AppTemplate {
 		subAppList.addSubApp(new WriteApp());
 
 		/* Barcode application. */
-		// Add this later if accessory extension is present.
-		localBarcodeApp = new BarcodeApp();
-		/* Authentication application. */
-		// Add this later if module's FW version supports version 2 commands.
-		localAuthApp = new AuthenticationAppTabbed();
+		subAppList.addSubApp(new BarcodeApp());
 
-		localAppList = subAppList;
+		/* Authentication application. */
+		subAppList.addSubApp(new AuthenticationAppTabbed());
+
 		theApi.setLogLevel(NurApi.LOG_ERROR);
 		
 		setAppListener(new NurApiListener() {
 			@Override
 			public void disconnectedEvent() {
-				removeConditionalApps();
 
 				if (exitingApplication())
 					return;
@@ -286,20 +316,8 @@ public class Main extends AppTemplate {
 			}
 			@Override
 			public void connectedEvent() {
-				String msg = getString(R.string.reader_connected);
-				int toastLength = Toast.LENGTH_SHORT;
-
-				testAddConditionalApps();
-
-				if (!mAuthAppAdded && !mDetectedFw.isEmpty())
-				{
-					msg += ("\nAuthentication app not added.\nFW = " + mDetectedFw + "\nMinimum required=" + AUTH_REQUIRED_VERSTRING);
-					toastLength = Toast.LENGTH_LONG;
-				}
-
 				updateStatus();
-
-				Toast.makeText(Main.this, msg, toastLength).show();
+				Toast.makeText(Main.this, getString(R.string.reader_connected), Toast.LENGTH_SHORT).show();
 			}
 
 			@Override
@@ -384,10 +402,49 @@ public class Main extends AppTemplate {
 
 		builder.show();
 	}
+
+	// Parse the URI the get the actual file name.
+	private String getActualFileName(String strUri) {
+		String strFileName = null;
+		Uri uri;
+		String scheme;
+
+		uri = Uri.parse(strUri);
+		scheme = uri.getScheme();
+
+		if (scheme.equalsIgnoreCase("content")) {
+			String primStr;
+			primStr = uri.getLastPathSegment().replace("primary:", "");
+			strFileName = Environment.getExternalStorageDirectory() + "/" + primStr;
+		}
+
+		return strFileName;
+	}
 	
 	@Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
+
+			case REQ_FILE_OPEN:
+			{
+				if (data != null) {
+					String fullPath;
+
+					fullPath = getActualFileName(data.getDataString());
+
+					if (fullPath == null)
+						Toast.makeText(Main.this, "No file selected.", Toast.LENGTH_SHORT).show();
+					else {
+						saveKeyFilename(fullPath);
+
+						SettingsAppAuthTab authTab = SettingsAppAuthTab.getInstance();
+
+						if (authTab != null)
+							authTab.updateViews();
+					}
+				}
+			}
+			break;
 
 			case NurDeviceListActivity.REQUEST_SELECT_DEVICE: {
 				if (data == null || (resultCode != NurDeviceListActivity.RESULT_BLE && resultCode != NurDeviceListActivity.RESULT_USB))
@@ -428,6 +485,7 @@ public class Main extends AppTemplate {
 		// Request for "all devices", not filtering "nordicid_*".
 		NurDeviceListActivity.startDeviceRequest(this);
 	}
+
 
 	@Override
 	public void onDrawerItemClick(AdapterView<?> parent, View view, int position, long id) 

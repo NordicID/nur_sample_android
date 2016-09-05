@@ -34,7 +34,10 @@ import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 public class TraceApp extends SubApp {
-	
+
+	public static final String DATA_EPC = "epc";
+	public static final String DATA_AUTOSTART = "autostart";
+
 	private SimpleAdapter mFoundTagsListViewAdapter;
 	
 	private String mLocatableEpc;
@@ -48,6 +51,8 @@ public class TraceApp extends SubApp {
 	private RelativeLayout mEmptyListViewNotice;
 	
 	private TraceTagController mTraceController;
+
+	private boolean mAutoStart = false;
 	
 	public TraceApp() {
 		super();
@@ -206,15 +211,21 @@ public class TraceApp extends SubApp {
 		
 		mFoundTagsListViewAdapter.notifyDataSetChanged();
 		
+		boolean start = false;
+
 		if (getArguments() != null) {
 			Bundle b = getArguments();
 			
-			if (b.getString("epc") != null) {
-				mLocatableEpc = b.getString("epc");
+			if (b.getString(DATA_EPC) != null) {
+				mLocatableEpc = b.getString(DATA_EPC);
 				mLocatableEpcEditText.setText(mLocatableEpc);
-			}
 
+				start = b.getBoolean(DATA_AUTOSTART, false);
+			}
 		}
+
+		if (start)
+			startTrace();
 	}
 	
 	private void startTrace() {

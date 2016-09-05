@@ -1,5 +1,6 @@
 package com.nordicid.controllers;
 
+import com.nordicid.nuraccessory.NurAccessoryExtension;
 import com.nordicid.nurapi.NurApi;
 import com.nordicid.nurapi.NurApiListener;
 import com.nordicid.nurapi.NurEventAutotune;
@@ -85,7 +86,7 @@ public class InventoryController {
 
 			@Override public void IOChangeEvent(NurEventIOChange event) {
 				// Handle BLE trigger
-				if (event.source == 100 && event.direction==0)
+				if (event.source == NurAccessoryExtension.TRIGGER_SOURCE && event.direction == 0)
 				{
 					if (isInventoryRunning())
 						stopInventory();

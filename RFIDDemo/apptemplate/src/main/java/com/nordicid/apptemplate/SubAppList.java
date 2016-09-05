@@ -7,6 +7,7 @@ import android.content.res.Configuration;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +20,7 @@ import android.widget.GridView;
  * Builds and manages the menu.
  */
 public class SubAppList extends Fragment implements AdapterView.OnItemClickListener {
+	public static final String TAG = "SubAppList";
 	private ArrayList<SubApp> mSubApps = new ArrayList<SubApp>();
 	private ArrayList<String> mSubAppNames = new ArrayList<String>();
 	private GridView mGridView;
@@ -177,6 +179,7 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	 * @return SubApp
 	 */
 	public SubApp getApp(int i) {
+		Log.d(TAG, "GET APP: " + i + " / " + mSubApps.size());
 		return mSubApps.get(i);
 	}
 	

@@ -12,6 +12,7 @@
     <string name="stop">STOP</string>
     <string name="clear">CLEAR</string>
     <string name="locate">LOCATE</string>
+    <string name="text_tam2">TAG AUTHENTICATION METHOD 2</string>
     <string name="write">WRITE</string>
     <string name="cancel">CANCEL</string>
     <string name="refresh">REFRESH</string>
@@ -71,12 +72,19 @@
     <string name="antenna_spinner">Enabled Antennas</string>
     <string name="autotune_checkbox">Autotune</string>
     
-    <string name="dialog_epc">TAGS EPC:</string>
+    <string name="dialog_epc">TAG\'S EPC:</string>
     <string name="dialog_rssi">RSSI:</string>
     <string name="dialog_timestamp">TIMESTAMP:</string>
     <string name="dialog_freg">FREQUENCY:</string>
     <string name="dialog_found">FOUND (TIMES):</string>
     <string name="dialog_found_precent">FOUND (% OF TIME):</string>
+
+    <string name="text_not_implemented">Not implemented yet</string>
+
+    <string name="dialog_authenticated">Authenticated:</string>
+
+    <string name="dialog_auth_ok">Tag authenticated OK</string>
+    <string name="dialog_auth_fail">This tag failed authentication</string>
     
     <string name="scanning">Scanning for devices...</string>
     <string name="select_device">Select a device</string>
@@ -87,6 +95,7 @@
     <string name="text_tags_processed">TAGS PROCESSED</string>
     <string name="text_tags_ok">TAGS OK</string>
     <string name="text_tags_failed">TAGS FAILED</string>
+    <string name="text_tam1_keynum">Select key number</string>
 
     <string name="text_authenticating">Authenticating (TAM1)</string>
     <string name="text_tags_auth_ok">Tags authenticated OK</string>

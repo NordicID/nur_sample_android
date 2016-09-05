@@ -201,12 +201,10 @@ public class ISO29167_10 {
         int receptionBitLength = 0;
 
         authParam = new NurAuthenticateParam();
-        if (usedChallenge != null)
+        if (usedChallenge == null)
             challenge = generateChallenge();
-        else {
-            challenge = new byte [usedChallenge.length];
-            System.arraycopy(usedChallenge, 0, challenge, 0, usedChallenge.length);
-        }
+        else
+            challenge = Helpers.makeByteArrayCopy(usedChallenge);
 
         if (authIsTAM2)
         {
@@ -214,7 +212,7 @@ public class ISO29167_10 {
             messageBitLength = TAM2_MSG_BITLEN;
             receptionBitLength = TAM1_RX_BITLEN + blockCount * TAM_BLOCK_BITLEN;
 
-            // Tag reply padding required? (Bit length mod 128 should always be 0).
+            // Tag reply padding required? (bit length mod 128 should always be 0).
             if ((receptionBitLength % TAM1_RX_BITLEN) != 0)
                 receptionBitLength += TAM_BLOCK_BITLEN;
         }

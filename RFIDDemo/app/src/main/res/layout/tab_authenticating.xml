@@ -88,7 +88,19 @@
 			        android:text="0" />
 	            
 	        </LinearLayout>
-            
+
+		<TextView
+			android:id="@+id/text_used_key"
+			android:freezesText="true"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textStyle="bold"
+			android:textSize="30sp"
+			android:text="Keyset used: N/A"
+			android:layout_gravity="center_horizontal"
+			android:layout_marginTop="50dp"
+			android:layout_marginBottom="20dp" />
+
         </LinearLayout>
     
     

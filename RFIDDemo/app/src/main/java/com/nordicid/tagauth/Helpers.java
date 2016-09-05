@@ -16,7 +16,7 @@ public class Helpers {
     public static byte []makeByteArrayCopy(byte []source) throws InvalidParameterException
     {
         if (source == null || source.length < 1)
-                throw new InvalidParameterException("Helpers::makeBytearrayCopy: invalid source");
+            throw new InvalidParameterException("Helpers::makeBytearrayCopy: invalid source");
 
         byte []newArray = new byte[source.length];
         System.arraycopy(source, 0, newArray, 0, source.length);
