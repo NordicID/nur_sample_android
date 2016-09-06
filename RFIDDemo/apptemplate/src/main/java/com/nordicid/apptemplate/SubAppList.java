@@ -179,7 +179,6 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	 * @return SubApp
 	 */
 	public SubApp getApp(int i) {
-		Log.d(TAG, "GET APP: " + i + " / " + mSubApps.size());
 		return mSubApps.get(i);
 	}
 	

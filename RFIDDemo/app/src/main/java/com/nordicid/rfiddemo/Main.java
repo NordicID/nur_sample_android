@@ -17,6 +17,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.TextView;
@@ -208,7 +209,6 @@ public class Main extends AppTemplate {
 
 	@Override
 	protected void onResume() {
-
 		super.onResume();
 
 		if (mAcTr == null)

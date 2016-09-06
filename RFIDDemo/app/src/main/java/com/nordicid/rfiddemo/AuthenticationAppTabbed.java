@@ -56,8 +56,7 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 
 		mHandler = new Handler(Looper.getMainLooper());
 		gInstance = this;
-		mAuthController = new AuthenticationController(getActivity(), getNurApi());
-
+		mAuthController = new AuthenticationController(getNurApi());
 
 		mAuthListener = new AuthenticationController.AuthenticationControllerListener() {
 			@Override
@@ -91,11 +90,9 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 			}
 
 			@Override
-			public void authenticationStateChanged(boolean executing) {
-				if (isVisible() && mStartStopBtn != null) {
-					keepScreenOn(executing);
-					mStartStopBtn.setText(executing ? "Stop" : "Start");
-				}
+			public void authenticationStateChanged(boolean executing, boolean errorOccurred) {
+				// Worker thread may call this - in case there was an error that cause the stop.
+				threadHandleStateChange(executing, errorOccurred);
 			}
 
 			@Override
@@ -108,8 +105,23 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 				mAuthTab.updateFailCount(0);
 			}
 		};
+	}
 
-		mAuthController.setListener(mAuthListener);
+	private void threadHandleStateChange(final boolean executing, final boolean errorOccurred)
+	{
+		mHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				if (isVisible()) {
+					keepScreenOn(executing);
+					if (mStartStopBtn != null)
+						mStartStopBtn.setText(executing ? "Stop" : "Start");
+
+					if (errorOccurred)
+						Toast.makeText(getActivity(), "Authentication stopped due to an error", Toast.LENGTH_SHORT).show();
+				}
+			}
+		});
 	}
 
 	private void handleReaderConnect()
@@ -198,9 +210,15 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 			try
 			{
 				mAuthController.setAuthKeyNumber(Main.getInstance().getUsedKeyNumber());
-				mAuthController.startTAM1Authentication();
 			}
-			catch (Exception ex) { }
+			catch (Exception ex)
+			{
+				Toast.makeText(getActivity(), "Authentication key number set error", Toast.LENGTH_SHORT).show();
+				return;
+			}
+
+			if (!mAuthController.startTAM1Authentication())
+				Toast.makeText(getActivity(), "Authentication start error", Toast.LENGTH_SHORT).show();
 		}
 	}
 
@@ -246,6 +264,9 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		mView = view;
+
+		mAuthController.setListener(mAuthListener);
+		getNurApi().setListener(mAuthController.getNurApiListener());
 
 		mStartStopBtn = addButtonBarButton("Start", new OnClickListener() {
 			@Override
@@ -317,14 +338,12 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 
 	@Override
 	public void onPause() {
-
 		super.onPause();
 		stopAuthentication();
 	}
 
 	@Override
 	public void onStop() {
-
 		super.onStop();
 		stopAuthentication();
 	}

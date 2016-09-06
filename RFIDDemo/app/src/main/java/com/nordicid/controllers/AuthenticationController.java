@@ -17,7 +17,6 @@ import java.util.ArrayList;
 public class AuthenticationController {
 
 	public static final String TAG = "Auth_Controller";
-	private Context mContext = null;
 
 	/**
 	 * Tells the authentication thread that the cause of the failure was reader being disconnected.
@@ -91,6 +90,7 @@ public class AuthenticationController {
 	 * There was e.g. a communication error with the tag; retry required i.e. do not add to "seen tags" yet.
 	 */
 	public static final int AUTH_RETRY = 2;
+
 	/**
 	 * Tag replied with an error, here: indication of that the tag does not support either this kind of authentication
 	 * or that there is e.g. a key number error (i.e. not supported key number by the tag).
@@ -103,6 +103,12 @@ public class AuthenticationController {
 	public static final int KEY_PARSE_ERROR = 5;
 	/** No keys were found in the key file. */
 	public static final int NO_KEYS = 6;
+
+
+	/**
+	 * The reader indicated  "invalid command" - authentication is not supported.
+	 */
+	public static final int AUTH_NOT_SUPPORTED = 10;
 
 	private double mStartTime = 0;
 	/**
@@ -119,9 +125,8 @@ public class AuthenticationController {
 		return mTotalKeyCount;
 	}
 
-	public AuthenticationController(Context ctx, NurApi api) {
+	public AuthenticationController(NurApi api) {
 		mApi = api;
-		mContext = ctx;
 
 		mProcessedTags = new NurTagStorage();
 		mOkStorage = new NurTagStorage();
@@ -192,8 +197,6 @@ public class AuthenticationController {
 			@Override
 			public void tagTrackingChangeEvent(NurEventTagTrackingChange event) { }
 		};
-
-		mApi.setListener(mThisClassListener);
 	}
 
 	// Indicate that the tag was either authenticated ok or failed to authenticate.
@@ -220,12 +223,13 @@ public class AuthenticationController {
 		boolean ignored;
 		ArrayList<TAMKeyEntry> keySource;
 		// This could be generated once; here it is generated per inventory round basis.
-		byte []expectedChallenge;
+		byte[] expectedChallenge;
 
 		keySource = mKeyLists.get(mUsedKeyNumber);
 
-		Log.e(TAG, "authenticate() : start");
+		Log.d(TAG, "authenticate() : start");
 
+		error = AUTH_OK;
 		do {
 			try {
 				mApi.clearIdBuffer();
@@ -271,7 +275,7 @@ public class AuthenticationController {
 			storageSize = mApi.getStorage().size();
 			Log.d(TAG, "Processing " + resp.numTagsFound + " tags.");
 
-			while (index < storageSize && mAuthenticationRunning && !mDisconnected) {
+			while (!interrupted && (index < storageSize) && mAuthenticationRunning && !mDisconnected) {
 
 				Log.e(TAG, "authenticate() : process " + index);
 				try {
@@ -292,20 +296,31 @@ public class AuthenticationController {
 
 				expectedChallenge = ISO29167_10.generateChallenge();
 				// Try to authenticate with available keys.
-				error = authenticateTag(tag, mAuthKeyNumber, keySource, expectedChallenge);
+				error = doTAM1Authentication(tag, mAuthKeyNumber, keySource, expectedChallenge);
 				Log.d(TAG, "*** authenticate(K = " + mAuthKeyNumber + "), result = " + authResultToString(error));
 
-				if (error == AUTH_OK)
-					tagProcessed(tag, true);
-				else if (error == AUTH_FAILED)
-					tagProcessed(tag, false);
-				else
-					Log.d(TAG, "*** authenticate(): tag with EPC " + tag.getEpcString() + " produced authError " + error);
-
-				notifyCountChange();
+				if (error == AUTH_NOT_SUPPORTED) {
+					interrupted = true;
+					Log.e(TAG, "*** authenticate(): bailout, not supported error!");
+				}
+				else {
+					if (error == AUTH_OK)
+						tagProcessed(tag, true);
+					else if (error == AUTH_FAILED)
+						tagProcessed(tag, false);
+					else
+						Log.d(TAG, "*** authenticate(): tag with EPC " + tag.getEpcString() + " produced authError " + error);
+					notifyCountChange();
+				}
 			}
 		} while (mAuthenticationRunning && !mDisconnected && !interrupted);
 
+		if (error == AUTH_NOT_SUPPORTED) {
+			mAuthenticationRunning = false;
+			if (mListener != null)
+				mListener.authenticationStateChanged(false, true);
+
+		}
 		Log.d(TAG, "authenticate() : thread exit");
 	}
 
@@ -464,7 +479,7 @@ public class AuthenticationController {
 	/**
 	 * Simple TAM1 authentication.
 	 */
-	private int authenticateTag(NurTag tag, int keyNum, ArrayList<TAMKeyEntry> keysToCheck, byte []expectedChallenge) {
+	private int doTAM1Authentication(NurTag tag, int keyNum, ArrayList<TAMKeyEntry> keysToCheck, byte []expectedChallenge) {
 		NurAuthenticateParam tagAuthParam;
 		NurAuthenticateResp tagAuthReply;
 		int keyCheckIndex;
@@ -477,21 +492,34 @@ public class AuthenticationController {
 			tagAuthParam = ISO29167_10.buildTAMMessage(false, keyNum, 0, 0, 0, 0, expectedChallenge);
 		} catch (Exception ex) {
 			// Should not happen under any circumstances.
-			Log.e(TAG, "authenticateTag : parameter error");
+			Log.e(TAG, "doTAM1Authentication : parameter error");
 			return AUTH_PARAMETER_FAILURE;
 		}
 
+		tagAuthReply = null;
 		try {
 			tagAuthReply = mApi.gen2v2AuthenticateByEpc(tag.getEpc(), tagAuthParam);
-		} catch (Exception ex) {
+		}
+		catch (NurApiException ne) {
+			if (ne.error == NurApiErrors.INVALID_COMMAND) {
+				Log.e(TAG, "FATAL ERROR: reader does not support authentication!");
+				return AUTH_NOT_SUPPORTED;
+			}
+
+			// Other error.
+			return AUTH_RETRY;
+		}
+		catch (Exception ex) {
 			// Indicates e.g. communication error.
 			// NOTE: tags not supporting "Authenticate" command at all may cause serious trouble.
+			Log.e(TAG, "doTAM1Authentication(" + tag.getEpcString() + "): error = " + ex.getMessage());
+
 			return AUTH_RETRY;
 		}
 
 		if (tagAuthReply.status != NurApiErrors.NUR_NO_ERROR || tagAuthReply.tagError != -1)
 		{
-			Log.e(TAG, "authenticateTag, status = " + tagAuthReply.status + ", tag error = " + tagAuthReply.tagError);
+			Log.e(TAG, "doTAM1Authentication, status = " + tagAuthReply.status + ", tag error = " + tagAuthReply.tagError);
 			// Some error: report if the tag is detected not to support this type of authentication.
 			if (tagAuthReply.tagError != -1)
 				return AUTH_TAG_ERROR;
@@ -506,7 +534,7 @@ public class AuthenticationController {
 				decryptedReplyBytes = NurApi.AES128_ECBDecrypt(tagAuthReply.reply, keysToCheck.get(keyCheckIndex).getKeyValue());
 			} catch (Exception ex) {
 				// Again, should not happen at this point.
-				Log.e(TAG, "authenticateTag : decryption error");
+				Log.e(TAG, "doTAM1Authentication : decryption error");
 				return AUTH_PARAMETER_FAILURE;
 			}
 			// Checks the C_TAM and challenge parts.
@@ -517,7 +545,7 @@ public class AuthenticationController {
 			keyCheckIndex++;
 		}
 
-		Log.e(TAG, "authenticateTag() : returning AUTH_FAILED!");
+		Log.e(TAG, "doTAM1Authentication() : returning AUTH_FAILED!");
 		return AUTH_FAILED;
 	}
 
@@ -563,7 +591,6 @@ public class AuthenticationController {
 	public boolean startTAM1Authentication()
 	{
 		if (mTotalKeyCount < 1 || !mApi.isConnected()) {
-			Toast.makeText(mContext, "Error: no keys or reader not connected.", Toast.LENGTH_SHORT).show();
 			return false;
 		}
 
@@ -572,8 +599,6 @@ public class AuthenticationController {
 		}
 
 		if (mAuthKeyNumber < 0 || mAuthKeyNumber > ISO29167_10.LAST_TAM_KEYNUMBER || mKeyLists.get(mAuthKeyNumber).isEmpty()) {
-			if (mContext != null)
-				Toast.makeText(mContext, "Start: invalid key number " + mAuthKeyNumber, Toast.LENGTH_SHORT).show();
 			return false;
 		}
 
@@ -591,7 +616,8 @@ public class AuthenticationController {
 		mAuthThread.start();
 
 		if (mListener != null)
-			mListener.authenticationStateChanged(true);
+			mListener.authenticationStateChanged(true, false);
+
 		return true;
 	}
 
@@ -610,7 +636,7 @@ public class AuthenticationController {
 		}
 
 		if (mListener != null)
-			mListener.authenticationStateChanged(false);
+			mListener.authenticationStateChanged(false, false);
 	}
 
 	public void setListener(AuthenticationControllerListener l) {
@@ -640,7 +666,7 @@ public class AuthenticationController {
 		/** Reader connected. */
 		public void readerConnected();
 		/** Start stop change. */
-		public void authenticationStateChanged(boolean executing);
+		public void authenticationStateChanged(boolean executing, boolean errorOccurred);
 		/** Clear all authentication data. */
 		public void resetAll();
 	}

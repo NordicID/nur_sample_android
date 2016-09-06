@@ -7,12 +7,8 @@ import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.apptemplate.SubAppTabbed;
 import com.nordicid.controllers.InventoryController;
 import com.nordicid.controllers.InventoryController.InventoryControllerListener;
-import com.nordicid.nurapi.NurApi;
-import com.nordicid.nurapi.NurApiListener;
-import com.nordicid.nurapi.NurTag;
-import com.nordicid.nurapi.NurTagStorage;
+import com.nordicid.nurapi.*;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;

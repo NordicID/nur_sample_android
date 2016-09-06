@@ -33,6 +33,7 @@ import android.widget.Toast;
 public class BarcodeApp extends SubApp {
 
 	private NurApiListener mThisClassListener = null;
+	private AccessoryBarcodeResultListener mResultListener;
 
 	private NurAccessoryExtension mAccessoryExt;
 	private boolean mIsBle = false;
@@ -49,15 +50,16 @@ public class BarcodeApp extends SubApp {
 		super();
 
 		mAccessoryExt = new NurAccessoryExtension(getNurApi());
-		mAccessoryExt.registerBarcodeResultListener(new AccessoryBarcodeResultListener() {
+
+		mResultListener = new AccessoryBarcodeResultListener() {
 			@Override
 			public void onBarcodeResult(AccessoryBarcodeResult result) {
 				if (result.status == NurApiErrors.NO_TAG) {
 					mText = "No barcode found";
-				} 
+				}
 				else if (result.status != NurApiErrors.NUR_SUCCESS) {
 					mText = "Error: " + result.status;
-				} 
+				}
 				else {
 					mText = result.strBarcode;
 					try {
@@ -70,7 +72,7 @@ public class BarcodeApp extends SubApp {
 				updateText();
 				mIsActive = false;
 			}
-		});
+		};
 
 		mThisClassListener = new NurApiListener() {
 			@Override
@@ -221,6 +223,8 @@ public class BarcodeApp extends SubApp {
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		mEditText = (EditText) view.findViewById(R.id.result_text);
+
+		mAccessoryExt.registerBarcodeResultListener(mResultListener);
 		addButtonBarButton("Trigger", new OnClickListener() {
 			@Override
 			public void onClick(View v) {
