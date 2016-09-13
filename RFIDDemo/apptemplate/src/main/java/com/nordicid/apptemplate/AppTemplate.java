@@ -240,9 +240,10 @@ public class AppTemplate extends FragmentActivity {
 		//Set the drawer and add items to it
 		setDrawer(true);
 
-		// FIXME!
 		//setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		LARGE_SCREEN = true;
+		LARGE_SCREEN = ((getResources().getConfiguration().screenLayout &
+				Configuration.SCREENLAYOUT_SIZE_MASK) ==
+				Configuration.SCREENLAYOUT_SIZE_LARGE);
 
 		mSubAppList = new SubAppList();
 		
