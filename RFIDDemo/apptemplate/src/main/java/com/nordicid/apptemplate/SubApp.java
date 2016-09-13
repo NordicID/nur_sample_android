@@ -43,7 +43,9 @@ public class SubApp extends Fragment {
 		return AppTemplate.getAppTemplate().getNurApi();
 	}
 	
-	public SubApp() { }
+	public SubApp() {
+		super();
+	}
 	
 	/**
 	 * Gets SubApp name. Override this method 

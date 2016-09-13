@@ -241,10 +241,10 @@ public class AppTemplate extends FragmentActivity {
 		setDrawer(true);
 
 		// FIXME!
-		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		LARGE_SCREEN = false;
+		//setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		LARGE_SCREEN = true;
 
-		mSubAppList = new SubAppList(this);
+		mSubAppList = new SubAppList();
 		
 		//Adds the users SubApps to SubAppList
 		onCreateSubApps(mSubAppList);
@@ -389,6 +389,9 @@ public class AppTemplate extends FragmentActivity {
 			}
 			
 		} else {
+
+			mMenuContainer = null;
+
 			if (mSubAppList.getCurrentOpenSubAppIndex() != -1) {
 				mCloseButton.setVisible(true);
 			}
@@ -430,7 +433,8 @@ public class AppTemplate extends FragmentActivity {
 		}
 		
 
-		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {		
+		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
+		{
 			
 			if (mSubAppList.getCurrentOpenSubAppIndex() == -1) {
 				doubleOnBackPressExit();
@@ -543,7 +547,7 @@ public class AppTemplate extends FragmentActivity {
 				if (bundle != null) {
 					app.setArguments(bundle);
 				}
-				
+
 				int[] animations = app.getAnimations();
 			
 				mFragmentManager = getSupportFragmentManager();
@@ -580,9 +584,10 @@ public class AppTemplate extends FragmentActivity {
 		SubApp app;
 		int currentOpen = mSubAppList.getCurrentOpenSubAppIndex();
 		int orientation = getResources().getConfiguration().orientation;
-		
+
+		mFragmentManager = getSupportFragmentManager();
+
 		if (mSubAppList.isAdded()) {
-			mFragmentManager = getSupportFragmentManager();
 			mFragmentTransaction = mFragmentManager.beginTransaction();
 			mFragmentTransaction.remove(mSubAppList);
 			mFragmentTransaction.commit();
@@ -598,29 +603,26 @@ public class AppTemplate extends FragmentActivity {
 		}
 		
 		if (app.isAdded()) {
-			mFragmentManager = getSupportFragmentManager();
 			mFragmentTransaction = mFragmentManager.beginTransaction();
 			mFragmentTransaction.remove(app);
 			mFragmentTransaction.commit();
 			mFragmentManager.executePendingTransactions();
 		}
-		
-		if (orientation == Configuration.ORIENTATION_PORTRAIT) {
 
+		if (orientation == Configuration.ORIENTATION_PORTRAIT)
+		{
 			if (currentOpen == -1) {
-				mFragmentManager = getSupportFragmentManager();
 				mFragmentTransaction = mFragmentManager.beginTransaction();
-				
+
 				if (showMenuAnimation) {
 					mFragmentTransaction.setCustomAnimations(R.anim.default_enter_menu, R.anim.default_exit_menu);
 					showMenuAnimation = false;
 				}
-				
+
 				mFragmentTransaction.add(R.id.content, mSubAppList);
 				mFragmentTransaction.commit();
 			}
 			else {
-				mFragmentManager = getSupportFragmentManager();
 				mFragmentTransaction = mFragmentManager.beginTransaction();
 				mFragmentTransaction.add(R.id.content, app);
 				mFragmentTransaction.commit();
@@ -629,27 +631,25 @@ public class AppTemplate extends FragmentActivity {
 			}
 		}
 		else {
-			
-			mFragmentManager = getSupportFragmentManager();
+
 			mFragmentTransaction = mFragmentManager.beginTransaction();
 			mFragmentTransaction.add(R.id.content, app);
 			mFragmentTransaction.commit();
-			
+
 			setTitle(app.getAppName());
-			
+
 			mFragmentManager = getSupportFragmentManager();
 			mFragmentTransaction = mFragmentManager.beginTransaction();
-			
+
 			if (showMenuAnimation) {
 				mFragmentTransaction.setCustomAnimations(R.anim.default_enter_menu, R.anim.default_exit_menu);
 				showMenuAnimation = false;
 			}
-			
+
 			mFragmentTransaction.add(R.id.menu_container, mSubAppList);
 			mFragmentTransaction.commit();
-			
 		}
-		
+
 		changeSubAppListener();
 	}
 	

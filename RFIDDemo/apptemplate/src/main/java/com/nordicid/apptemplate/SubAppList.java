@@ -27,12 +27,20 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	private AppTemplate appTemplate;
 	private int currentOpenSubApp = -1;
 	
-	public SubAppList(AppTemplate t) {
+	/*public SubAppList(AppTemplate t) {
 		appTemplate = t;
+	}*/
+	
+	public SubAppList() {
+		appTemplate = AppTemplate.getAppTemplate();
 	}
-	
-	public SubAppList() { }
-	
+
+    /*@Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        setRetainInstance(true);
+    }*/
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 		Bundle savedInstanceState) {
