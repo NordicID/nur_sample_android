@@ -39,3 +39,5 @@ captures/
 # Keystore files
 *.jks
 Copy_NurApi.bat
+NurApiAndroid/.idea/dictionaries/Yassine.xml
+*.aar

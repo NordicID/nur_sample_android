@@ -23,6 +23,8 @@ import com.nordicid.nurapi.NurEventTagTrackingData;
 import com.nordicid.nurapi.NurEventTraceTag;
 import com.nordicid.nurapi.NurEventTriggeredRead;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
@@ -62,6 +64,10 @@ public class BarcodeApp extends SubApp {
 				}
 				else {
 					mText = result.strBarcode;
+                    ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(getActivity().CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("Barcode", result.strBarcode);
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(getActivity(), "Barcode copied to clipboard", Toast.LENGTH_SHORT).show();
 					try {
 						// Beep on success
 						mAccessoryExt.beepAsync(200);

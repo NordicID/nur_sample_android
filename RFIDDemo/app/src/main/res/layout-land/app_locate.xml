@@ -1,46 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout 
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal" >
-   
-    <RelativeLayout 
-        android:id="@+id/location_info_container"
-        android:layout_height="match_parent"
-        android:layout_width="0dp"
-        android:layout_weight="0.50"
-        android:background="@android:color/holo_orange_light"
-        android:orientation="vertical" >
-        
-        <ProgressBar 
-            android:layout_marginTop="20dp"
-	        android:layout_height="0dp"
-	        android:layout_width="0dp"
-	        android:id="@+id/progressBar"
-	        android:progressDrawable="@drawable/custom_progressbar"
-	        android:progress="0" android:max="100"
-	        android:indeterminateOnly="false"
-	        android:indeterminate="false"
-	        android:layout_gravity="center_horizontal"
-			style="?android:attr/progressBarStyleLarge"/>
+<LinearLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="horizontal"
+android:baselineAligned="false">
 
-    </RelativeLayout>
-    
-    <RelativeLayout
-        android:layout_height="match_parent"
+<RelativeLayout
+    android:id="@+id/location_info_container"
+    android:layout_height="match_parent"
+    android:layout_width="0dp"
+    android:layout_weight="0.50"
+    android:background="@android:color/holo_orange_light"
+    android:orientation="vertical" >
+
+    <ProgressBar
+        android:layout_height="0dp"
         android:layout_width="0dp"
-        android:layout_weight="0.50">
-        
-        <EditText
-	        android:id="@+id/locate_epc_edittext"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:layout_margin="20dp"
-	        android:ems="10"
-	        android:hint="@string/locatable_epc_hint"
-	        android:inputType="text" />
-    
+        android:id="@+id/progressBar"
+        android:progressDrawable="@drawable/custom_progressbar"
+        android:progress="0" android:max="100"
+        android:indeterminateOnly="false"
+        android:indeterminate="false"
+        android:layout_gravity="center_horizontal"
+        style="?android:attr/progressBarStyleLarge"/>
+
+    <EditText
+        android:id="@+id/pct_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:background="@android:color/transparent"
+        android:clickable="false"
+        android:cursorVisible="false"
+        android:ems="10"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:gravity="center_vertical|center_horizontal"
+        android:inputType="none"
+        android:text="0%"
+        android:textSize="24sp"
+        android:textStyle="bold" >
+        <requestFocus />
+    </EditText>
+
+
+</RelativeLayout>
+
+<RelativeLayout
+    android:layout_height="match_parent"
+    android:layout_width="0dp"
+    android:layout_weight="0.50">
+
+    <EditText
+        android:id="@+id/locate_epc_edittext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:ems="10"
+        android:hint="@string/locatable_epc_hint"
+        android:inputType="text" />
+
     <include
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -49,24 +70,19 @@
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:layout_marginBottom="5dp" />
-    
-	    <RelativeLayout
-	        android:id="@+id/listview_empty"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:orientation="vertical"
-	        android:visibility="gone" >
-	
-	        <TextView
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content"
-	            android:layout_centerHorizontal="true"
-	            android:layout_centerVertical="true"
-	            android:text="NO RECENT INVENTORY FOUND" />
-	
-	    </RelativeLayout>
-        
+
+    <RelativeLayout
+        android:id="@+id/listview_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone" >
+
     </RelativeLayout>
 
+</RelativeLayout>
+
 </LinearLayout>
+
+
 

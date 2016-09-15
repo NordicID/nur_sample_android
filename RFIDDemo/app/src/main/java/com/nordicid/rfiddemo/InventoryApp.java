@@ -32,6 +32,7 @@ public class InventoryApp extends SubApp {
 	private TextView mInventoryCountTextView;
 	private TextView mInventoryTotalTime;
 	private TextView mInventoryTagsInTime;
+    private TextView mInventoryTagsPerSecond;
 	private ListView mFoundTagsListView;
 	private SimpleAdapter mFoundTagsListViewAdapter;
 	private Button mStartStopInventory;
@@ -159,16 +160,18 @@ public class InventoryApp extends SubApp {
 	
 	long lastTagCount = 0;
 
-	public void updateNumTags(int numTags) {
-		if (lastTagCount != numTags) {
-			mInventoryTagsInTime.setText(String.format("%.1f", mInventoryController.getElapsedSecs()));
-			lastTagCount = numTags;
-		}		
-		if (numTags < 0)
-			numTags = 0;
-		mInventoryCountTextView.setText(Integer.toString(numTags));
-		mInventoryTotalTime.setText(String.format("%.1f", mInventoryController.getElapsedSecs()));
-	}
+    public void updateNumTags(int numTags) {
+        if (numTags < 0)
+            numTags = 0;
+        if (lastTagCount != numTags) {
+            mInventoryTagsInTime.setText(String.format("%.1f", mInventoryController.getElapsedSecs()));
+            mInventoryTagsPerSecond.setText(String.format("%.2f",numTags/Double.parseDouble(mInventoryTagsInTime.getText().toString())));
+            //mInventoryController.getElapsedSecs()
+            lastTagCount = numTags;
+        }
+        mInventoryCountTextView.setText(Integer.toString(numTags));
+        mInventoryTotalTime.setText(String.format("%.1f", mInventoryController.getElapsedSecs()));
+    }
 	
 	private void clearReadings() {
 
@@ -219,6 +222,8 @@ public class InventoryApp extends SubApp {
 		mInventoryTagsInTime = (TextView) view.findViewById(R.id.tags_in_time_textview);
 		mInventoryTagsInTime.setText("0");
 		mFoundTagsListView = (ListView) mView.findViewById(R.id.tags_listview);
+        mInventoryTagsPerSecond = (TextView) view.findViewById(R.id.tags_per_second_textview);
+        mInventoryTagsPerSecond.setText("0");
 	
 		//sets simple adapter for foundtags list
 		mFoundTagsListViewAdapter = new SimpleAdapter(

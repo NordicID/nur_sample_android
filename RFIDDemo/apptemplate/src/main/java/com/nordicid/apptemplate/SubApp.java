@@ -25,10 +25,10 @@ public class SubApp extends Fragment {
 	private LinearLayout mButtonBar;
 	private int mButtonBarButtonCount;
 	
-	private int[] default_animations = {
+	/*private int[] default_animations = {
 			R.anim.default_enter_app,
 			R.anim.default_exit_app
-		};
+		};*/
 	
 	public Context getContext()
 	{
@@ -84,9 +84,9 @@ public class SubApp extends Fragment {
 	 * effect: fade.
 	 * @return int[] of animations [R.anim.xx,R.anim.xx]
 	 */
-	public int[] getAnimations() {	
+	/*public int[] getAnimations() {
 		return default_animations;
-	}
+	}*/
 	
 	public void onVisibility(boolean val)
 	{

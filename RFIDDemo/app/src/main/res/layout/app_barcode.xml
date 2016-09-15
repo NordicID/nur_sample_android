@@ -10,16 +10,17 @@
             android:orientation="vertical">
 
 		<EditText
-		    android:id="@+id/result_text"
-		    android:inputType="textMultiLine"
-		    android:gravity="top|left"
-		    android:layout_width="match_parent"
-		    android:layout_height="fill_parent"
-		    android:layout_marginLeft="10dp"
-		    android:layout_marginRight="10dp"
-		    android:layout_marginTop="10dp"
-		    android:ems="10"
-		    android:text="No results yet.." />
+            android:id="@+id/result_text"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:inputType="none"
+            android:editable="false"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"
+            android:ems="10"
+            android:text="No results yet..."/>
 
         </LinearLayout>
     

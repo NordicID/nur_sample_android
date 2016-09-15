@@ -18,8 +18,6 @@ import com.nordicid.nurapi.NurEventTagTrackingChange;
 import com.nordicid.nurapi.NurEventTagTrackingData;
 import com.nordicid.nurapi.NurEventTraceTag;
 import com.nordicid.nurapi.NurEventTriggeredRead;
-
-import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
@@ -219,7 +217,6 @@ public class AppTemplate extends FragmentActivity {
 		mApi = new NurApi();
 		
 		mApi.setUiThreadRunner(new NurApiUiThreadRunner() {
-			
 			@Override
 			public void runOnUiThread(Runnable r) {
 				AppTemplate.this.runOnUiThread(r);
@@ -259,7 +256,7 @@ public class AppTemplate extends FragmentActivity {
 			mMenuContainer = (FrameLayout) findViewById(R.id.menu_container);
 			
 			//Activity is created show menu animation
-			showMenuAnimation = true;
+			showMenuAnimation = false;
 			
 			//If application started in landscape, configure the layout
 			if (mMenuContainer != null) {
@@ -295,7 +292,8 @@ public class AppTemplate extends FragmentActivity {
 		
 		mMenu = menu;
 		mCloseButton = mMenu.findItem(R.id.actionbar_close_button);
-		
+		if(mSubAppList.getCurrentOpenSubAppIndex()!= -1 && getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE)
+            mCloseButton.setVisible(true);
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -369,44 +367,32 @@ public class AppTemplate extends FragmentActivity {
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-		
 		changeSubAppListener();
-		
 		if (mNoConfigChangeCheck == false)
 			mConfigurationChanged = true;
 		else 
 			mNoConfigChangeCheck = false;
-		
-		mDrawerToggle.onConfigurationChanged(newConfig);
-		
 		setContentView(R.layout.main);
-		
-		if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {	
-			
+		if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
 			mMenuContainer = (FrameLayout) findViewById(R.id.menu_container);
-			
 			if (mMenu != null) {
 				mCloseButton.setVisible(false);
 			}
-			
 		} else {
-
 			mMenuContainer = null;
-
 			if (mSubAppList.getCurrentOpenSubAppIndex() != -1) {
 				mCloseButton.setVisible(true);
 			}
 		}
-		
 		if (!applicationPaused) {
 			setFragments();
 		}
-		
 		if (mSubAppList.getCurrentOpenSubAppIndex() == -1) {
 			mSubAppList.setCurrentOpenSubApp(0);
 		}
-
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
 		setDrawer(false);
+        mDrawerToggle.onConfigurationChanged(newConfig);
 	}
 	
 	/**
@@ -549,11 +535,11 @@ public class AppTemplate extends FragmentActivity {
 					app.setArguments(bundle);
 				}
 
-				int[] animations = app.getAnimations();
+				//int[] animations = app.getAnimations();
 			
 				mFragmentManager = getSupportFragmentManager();
 				mFragmentTransaction = mFragmentManager.beginTransaction();
-				mFragmentTransaction.setCustomAnimations(animations[0], animations[1]);
+				//mFragmentTransaction.setCustomAnimations(animations[0], animations[1]);
 				mFragmentTransaction.replace(R.id.content, app).commit();
 	
 				mSubAppList.setCurrentOpenSubApp(i);
@@ -642,10 +628,10 @@ public class AppTemplate extends FragmentActivity {
 			mFragmentManager = getSupportFragmentManager();
 			mFragmentTransaction = mFragmentManager.beginTransaction();
 
-			if (showMenuAnimation) {
+			/*if (showMenuAnimation) {
 				mFragmentTransaction.setCustomAnimations(R.anim.default_enter_menu, R.anim.default_exit_menu);
 				showMenuAnimation = false;
-			}
+			}*/
 
 			mFragmentTransaction.add(R.id.menu_container, mSubAppList);
 			mFragmentTransaction.commit();
@@ -671,23 +657,21 @@ public class AppTemplate extends FragmentActivity {
 	
 				@Override
 				public void onDrawerClosed(View drawerView) {
-					invalidateOptionsMenu();
 					super.onDrawerClosed(drawerView);
+                    invalidateOptionsMenu();
 				}
 	
 				@Override
 				public void onDrawerOpened(View drawerView) {
-					invalidateOptionsMenu();
 					super.onDrawerOpened(drawerView);
+                    invalidateOptionsMenu();
 				}
 		};
 		
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
 		mDrawerList.setAdapter(new DrawerItemAdapter(this,mDrawer.getDrawerItemTitles()));
 		mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
-		
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
-		
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActionBar().setHomeButtonEnabled(true);
 

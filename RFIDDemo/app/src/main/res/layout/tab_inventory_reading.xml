@@ -24,7 +24,7 @@
 	            android:layout_width="match_parent"
 	            android:layout_height="wrap_content"
 	            android:orientation="horizontal"
-	            android:weightSum="2" >
+	            android:weightSum="3" >
 	            
 		        <TextView
 		            android:layout_width="0dp"
@@ -32,6 +32,13 @@
 		            android:layout_weight="1"
 		            android:gravity="center"
 		            android:text="TOTAL TIME" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="TAGS PER SECOND" />
 			    
 			    <TextView
 			        android:layout_width="0dp"
@@ -46,8 +53,8 @@
 	            android:layout_width="match_parent"
 	            android:layout_height="wrap_content"
 	            android:orientation="horizontal"
-	            android:weightSum="2" >
-	            
+	            android:weightSum="3" >
+
 		        <TextView
 		            android:id="@+id/tags_total_time_textview"
 		            android:layout_width="0dp"
@@ -56,6 +63,15 @@
 		            android:freezesText="true"
 		            android:gravity="center"
 		            android:text="0" />
+
+                <TextView
+                    android:id="@+id/tags_per_second_textview"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:freezesText="true"
+                    android:gravity="center"
+                    android:text="0" />
 			    
 			    <TextView
 			        android:id="@+id/tags_in_time_textview"

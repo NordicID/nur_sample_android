@@ -16,14 +16,16 @@
 			android:id="@+id/menu_container"
 			android:layout_width="0dp"
 			android:layout_weight="0.17"
-			android:layout_height="match_parent" />
+			android:layout_height="match_parent"
+            android:background="@drawable/menu_border"/>
 
 		<LinearLayout
 			android:id="@+id/content_wrapper"
 			android:layout_width="0dp"
 			android:layout_height="match_parent"
 			android:layout_weight="0.83"
-			android:orientation="vertical" >
+			android:orientation="vertical"
+            >
 
 			<RelativeLayout
 				android:id="@+id/content"

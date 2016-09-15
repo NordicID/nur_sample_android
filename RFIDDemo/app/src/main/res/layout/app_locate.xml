@@ -39,11 +39,10 @@
             android:gravity="center_vertical|center_horizontal"
             android:inputType="none"
             android:text="0%"
-            android:textSize="24dp"
+            android:textSize="24sp"
             android:textStyle="bold" >
-
-            <requestFocus />
-        </EditText>
+        <requestFocus />
+    </EditText>
 
     </RelativeLayout>
     

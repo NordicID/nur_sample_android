@@ -10,29 +10,30 @@
             android:orientation="vertical">
 
 		<TextView
-		    android:id="@+id/tune_text"
-		    android:layout_width="match_parent"
-		    android:layout_height="wrap_content"
-		    android:layout_weight="1"
-		    android:ems="10"
-		    android:inputType="none"
-		    android:minHeight="200dp"
-		    android:text="No results yet.." />
+            android:id="@+id/tune_text"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_weight="3.12"
+            android:ems="10"
+            android:inputType="none"
+            android:minHeight="200dp"
+            android:text="No results yet.."
+            android:scrollbars="vertical"/>
 
-		<Button
-		    android:id="@+id/tune_button"
-		    android:layout_width="match_parent"
-		    android:layout_height="wrap_content"
-		    android:layout_weight="1"
-		    android:text="Tune enabled antennas" />
+    </LinearLayout>
 
-		<Button
-		    android:id="@+id/refl_power_button"
-		    android:layout_width="match_parent"
-		    android:layout_height="wrap_content"
-		    android:layout_weight="1"
-		    android:text="Measure reflected power" />
-            
-        </LinearLayout>
-    
+    <Button
+        android:id="@+id/tune_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tune enabled antennas"
+        android:layout_marginBottom="0dp"/>
+
+    <Button
+        android:id="@+id/refl_power_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Measure reflected power"
+        android:gravity="center"/>
+
 </LinearLayout>
