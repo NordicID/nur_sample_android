@@ -1,6 +1,7 @@
 # Built application files
 *.apk
 *.ap_
+*.aar
 
 # Files for the ART/Dalvik VM
 *.dex
@@ -39,5 +40,3 @@ captures/
 # Keystore files
 *.jks
 Copy_NurApi.bat
-NurApiAndroid/.idea/dictionaries/Yassine.xml
-*.aar

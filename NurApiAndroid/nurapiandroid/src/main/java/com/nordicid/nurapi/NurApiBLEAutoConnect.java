@@ -192,34 +192,6 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
                     }
                 }
             }.start();
-			/*new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-                        Thread.sleep(2000);
-						Log.w(TAG, "set transport null");
-						mApi.setTransport(null);
-
-						if (mService.getConnState() == UartService.STATE_CONNECTED) {
-							Log.w(TAG, "connect");
-							mTr.setService(mService);
-							mApi.setTransport(mTr);
-							mApi.connect();
-						}
-
-					} catch (Exception e) {
-						e.printStackTrace();
-
-						if (!mApi.isConnected()) {
-							if (mServiceBound) {
-								Log.w(TAG, "reconnect on failure");
-								mService.close();
-								mService.connect(mAddr);
-							}
-						}
-					}
-				}
-			}).start();*/
 		}
 		else if (mService.getConnState() == UartService.STATE_DISCONNECTED)
 		{

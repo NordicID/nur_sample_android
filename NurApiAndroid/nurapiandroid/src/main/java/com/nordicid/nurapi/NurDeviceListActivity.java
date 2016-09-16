@@ -114,7 +114,6 @@ public class NurDeviceListActivity extends Activity  {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         setResult(RESULT_CANCELED);
         checkIfUsBOnly();
