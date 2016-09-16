@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.Fragment;
+import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -62,6 +63,8 @@ public class SettingsAppTuneTab extends Fragment
 		});
 		
 		mEditText = (TextView)view.findViewById(R.id.tune_text);
+        /** enable scrolling to see all antennas' details on landscape (small screen)**/
+        mEditText.setMovementMethod( new ScrollingMovementMethod());
 	}
 	
 	String text;

@@ -4,9 +4,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.nordicid.apptemplate.AppTemplate;
-import com.nordicid.apptemplate.SubApp;
 import com.nordicid.apptemplate.SubAppList;
-import com.nordicid.nuraccessory.NurAccessoryExtension;
 import com.nordicid.nurapi.*;
 
 import android.app.AlertDialog;
@@ -17,7 +15,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.TextView;
@@ -170,7 +167,6 @@ public class Main extends AppTemplate {
 		if (mAcTr != null) {
 			mAcTr.setAddress(pref.getString("connAddr", ""));
 		}
-
 		updateStatus();
 	}
 
@@ -209,11 +205,10 @@ public class Main extends AppTemplate {
 
 	@Override
 	protected void onResume() {
-		super.onResume();
+        super.onResume();
 
-		if (mAcTr == null)
-			loadSettings();
-
+        if (mAcTr == null)
+            loadSettings();
 		if (mAcTr != null) {
 			mAcTr.onResume();
 		}
@@ -481,7 +476,6 @@ public class Main extends AppTemplate {
 	{
 		if (mAcTr != null)
 			mAcTr.dispose();
-
 		// Request for "all devices", not filtering "nordicid_*".
 		NurDeviceListActivity.startDeviceRequest(this);
 	}

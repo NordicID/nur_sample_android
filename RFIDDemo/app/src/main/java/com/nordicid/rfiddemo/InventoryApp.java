@@ -2,6 +2,9 @@ package com.nordicid.rfiddemo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.apptemplate.SubApp;
@@ -37,11 +40,13 @@ public class InventoryApp extends SubApp {
 	private SimpleAdapter mFoundTagsListViewAdapter;
 	private Button mStartStopInventory;
 	private View mView;
-	
+    private long lastTagCount = 0;
+    private double tagsPerSecond = 0;
+    private long oldTagCount = 0;
 	private int mNumTags = 0;
 	long mLastUpdateTagCount = 0;
-	
 	Handler mHandler;
+    Handler tagsPerSecondHandler;
 	
 	private NurTagStorage mTagStorage = new NurTagStorage();
 	public static ArrayList<HashMap<String, String>> FOUND_TAGS = new ArrayList<HashMap<String,String>>(); 
@@ -93,17 +98,12 @@ public class InventoryApp extends SubApp {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
-		mInventoryController.setListener(new InventoryControllerListener() {
-
+        mInventoryController.setListener(new InventoryControllerListener() {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void tagFound(NurTag tag, int roundsDone) {
-				
 				HashMap<String, String> tmp;
-				
 				if (mTagStorage.addTag(tag)) {
-					
 					tmp = new HashMap<String, String>();
 					tmp.put("epc", tag.getEpcString());
 					tmp.put("rssi", Integer.toString(tag.getRssi()));
@@ -112,17 +112,13 @@ public class InventoryApp extends SubApp {
 					tmp.put("found", "1");
 					tmp.put("foundpercent", "100");
 					tag.setUserdata(tmp);
-
 					FOUND_TAGS.add(tmp);
 					mFoundTagsListViewAdapter.notifyDataSetChanged();
-					
 					mNumTags++;
 					mInventoryCountTextView.setText(Integer.toString(mNumTags));
 				}
 				else {
-					
 					tag = mTagStorage.getTag(tag.getEpc());
-					
 					tmp = (HashMap<String, String>) tag.getUserdata();
 					tmp.put("rssi", Integer.toString(tag.getRssi()));
 					tmp.put("timestamp", Integer.toString(tag.getTimestamp()));
@@ -155,20 +151,38 @@ public class InventoryApp extends SubApp {
 				}
 			}
 			
-		}); 
-	} 
-	
-	long lastTagCount = 0;
+		});
+        tagsPerSecondHandler = new Handler();
+        Runnable runnable = new Runnable() {
+
+            @Override
+            public void run() {
+                try{
+                    if(mInventoryController.isInventoryRunning()){
+                        tagsPerSecond = (lastTagCount - oldTagCount);
+                        oldTagCount = lastTagCount;
+                    }
+                }
+                catch (Exception e) {
+                    // TODO: handle exception
+                }
+                finally{
+                    //also call the same runnable to call it at regular interval
+                    tagsPerSecondHandler.postDelayed(this, 1000);
+                }
+            }
+        };
+        tagsPerSecondHandler.postDelayed(runnable, 1000);
+	}
 
     public void updateNumTags(int numTags) {
         if (numTags < 0)
             numTags = 0;
         if (lastTagCount != numTags) {
             mInventoryTagsInTime.setText(String.format("%.1f", mInventoryController.getElapsedSecs()));
-            mInventoryTagsPerSecond.setText(String.format("%.2f",numTags/Double.parseDouble(mInventoryTagsInTime.getText().toString())));
-            //mInventoryController.getElapsedSecs()
             lastTagCount = numTags;
         }
+        mInventoryTagsPerSecond.setText(String.format("%.2f", tagsPerSecond));
         mInventoryCountTextView.setText(Integer.toString(numTags));
         mInventoryTotalTime.setText(String.format("%.1f", mInventoryController.getElapsedSecs()));
     }
@@ -178,7 +192,10 @@ public class InventoryApp extends SubApp {
 		mTagStorage.clear();
 		InventoryApp.FOUND_TAGS.clear();
 		mFoundTagsListViewAdapter.notifyDataSetChanged();
-		mNumTags = 0;	
+		mNumTags = 0;
+        tagsPerSecond = 0;
+        lastTagCount = 0;
+        oldTagCount = 0;
 		mLastUpdateTagCount = -1;
 		updateNumTags(-1);
 		mInventoryController.clearInventoryReadings();		
