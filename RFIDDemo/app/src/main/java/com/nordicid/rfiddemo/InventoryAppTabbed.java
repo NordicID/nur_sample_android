@@ -35,7 +35,8 @@ public class InventoryAppTabbed extends SubAppTabbed {
 	
 	long mNumTags = 0;
 	long mLastUpdateTagCount = 0;
-	
+    protected long oldTagCount = 0;
+
 	Handler mHandler;
 
 	private static InventoryAppTabbed gInstance = null;
@@ -213,6 +214,7 @@ public class InventoryAppTabbed extends SubAppTabbed {
 		InventoryApp.FOUND_TAGS.clear();
 		mFoundTab.mFoundTagsListViewAdapter.notifyDataSetChanged();
 		mReadingTab.updateNumTags(-1);
+        oldTagCount = 0;
 		mInventoryController.clearInventoryReadings();
 	}
 

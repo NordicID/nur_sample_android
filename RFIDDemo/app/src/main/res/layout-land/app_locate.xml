@@ -10,7 +10,7 @@ android:baselineAligned="false">
     android:id="@+id/location_info_container"
     android:layout_height="match_parent"
     android:layout_width="0dp"
-    android:layout_weight="0.50"
+    android:layout_weight="0.30"
     android:background="@android:color/holo_orange_light"
     android:orientation="vertical" >
 
@@ -22,15 +22,13 @@ android:baselineAligned="false">
         android:progress="0" android:max="100"
         android:indeterminateOnly="false"
         android:indeterminate="false"
-        android:layout_gravity="center_horizontal"
+        android:layout_gravity="center_vertical"
         style="?android:attr/progressBarStyleLarge"/>
 
     <EditText
         android:id="@+id/pct_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
         android:background="@android:color/transparent"
         android:clickable="false"
         android:cursorVisible="false"
@@ -41,7 +39,8 @@ android:baselineAligned="false">
         android:inputType="none"
         android:text="0%"
         android:textSize="24sp"
-        android:textStyle="bold" >
+        android:textStyle="bold"
+        android:layout_centerInParent="true">
         <requestFocus />
     </EditText>
 
