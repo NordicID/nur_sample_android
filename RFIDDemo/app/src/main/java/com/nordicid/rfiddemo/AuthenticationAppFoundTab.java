@@ -149,8 +149,6 @@ public class AuthenticationAppFoundTab extends Fragment {
 			@Override
 			public void onClick(View v) {
 				Bundle b = new Bundle();
-				b.putString("epc", tagData.get(DATA_TAG_EPC));
-				b.putBoolean("autostart", true);
 
 				b.putString(TraceApp.DATA_EPC, tagData.get(DATA_TAG_EPC));
 				b.putBoolean(TraceApp.DATA_AUTOSTART, true);
