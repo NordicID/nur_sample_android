@@ -320,7 +320,8 @@ public class InventoryApp extends SubApp {
 			@Override
 			public void onClick(View v) {
 				Bundle b = new Bundle();
-				b.putString("epc", tagData.get("epc"));
+				b.putString(TraceApp.DATA_EPC, tagData.get("epc"));
+				b.putBoolean(TraceApp.DATA_AUTOSTART, true);
 				dialog.dismiss();
 				getAppTemplate().setApp("Locate", b);
 			}
