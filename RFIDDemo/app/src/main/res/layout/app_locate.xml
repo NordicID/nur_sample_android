@@ -7,14 +7,13 @@
     <RelativeLayout 
         android:id="@+id/location_info_container"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.45"
+        android:layout_height="wrap_content"
         android:background="@android:color/holo_orange_light"
         android:orientation="vertical" >
         
         <ProgressBar 
-	        android:layout_height="0dp"
-	        android:layout_width="0dp"
+	        android:layout_height="wrap_content"
+	        android:layout_width="wrap_content"
 	        android:id="@+id/progressBar"
 	        android:progressDrawable="@drawable/custom_progressbar"
 	        android:background="@drawable/custom_progressbar_bg"
@@ -50,7 +49,7 @@
             android:id="@+id/locate_epc_edittext"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="20dp"
+            android:layout_margin="1dp"
             android:layout_marginTop="20dp"
             android:ems="10"
             android:hint="@string/locatable_epc_hint"
@@ -58,15 +57,13 @@
     
     <include 
         layout="@layout/taglist"
-        android:layout_height="0dp"
-        android:layout_width="match_parent"
-        android:layout_weight="0.55" />
+        android:layout_height="fill_parent"
+        android:layout_width="match_parent" />
     
     <RelativeLayout
         android:id="@+id/listview_empty"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.55"
         android:orientation="vertical"
         android:visibility="gone" >
         
