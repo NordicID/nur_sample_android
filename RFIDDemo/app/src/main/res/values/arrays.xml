@@ -128,5 +128,24 @@
         <item>Thailand</item>
         <item>Philippines</item>
     </string-array>
-    
+
+    <string-array name="tm_nur_test_types">
+        <item>NONE</item>
+        <item>Continuous TX</item>
+        <item>Continuous CW</item>
+        <item>Continuous Modulation (ScanSingle)</item>
+        <item>Continuous Modulation (Select)</item>
+        <item>Continuous Hopping (ScanSingle)</item>
+        <item>Continuous Hopping (Select)</item>
+        <item>Continuous Listen</item>
+    </string-array>
+
+    <string-array name="tm_ble_test_types">
+        <item>RX Test</item>
+        <item>TX Test PRBS9</item>
+        <item>TX Test 00001111</item>
+        <item>TX Test 01010101</item>
+        <item>Carrier On</item>
+    </string-array>
+
 </resources>

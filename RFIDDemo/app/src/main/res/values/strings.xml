@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">NID RFID Demo</string>
+    <string name="app_name">Nordic ID RFID Demo</string>
     
     <string name="average_speed_textview">AVG. SPEED</string>
     <string name="peak_textview">PEAK</string>
     <string name="tags_per_second_textview">TAGS/S</string>
-    <string name="text_current_demo_version">Nordic ID RFID Demo V1.0.17</string>
+    <string name="text_current_demo_version">Nordic ID RFID Demo V1.0.21</string>
 
     <string name="start">START</string>
     <string name="stop">STOP</string>
