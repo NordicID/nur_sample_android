@@ -5,6 +5,7 @@ import java.util.TimerTask;
 
 import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.apptemplate.SubAppList;
+import com.nordicid.nuraccessory.NurAccessoryExtension;
 import com.nordicid.nurapi.*;
 
 import android.app.AlertDialog;
@@ -12,9 +13,11 @@ import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.TextView;
@@ -67,7 +70,6 @@ public class Main extends AppTemplate {
 		timerTask = new TimerTask() {
 			@Override
 			public void run() {
-				//use a handler to run a toast that shows the current timestamp
 				timerHandler.post(new Runnable() {
 					@Override
 					public void run() {
@@ -101,7 +103,6 @@ public class Main extends AppTemplate {
 			Toast.makeText(this, "Error:\n" + strErr, Toast.LENGTH_SHORT).show();
 		}
 	}
-
 
 	void saveSettings() {
 		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
@@ -207,6 +208,8 @@ public class Main extends AppTemplate {
 	protected void onResume() {
         super.onResume();
 
+		Beeper.init();
+
         if (mAcTr == null)
             loadSettings();
 		if (mAcTr != null) {
@@ -297,6 +300,9 @@ public class Main extends AppTemplate {
 		/* Authentication application. */
 		subAppList.addSubApp(new AuthenticationAppTabbed());
 
+		/* Test mode application. */
+		subAppList.addSubApp(new TestModeApp());
+
 		theApi.setLogLevel(NurApi.LOG_ERROR);
 		
 		setAppListener(new NurApiListener() {
@@ -308,11 +314,17 @@ public class Main extends AppTemplate {
 
 				updateStatus();
 				Toast.makeText(Main.this, getString(R.string.reader_disconnected), Toast.LENGTH_SHORT).show();
+
+				getSubAppList().getApp("Barcode").setIsVisibleInMenu(false);
 			}
 			@Override
 			public void connectedEvent() {
 				updateStatus();
 				Toast.makeText(Main.this, getString(R.string.reader_connected), Toast.LENGTH_SHORT).show();
+
+				// Show barcode app only for accessory devices
+				NurAccessoryExtension ext = new NurAccessoryExtension(getNurApi());
+				getSubAppList().getApp("Barcode").setIsVisibleInMenu(ext.isSupported());
 			}
 
 			@Override
@@ -352,6 +364,35 @@ public class Main extends AppTemplate {
 			@Override
 			public void tagTrackingChangeEvent(NurEventTagTrackingChange event) { }
 		});
+
+		((TextView)findViewById(R.id.app_statustext)).setOnClickListener(mStatusBarOnClick);
+	}
+
+	int testmodeClickCount = 0;
+	long testmodeClickTime = 0;
+
+	View.OnClickListener mStatusBarOnClick = new View.OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			if (testmodeClickCount < 10) {
+				if (testmodeClickTime != 0 && SystemClock.uptimeMillis() - testmodeClickTime > 5000) {
+					testmodeClickCount = 0;
+				}
+				testmodeClickTime = SystemClock.uptimeMillis();
+				testmodeClickCount++;
+
+				if (testmodeClickCount == 10) {
+					Toast.makeText(Main.this, "Test Mode enabled", Toast.LENGTH_SHORT).show();
+					getSubAppList().getApp("Test Mode").setIsVisibleInMenu(true);
+				}
+			}
+		}
+	};
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		((TextView)findViewById(R.id.app_statustext)).setOnClickListener(mStatusBarOnClick);
 	}
 
 	@Override
@@ -479,7 +520,6 @@ public class Main extends AppTemplate {
 		// Request for "all devices", not filtering "nordicid_*".
 		NurDeviceListActivity.startDeviceRequest(this);
 	}
-
 
 	@Override
 	public void onDrawerItemClick(AdapterView<?> parent, View view, int position, long id) 
