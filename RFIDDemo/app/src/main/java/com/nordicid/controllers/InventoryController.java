@@ -18,6 +18,8 @@ import com.nordicid.nurapi.NurEventTraceTag;
 import com.nordicid.nurapi.NurEventTriggeredRead;
 import com.nordicid.nurapi.NurTag;
 import com.nordicid.nurapi.NurTagStorage;
+import com.nordicid.rfiddemo.Beeper;
+import com.nordicid.rfiddemo.InventoryApp;
 
 public class InventoryController {
 
@@ -122,6 +124,8 @@ public class InventoryController {
 				mApi.startInventoryStream();
 				mInventoryStartTime = System.currentTimeMillis();
 				mInventoryRunning = true;
+				mBeeperThread = new Thread(mBeeperThreadRunnable);
+				mBeeperThread.start();
 				mInventoryListener.inventoryStateChanged();
 			} catch (Exception err) {
 				err.printStackTrace();
@@ -145,6 +149,11 @@ public class InventoryController {
 			if (mApi.isConnected()) {
 				mApi.stopInventoryStream();
 			}
+			if (mBeeperThread != null)
+			{
+				mBeeperThread.join(5000);
+				mBeeperThread = null;
+			}
 			mInventoryListener.inventoryStateChanged();
 		} catch (Exception err) {	
 			err.printStackTrace();
@@ -157,7 +166,8 @@ public class InventoryController {
 	private void handleInventoryTags() {
 		
 		synchronized (mApi.getStorage()) {
-			
+			int curCount = InventoryApp.FOUND_TAGS.size();
+
 			NurTagStorage tagStorage = mApi.getStorage();
 			
 			for (int i = 0; i < tagStorage.size(); i++) {
@@ -165,10 +175,15 @@ public class InventoryController {
 				NurTag tag = tagStorage.get(i);		
 				mInventoryListener.tagFound(tag, mInventoryRounds);
 			}
-			
+
 			tagStorage.clear();
+
+			// TODO: Move FOUND_TAGS to controller
+			mAddedUnique = InventoryApp.FOUND_TAGS.size() - curCount;
 		}
 	}
+
+	int mAddedUnique = 0;
 	
 	public void setListener(InventoryControllerListener l) {
 		mInventoryListener = l;
@@ -188,4 +203,38 @@ public class InventoryController {
 		public void readerConnected();
 		public void inventoryStateChanged();
 	}
+
+	Runnable mBeeperThreadRunnable = new Runnable() {
+		@Override
+		public void run()
+		{
+			while (mInventoryRunning)
+			{
+				if (mAddedUnique > 0) {
+					int sleepTime = 100 - mAddedUnique;
+					int beepDuration = Beeper.SHORT;
+
+					if (sleepTime < 10)
+						sleepTime = 10;
+
+					Beeper.beep(beepDuration);
+
+					try {
+						Thread.sleep(sleepTime);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				else
+				{
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	};
+	Thread mBeeperThread;
 }

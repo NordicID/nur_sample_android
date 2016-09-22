@@ -16,9 +16,7 @@ import com.nordicid.nurapi.NurEventTagTrackingData;
 import com.nordicid.nurapi.NurEventTraceTag;
 import com.nordicid.nurapi.NurEventTriggeredRead;
 import com.nordicid.nurapi.NurRespReadData;
-
-import android.media.AudioManager;
-import android.media.ToneGenerator;
+import com.nordicid.rfiddemo.Beeper;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -31,8 +29,6 @@ public class TraceTagController {
 
 	private long mLastUpdateTime = 0;
 	private long mUpdateInterVal = 100;
-
-	private boolean mEnableBeep = true;
 
 	private Handler mHandler;
 	
@@ -167,32 +163,27 @@ public class TraceTagController {
     	//Log.d("TRACE", "doTracePass() - " + ret.scaledRssi);
         return ret;
     }
-	
+
 	boolean mTraceRunning = false;
 		
 	Runnable mBeeperThreadRunnable = new Runnable() {
 		@Override
 		public void run() 
 		{	
-			ToneGenerator toneGen = new ToneGenerator(AudioManager.STREAM_ALARM, 80);
-			
 			while (mTraceRunning)
 			{
 				int avgStrength = mTraceAntSelector.getSignalStrength();
 				int sleepTime = 1000;
-				int beepDuration = 100;
-				int toneType = ToneGenerator.TONE_DTMF_0;
-				
+				int beepDuration = Beeper.LONG;
+
 				if (avgStrength > 0)
                 {
-					toneType = ToneGenerator.TONE_DTMF_4 + (avgStrength / 10); //ToneGenerator.TONE_DTMF_9;
-                    sleepTime = 160 - avgStrength;
-                    beepDuration = 50;
+                    sleepTime = 190 - avgStrength;
+                    beepDuration = Beeper.SHORT;
                 }
 				
-				if (mEnableBeep)
-					toneGen.startTone(toneType, beepDuration);
-				
+				Beeper.beep(beepDuration);
+
 				try {
 					Thread.sleep(sleepTime);
 				} catch (InterruptedException e) {
@@ -234,7 +225,7 @@ public class TraceTagController {
 	public boolean startTagTrace(byte[] epc) 
 	{
 		if (isTracingTag())
-			return false;
+			return true;
 		
 		if (mApi.isConnected() && epc.length > 0) {
 			try {
@@ -259,7 +250,7 @@ public class TraceTagController {
 
 	public boolean stopTagTrace() {
 		if (!isTracingTag())
-			return false;
+			return true;
 		
 		try {
 			mTraceRunning = false;
@@ -284,10 +275,6 @@ public class TraceTagController {
 
 	public boolean isTracingTag() {
 		return mTraceRunning;
-	}
-
-	public void setEnableBeep(boolean val) {
-		mEnableBeep = val;
 	}
 
 	public void setUpdateInterval(int interval) {
