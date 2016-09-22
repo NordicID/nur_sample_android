@@ -264,6 +264,8 @@ public class AppTemplate extends FragmentActivity {
 				onConfigurationChanged(getResources().getConfiguration());	
 			}
 		}
+
+		getSubAppList().updateSubAppsVisibility();
 	}
 	
 	public void setStatusText(String text)
@@ -314,34 +316,6 @@ public class AppTemplate extends FragmentActivity {
 	 */
 	protected void onCreateSubApps(SubAppList subAppList) { }
 
-	protected void removeSubApp(SubApp toRemove)
-	{
-		if (mExitingApplication)
-			return;	// Don't go poking around when already exiting.
-
-		mSubAppList.removeSubApp(toRemove);
-	}
-
-	/**
-	 * Gets all the SubApp objects from
-	 * SubAppList in a ArrayList.
-	 * @return ArrayList of SubApps
-	 * @see SubApp
-	 */
-	public ArrayList<SubApp> getSubApps() {
-		return mSubAppList.getApps();
-	}
-	
-	/**
-	 * Gets the SubApp with index
-	 * @param i Index of SubApp in ArrayList of SubApps
-	 * @return SubApp
-	 * @see SubApp
-	 */
-	public SubApp getApp(int i) {
-		return mSubAppList.getApp(i);
-	}
-
 	/**
 	 * Returns SubAppList
 	 * @return SubAppList
@@ -350,16 +324,7 @@ public class AppTemplate extends FragmentActivity {
 	public SubAppList getSubAppList() {
 		return mSubAppList;
 	}
-	
-	/**
-	 * Returns ArrayList of SubApps
-	 * @see SubApp
-	 * @return ArrayList
-	 */
-	protected ArrayList<SubApp> getApps() {
-		return mSubAppList.getApps();
-	}
-	
+
 	/**
 	 * Sets the layout for the new configuration that the devices
 	 * has at the moment. Used internally.
@@ -520,10 +485,10 @@ public class AppTemplate extends FragmentActivity {
 	 */
 	private void openSubApp(int i, Bundle bundle) {
  
-		if (i != mSubAppList.getCurrentOpenSubAppIndex() && !mSubAppList.getApp(i).isVisible()) {
+		if (i != mSubAppList.getCurrentOpenSubAppIndex() && !mSubAppList.getVisibleApp(i).isVisible()) {
 			
-			if (i < mSubAppList.getApps().size()) {
-				SubApp app = getApp(i);
+			if (i < mSubAppList.getVisibleApps().size()) {
+				SubApp app = getSubAppList().getVisibleApp(i);
 				
 				/*
 				 * prevents crash if user navigates fast

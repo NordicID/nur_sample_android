@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 public class SubApp extends Fragment {
 	private LinearLayout mButtonBar;
 	private int mButtonBarButtonCount;
+	private boolean mVisible = true;
 	
 	/*private int[] default_animations = {
 			R.anim.default_enter_app,
@@ -46,7 +47,24 @@ public class SubApp extends Fragment {
 	public SubApp() {
 		super();
 	}
-	
+
+	/**
+	 * Get menu visibility of the subapp.
+	 *
+	 * @return boolean true/false
+	 */
+	public boolean getIsVisibleInMenu() { return mVisible; }
+
+	/**
+	 * Set menu visibility of the subapp.
+	 *
+	 * @param val true/false
+	 */
+	public void setIsVisibleInMenu(boolean val) {
+		mVisible = val;
+		getAppTemplate().getSubAppList().updateSubAppsVisibility();
+	}
+
 	/**
 	 * Gets SubApp name. Override this method 
 	 * in your subapp class to return
@@ -54,7 +72,6 @@ public class SubApp extends Fragment {
 	 * 
 	 * @return String name
 	 */
-	
 	public String getAppName() {
 		return "No name";
 	}

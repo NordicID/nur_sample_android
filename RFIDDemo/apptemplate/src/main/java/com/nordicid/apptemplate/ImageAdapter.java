@@ -24,7 +24,7 @@ public class ImageAdapter extends BaseAdapter {
 
     @Override
 	public int getCount() {
-        return list.getApps().size();
+        return list.getVisibleApps().size();
     }
 
     @Override
@@ -96,12 +96,10 @@ public class ImageAdapter extends BaseAdapter {
         	imageViewParams.height = iconSize;
         	icon.setLayoutParams(imageViewParams);
         }
-
         
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
         
-        final SubApp app = list.getApp(position);
-        
+        final SubApp app = list.getVisibleApp(position);
         //sets the highlighting for subapp icon if needed
 
         icon.setImageDrawable(list.getResources().getDrawable(app.getTileIcon()));

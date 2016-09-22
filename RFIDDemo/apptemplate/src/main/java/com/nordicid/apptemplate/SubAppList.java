@@ -26,20 +26,24 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	private GridView mGridView;
 	private AppTemplate appTemplate;
 	private int currentOpenSubApp = -1;
-	
-	/*public SubAppList(AppTemplate t) {
-		appTemplate = t;
-	}*/
-	
+
+	private ArrayList<SubApp> mVisibleSubApps = new ArrayList<SubApp>();
+
 	public SubAppList() {
 		appTemplate = AppTemplate.getAppTemplate();
 	}
 
-    /*@Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        setRetainInstance(true);
-    }*/
+    public void updateSubAppsVisibility()
+	{
+		mVisibleSubApps.clear();
+		for (int n=0; n<mSubApps.size(); n++){
+			if (mSubApps.get(n).getIsVisibleInMenu())
+				mVisibleSubApps.add(mSubApps.get(n));
+		}
+
+		if (mImageAdapter != null)
+			mImageAdapter.notifyDataSetChanged();
+	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -73,14 +77,16 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 			
 			mGridView.setPadding(horizontalMargin, verticalMargin, horizontalMargin, verticalMargin);
 		}
-		
-		
-		mGridView.setAdapter(new ImageAdapter(this));
+
+		mImageAdapter = new ImageAdapter(this);
+		mGridView.setAdapter(mImageAdapter);
 		mGridView.setOnItemClickListener(this);
 		mGridView.setHorizontalSpacing(mGridView.getVerticalSpacing());
 		
 		return view;
 	}
+
+	ImageAdapter mImageAdapter;
 
 	@Override
 	public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {	
@@ -131,7 +137,14 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	public ArrayList<SubApp> getApps() {
 		return mSubApps;
 	}
-	
+
+	public ArrayList<SubApp> getVisibleApps() {
+		return mVisibleSubApps;
+	}
+
+	public SubApp getVisibleApp(int i) {
+		return mVisibleSubApps.get(i);
+	}
 	/**
 	 * Gets all SubApp names
 	 * @return ArrayList of SubApp names
