@@ -56,24 +56,39 @@ public class BarcodeApp extends SubApp {
 		mResultListener = new AccessoryBarcodeResultListener() {
 			@Override
 			public void onBarcodeResult(AccessoryBarcodeResult result) {
+
 				if (result.status == NurApiErrors.NO_TAG) {
 					mText = "No barcode found";
+					Beeper.beep(Beeper.FAIL);
+				}
+				else if (result.status == NurApiErrors.NOT_READY) {
+					if (!mCancelRequested)
+						mIgnoreNextTrigger = true;
+					mCancelRequested = false;
+					mText = "Cancelled";
+				}
+				else if (result.status == NurApiErrors.HW_MISMATCH) {
+					mText = "No hardware found";
+					Beeper.beep(Beeper.FAIL);
 				}
 				else if (result.status != NurApiErrors.NUR_SUCCESS) {
 					mText = "Error: " + result.status;
+					Beeper.beep(Beeper.FAIL);
 				}
 				else {
 					mText = result.strBarcode;
                     ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(getActivity().CLIPBOARD_SERVICE);
                     ClipData clip = ClipData.newPlainText("Barcode", result.strBarcode);
                     clipboard.setPrimaryClip(clip);
-                    Toast.makeText(getActivity(), "Barcode copied to clipboard", Toast.LENGTH_SHORT).show();
-					try {
+                    //Toast.makeText(getActivity(), "Barcode copied to clipboard", Toast.LENGTH_SHORT).show();
+
+					Beeper.beep(Beeper.SHORT);
+					/*try {
 						// Beep on success
-						mAccessoryExt.beepAsync(200);
+						//mAccessoryExt.beepAsync(200);
 					} catch (Exception e) {
 						e.printStackTrace();
-					}
+					}*/
 				}
 				updateText();
 				mIsActive = false;
@@ -130,6 +145,8 @@ public class BarcodeApp extends SubApp {
 			@Override
 			public void tagTrackingChangeEvent(NurEventTagTrackingChange event) { }
 		};
+
+		setIsVisibleInMenu(false);
 	}
 
 	@Override
@@ -194,6 +211,7 @@ public class BarcodeApp extends SubApp {
 		if (mIsActive) {
 			try {
 				mAccessoryExt.cancelBarcodeAsync();
+				mCancelRequested = true;
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -220,9 +238,14 @@ public class BarcodeApp extends SubApp {
 		}
 	}
 
+	boolean mIgnoreNextTrigger = false;
+	boolean mCancelRequested = false;
+
 	private void bleTrigger(int dir) {
 		if (dir == 0) {
-			handleTrigger();
+			if (!mIgnoreNextTrigger)
+				handleTrigger();
+			mIgnoreNextTrigger = false;
 		}
 	}
 
