@@ -425,6 +425,10 @@ public class AppTemplate extends FragmentActivity {
 	 */
 	private void doubleOnBackPressExit() {
 		if (backPressedOnce) {
+
+			// Stop generating NurApi events
+			mApi.setListener(null);
+
 			mExitingApplication = true;
 			super.onBackPressed();
 			//this.finish();
