@@ -1,5 +1,7 @@
 package com.nordicid.controllers;
 
+import android.util.Log;
+
 import com.nordicid.nuraccessory.NurAccessoryExtension;
 import com.nordicid.nurapi.NurApi;
 import com.nordicid.nurapi.NurApiListener;
@@ -21,16 +23,17 @@ import com.nordicid.nurapi.NurTagStorage;
 import com.nordicid.rfiddemo.Beeper;
 import com.nordicid.rfiddemo.InventoryApp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class InventoryController {
 
 	private int mInventoryRounds = 0;
-	
 	private long mInventoryStartTime;
-	
 	private boolean mInventoryRunning = false;
-	
 	private NurApi mApi;
 	private InventoryControllerListener mInventoryListener;
+    private List<Integer> mTagReadBuffer = null;
 	
 	private NurApiListener mThisClassListener = null;
 
@@ -48,14 +51,16 @@ public class InventoryController {
 
 	public InventoryController(NurApi na) {
 		mApi = na;
-		
+        mTagReadBuffer = new ArrayList<>();
 		mThisClassListener = new NurApiListener() {	
 			@Override 
 			public void inventoryStreamEvent(NurEventInventory event) {
 
-				if (event.tagsAdded > 0) {
-					handleInventoryTags();
-				}
+                //if (event.tagsAdded > 0) {
+                handleInventoryTags();
+                mTagReadBuffer.add(event.tagsAdded);
+                Log.d("TAGREAD",Integer.toString(event.tagsAdded));
+                //}
 
 				if (event.stopped && mInventoryRunning) {
 					
@@ -237,4 +242,19 @@ public class InventoryController {
 		}
 	};
 	Thread mBeeperThread;
+
+    public int getReadTagsCount(){
+        if(mTagReadBuffer.size() == 0)
+            return 0;
+        int sum = 0;
+        for(Integer i: mTagReadBuffer){
+            sum += i;
+        }
+        return sum;
+    }
+
+    public void clearReadTagBuffer(){
+        mTagReadBuffer.clear();
+        Log.d("TAGCLEAR","CLEARED BUFFER");
+    }
 }

@@ -31,18 +31,24 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class InventoryApp extends SubApp {
-	
-	private TextView mInventoryCountTextView;
-	private TextView mInventoryTotalTime;
-	private TextView mInventoryTagsInTime;
+
+    private TextView mInventoryCountTextView;
+    private TextView mInventoryTagsInTime;
+    private TextView mInventoryMaxTagsPerSecond;
+    private TextView mInventoryAvgTagPerSecond;
     private TextView mInventoryTagsPerSecond;
 	private ListView mFoundTagsListView;
 	private SimpleAdapter mFoundTagsListViewAdapter;
 	private Button mStartStopInventory;
 	private View mView;
     private long lastTagCount = 0;
-    private double tagsPerSecond = 0;
-    private long oldTagCount = 0;
+
+    private long tagsPerSecond = 0;
+    private long maxTagsPerSecond = 0;
+    private long averageTagsPerSecond = 0;
+    private long mTagsPerSecondSum = 0;
+    private long mTagsPerSecondCounter = 0;
+
 	private int mNumTags = 0;
 	long mLastUpdateTagCount = 0;
 	Handler mHandler;
@@ -63,6 +69,8 @@ public class InventoryApp extends SubApp {
 		super();
 		mHandler = new Handler(Looper.getMainLooper());
 		mInventoryController = new InventoryController(getNurApi());
+        tagsPerSecondHandler = new Handler();
+        tagsPerSecondHandler.postDelayed(tagsPerSecondRunnable, 1000);
 	}
 
 	@Override
@@ -152,39 +160,43 @@ public class InventoryApp extends SubApp {
 			}
 			
 		});
-        tagsPerSecondHandler = new Handler();
-        Runnable runnable = new Runnable() {
-
-            @Override
-            public void run() {
-                try{
-                    if(mInventoryController.isInventoryRunning()){
-                        tagsPerSecond = (lastTagCount - oldTagCount);
-                        oldTagCount = lastTagCount;
-                    }
-                }
-                catch (Exception e) {
-                    // TODO: handle exception
-                }
-                finally{
-                    //also call the same runnable to call it at regular interval
-                    tagsPerSecondHandler.postDelayed(this, 1000);
-                }
-            }
-        };
-        tagsPerSecondHandler.postDelayed(runnable, 1000);
 	}
 
-    public void updateNumTags(int numTags) {
+    Runnable tagsPerSecondRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try{
+                if(mInventoryController.isInventoryRunning()){
+                    tagsPerSecond = mInventoryController.getReadTagsCount();
+                    mTagsPerSecondSum += tagsPerSecond;
+                    mTagsPerSecondCounter++;
+                    averageTagsPerSecond = mTagsPerSecondSum/mTagsPerSecondCounter;
+                    if(tagsPerSecond > maxTagsPerSecond)
+                        maxTagsPerSecond = tagsPerSecond;
+                    mInventoryController.clearReadTagBuffer();
+                }
+            }
+            catch (Exception e) {
+                // TODO: handle exception
+            }
+            finally{
+                //also call the same runnable to call it at regular interval
+                tagsPerSecondHandler.postDelayed(this, 1000);
+            }
+        }
+    };
+
+    public void updateNumTags(long numTags) {
         if (numTags < 0)
             numTags = 0;
         if (lastTagCount != numTags) {
             mInventoryTagsInTime.setText(String.format("%.1f", mInventoryController.getElapsedSecs()));
             lastTagCount = numTags;
         }
-        mInventoryTagsPerSecond.setText(String.format("%.2f", tagsPerSecond));
-        mInventoryCountTextView.setText(Integer.toString(numTags));
-        mInventoryTotalTime.setText(String.format("%.1f", mInventoryController.getElapsedSecs()));
+        mInventoryTagsPerSecond.setText(String.format("%d", tagsPerSecond));
+        mInventoryCountTextView.setText(Long.toString(numTags));
+        mInventoryMaxTagsPerSecond.setText(String.format("%d", maxTagsPerSecond));
+        mInventoryAvgTagPerSecond.setText(String.format("%d", averageTagsPerSecond));
     }
 	
 	private void clearReadings() {
@@ -195,7 +207,6 @@ public class InventoryApp extends SubApp {
 		mNumTags = 0;
         tagsPerSecond = 0;
         lastTagCount = 0;
-        oldTagCount = 0;
 		mLastUpdateTagCount = -1;
 		updateNumTags(-1);
 		mInventoryController.clearInventoryReadings();		
@@ -233,14 +244,16 @@ public class InventoryApp extends SubApp {
 		});
 		
 		//statistics UI
-		mInventoryCountTextView = (TextView) mView.findViewById(R.id.num_of_tags_textview);
-		mInventoryTotalTime = (TextView) view.findViewById(R.id.tags_total_time_textview);
-		mInventoryTotalTime.setText("0");
-		mInventoryTagsInTime = (TextView) view.findViewById(R.id.tags_in_time_textview);
-		mInventoryTagsInTime.setText("0");
-		mFoundTagsListView = (ListView) mView.findViewById(R.id.tags_listview);
+        mInventoryCountTextView = (TextView) mView.findViewById(R.id.num_of_tags_textview);
+        mInventoryAvgTagPerSecond = (TextView) view.findViewById(R.id.average_tags_per_second_textview);
+        mInventoryAvgTagPerSecond.setText("-");
+        mInventoryTagsInTime = (TextView) view.findViewById(R.id.tags_in_time_textview);
+        mInventoryTagsInTime.setText("0");
+        mInventoryMaxTagsPerSecond = (TextView) view.findViewById(R.id.max_tags_per_second);
+        mInventoryMaxTagsPerSecond.setText("-");
+        mFoundTagsListView = (ListView) mView.findViewById(R.id.tags_listview);
         mInventoryTagsPerSecond = (TextView) view.findViewById(R.id.tags_per_second_textview);
-        mInventoryTagsPerSecond.setText("0");
+        mInventoryTagsPerSecond.setText("-");
 	
 		//sets simple adapter for foundtags list
 		mFoundTagsListViewAdapter = new SimpleAdapter(

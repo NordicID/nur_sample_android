@@ -4,18 +4,46 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/num_of_tags_textview"
-        android:freezesText="true"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="150sp"
-        android:text="0"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="40dp" />
-    
-	<LinearLayout
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:layout_marginBottom="60dp"
+        android:layout_marginTop="40dp">
+
+        <TextView
+            android:id="@+id/num_of_tags_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="20sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text=" unique tags in " />
+
+        <TextView
+            android:id="@+id/tags_in_time_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="0" />
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:textSize="20sp"
+            android:text=" seconds " />
+
+    </LinearLayout>
+
+
+    <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
@@ -25,27 +53,27 @@
 	            android:layout_height="wrap_content"
 	            android:orientation="horizontal"
 	            android:weightSum="3" >
-	            
-		        <TextView
-		            android:layout_width="0dp"
-		            android:layout_height="wrap_content"
-		            android:layout_weight="1"
-		            android:gravity="center"
-		            android:text="TOTAL TIME" />
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="TAGS PER SECOND" />
-			    
-			    <TextView
-			        android:layout_width="0dp"
-			        android:layout_height="wrap_content"
-			        android:layout_weight="1"
-			        android:gravity="center"
-			        android:text="TAGS IN TIME" />
+                    android:text="TAGS/S" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="AVERAGE TAGS/S" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="MAX TAGS/S" />
 	            
 	        </LinearLayout>
             
@@ -55,15 +83,6 @@
 	            android:orientation="horizontal"
 	            android:weightSum="3" >
 
-		        <TextView
-		            android:id="@+id/tags_total_time_textview"
-		            android:layout_width="0dp"
-		            android:layout_height="wrap_content"
-		            android:layout_weight="1"
-		            android:freezesText="true"
-		            android:gravity="center"
-		            android:text="0" />
-
                 <TextView
                     android:id="@+id/tags_per_second_textview"
                     android:layout_width="0dp"
@@ -72,15 +91,24 @@
                     android:freezesText="true"
                     android:gravity="center"
                     android:text="0" />
-			    
-			    <TextView
-			        android:id="@+id/tags_in_time_textview"
-			        android:layout_width="0dp"
-			        android:layout_height="wrap_content"
-			        android:layout_weight="1"
-			        android:freezesText="true"
-			        android:gravity="center"
-			        android:text="0" />
+
+                <TextView
+                    android:id="@+id/average_tags_per_second_textview"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:freezesText="true"
+                    android:gravity="center"
+                    android:text="0" />
+
+                <TextView
+                    android:id="@+id/max_tags_per_second"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:freezesText="true"
+                    android:gravity="center"
+                    android:text="0" />
 	            
 	        </LinearLayout>
             

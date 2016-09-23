@@ -20,7 +20,9 @@ import com.nordicid.nurapi.NurEventTagTrackingData;
 import com.nordicid.nurapi.NurEventTraceTag;
 import com.nordicid.nurapi.NurEventTriggeredRead;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.v4.app.Fragment;
 
 public class SettingsAppTabbed extends SubAppTabbed { 
@@ -29,7 +31,8 @@ public class SettingsAppTabbed extends SubAppTabbed {
 	private SettingsAppTuneTab mSettingsTuneTab;
 	private SettingsAppHidTab mSettingsHidTab;
 	private SettingsAppAuthTab mSettingsAuthTab;
-	
+    private SettingsAppTab mSettingsAppTab;
+    private SharedPreferences appSettings = null;
 	private NurApiListener mThisClassListener = null;
 
 	private static SettingsAppTabbed gInstance = null;
@@ -37,8 +40,16 @@ public class SettingsAppTabbed extends SubAppTabbed {
 	{
 		return gInstance;
 	}
-	
-	@Override
+
+    public SharedPreferences getAppPreferences(){return appSettings;}
+
+    @Override
+    public void onAttach(Activity context){
+        super.onAttach(context);
+        appSettings = getActivity().getApplicationContext().getSharedPreferences("DemoApp",Context.MODE_PRIVATE);
+    }
+
+    @Override
 	public NurApiListener getNurApiListener()
 	{
 		return mThisClassListener;
@@ -52,6 +63,7 @@ public class SettingsAppTabbed extends SubAppTabbed {
 		mSettingsTuneTab = new SettingsAppTuneTab();
 		mSettingsHidTab = new SettingsAppHidTab();
 		mSettingsAuthTab = new SettingsAppAuthTab();
+        mSettingsAppTab = new SettingsAppTab();
 		
 		mThisClassListener =  new NurApiListener() {
 			@Override
@@ -104,6 +116,9 @@ public class SettingsAppTabbed extends SubAppTabbed {
 	@Override
 	protected int onGetFragments(ArrayList<Fragment> fragments, ArrayList<String> fragmentNames) throws Exception
 	{
+        fragmentNames.add("Application settings");
+        fragments.add(mSettingsAppTab);
+
 		fragmentNames.add("Reader settings");
 		fragments.add(mSettingsTab);
 

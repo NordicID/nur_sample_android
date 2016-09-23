@@ -35,7 +35,12 @@ public class InventoryAppTabbed extends SubAppTabbed {
 	
 	long mNumTags = 0;
 	long mLastUpdateTagCount = 0;
-    protected long oldTagCount = 0;
+    protected long lastTagCount = 0;
+    protected long tagsPerSecond = 0;
+    protected long maxTagsPerSecond = 0;
+    protected long averageTagsPerSecond = 0;
+    protected long mTagsPerSecondSum = 0;
+    protected long mTagsPerSecondCounter = 0;
 
 	Handler mHandler;
 
@@ -208,14 +213,19 @@ public class InventoryAppTabbed extends SubAppTabbed {
 	}
 	
 	public void clearReadings() {
-		mTagStorage.clear();
-		mNumTags = 0;
-		mLastUpdateTagCount = -1;
-		InventoryApp.FOUND_TAGS.clear();
-		mFoundTab.mFoundTagsListViewAdapter.notifyDataSetChanged();
-		mReadingTab.updateNumTags(-1);
-        oldTagCount = 0;
-		mInventoryController.clearInventoryReadings();
+        mTagStorage.clear();
+        mNumTags = 0;
+        mLastUpdateTagCount = -1;
+        InventoryApp.FOUND_TAGS.clear();
+        mFoundTab.mFoundTagsListViewAdapter.notifyDataSetChanged();
+        mReadingTab.updateNumTags(-1);
+        tagsPerSecond = 0;
+        maxTagsPerSecond = 0;
+        averageTagsPerSecond = 0;
+        mTagsPerSecondSum = 0;
+        mTagsPerSecondCounter = 0;
+        lastTagCount = 0;
+        mInventoryController.clearInventoryReadings();
 	}
 
 	//main layout

@@ -10,70 +10,81 @@ import android.widget.TextView;
 
 public class InventoryAppReadingTab extends Fragment {
 
-	private TextView mInventoryCountTextView;
-	private TextView mInventoryTotalTime;
-	private TextView mInventoryTagsInTime;
+    private TextView mInventoryCountTextView;
+    private TextView mInventoryAvgTagPerSecond;
+    private TextView mInventoryTagsInTime;
     private TextView mInventoryTagsPerSecond;
-    private long lastTagCount = 0;
-    private double tagsPerSecond = 0;
-    private Handler tagsPerSecondHandler;
+    private TextView mInventoryMaxTagsPerSecond;
+    private Handler tagsPerSecondHandler = null;
+    private InventoryAppTabbed inventoryAppTabbed = null;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
+        if(tagsPerSecondHandler == null) {
+            tagsPerSecondHandler = new Handler();
+            tagsPerSecondHandler.postDelayed(tagsPerSecondRunnable, 1000);
+        }
 		return inflater.inflate(R.layout.tab_inventory_reading, container, false);
 	}
 	
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-		
-		mInventoryCountTextView = (TextView) view.findViewById(R.id.num_of_tags_textview);
-		mInventoryCountTextView.setText("0");
-		
-		mInventoryTotalTime = (TextView) view.findViewById(R.id.tags_total_time_textview);
-		mInventoryTotalTime.setText("0");
-		
-		mInventoryTagsInTime = (TextView) view.findViewById(R.id.tags_in_time_textview);
-		mInventoryTagsInTime.setText("0");
+
+        mInventoryCountTextView = (TextView) view.findViewById(R.id.num_of_tags_textview);
+        mInventoryCountTextView.setText("0");
+
+        mInventoryAvgTagPerSecond = (TextView) view.findViewById(R.id.average_tags_per_second_textview);
+        mInventoryAvgTagPerSecond.setText("-");
+
+        mInventoryTagsInTime = (TextView) view.findViewById(R.id.tags_in_time_textview);
+        mInventoryTagsInTime.setText("0");
+
+        mInventoryMaxTagsPerSecond = (TextView) view.findViewById(R.id.max_tags_per_second);
+        mInventoryMaxTagsPerSecond.setText("-");
 
         mInventoryTagsPerSecond = (TextView) view.findViewById(R.id.tags_per_second_textview);
-        mInventoryTagsPerSecond.setText("0");
+        mInventoryTagsPerSecond.setText("-");
 
-        tagsPerSecondHandler = new Handler();
-        Runnable runnable = new Runnable() {
+        inventoryAppTabbed = InventoryAppTabbed.getInstance();
+	}
 
-            @Override
-            public void run() {
-                try{
-                    if(InventoryAppTabbed.getInstance().getInventoryController().isInventoryRunning()){
-                        tagsPerSecond = (lastTagCount - InventoryAppTabbed.getInstance().oldTagCount);
-                        InventoryAppTabbed.getInstance().oldTagCount = lastTagCount;
-                    }
-                }
-                catch (Exception e) {
-                    // TODO: handle exception
-                }
-                finally{
-                    //also call the same runnable to call it at regular interval
-                    tagsPerSecondHandler.postDelayed(this, 1000);
+    Runnable tagsPerSecondRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try{
+                if(inventoryAppTabbed.getInventoryController().isInventoryRunning()){
+                    inventoryAppTabbed.tagsPerSecond = inventoryAppTabbed.getInventoryController().getReadTagsCount();
+                    inventoryAppTabbed.mTagsPerSecondSum += inventoryAppTabbed.tagsPerSecond;
+                    inventoryAppTabbed.mTagsPerSecondCounter++;
+                    inventoryAppTabbed.averageTagsPerSecond = inventoryAppTabbed.mTagsPerSecondSum/inventoryAppTabbed.mTagsPerSecondCounter;
+                    if(inventoryAppTabbed.tagsPerSecond > inventoryAppTabbed.maxTagsPerSecond)
+                        inventoryAppTabbed.maxTagsPerSecond = inventoryAppTabbed.tagsPerSecond;
+                    inventoryAppTabbed.getInventoryController().clearReadTagBuffer();
                 }
             }
-        };
-        tagsPerSecondHandler.postDelayed(runnable, 1000);
-	}
+            catch (Exception e) {
+                // TODO: handle exception
+            }
+            finally{
+                //also call the same runnable to call it at regular interval
+                tagsPerSecondHandler.postDelayed(this, 1000);
+            }
+        }
+    };
 
     public void updateNumTags(long numTags) {
         if (numTags < 0)
             numTags = 0;
-        if (lastTagCount != numTags) {
+        if (inventoryAppTabbed.lastTagCount != numTags) {
             mInventoryTagsInTime.setText(String.format("%.1f", InventoryAppTabbed.getInstance().getInventoryController().getElapsedSecs()));
-            lastTagCount = numTags;
+            inventoryAppTabbed.lastTagCount = numTags;
         }
         mInventoryCountTextView.setText(Long.toString(numTags));
-        mInventoryTagsPerSecond.setText(String.format("%.2f",tagsPerSecond));
-        mInventoryTotalTime.setText(String.format("%.1f", InventoryAppTabbed.getInstance().getInventoryController().getElapsedSecs()));
+        mInventoryTagsPerSecond.setText(String.format("%d", inventoryAppTabbed.tagsPerSecond));
+        mInventoryMaxTagsPerSecond.setText(String.format("%d", inventoryAppTabbed.maxTagsPerSecond));
+        mInventoryAvgTagPerSecond.setText(String.format("%d", inventoryAppTabbed.averageTagsPerSecond));
 
     }
-
 }

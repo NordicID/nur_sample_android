@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:orientation="vertical"
+                  android:padding="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Nordic ID"
+            android:textColor="@android:color/holo_orange_dark"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/address_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:text="International headquarter"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:gravity="center"
+            android:text="Myllyojankatu 2 A, 24100 SALO, FINLAND"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/title_phone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:gravity="center"
+                android:text="Telephone: "/>
+
+            <TextView
+                android:id="@+id/phone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:autoLink="phone"
+                android:gravity="center"
+                android:text="+358 2 727 7700"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/title_fax"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:gravity="center"
+                android:text="Fax: "/>
+
+            <TextView
+                android:id="@+id/fax"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:autoLink="phone"
+                android:gravity="center"
+                android:text="+358 2 727 7720"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:autoLink="email"
+            android:gravity="center"
+            android:text="info@nordicid.com"/>
+
+        <TextView
+            android:id="@+id/website"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:autoLink="web"
+            android:gravity="center"
+            android:text="www.nordicid.com"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/title_github"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:gravity="center"
+                android:text="On GitHub: "/>
+
+            <TextView
+                android:id="@+id/github"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:autoLink="web"
+                android:gravity="center"
+                android:text="https://github.com/NordicID"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

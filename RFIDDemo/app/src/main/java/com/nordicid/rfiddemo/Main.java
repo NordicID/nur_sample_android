@@ -13,6 +13,7 @@ import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Environment;
@@ -42,6 +43,10 @@ public class Main extends AppTemplate {
 	public static final String KEYNUMBER_PREFNAME = "TAM1_KEYNUMBER";
 
 	private static Main gInstance;
+
+    public void toggleScreenRotation(boolean enable){
+        setRequestedOrientation((enable) ? ActivityInfo.SCREEN_ORIENTATION_SENSOR : ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
+    }
 
 	public void startTimer() {
 
@@ -158,6 +163,11 @@ public class Main extends AppTemplate {
 	void loadSettings() {
 		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
 		String type = pref.getString("connType", "");
+
+        /* Get rotation setting enable / disable rotation sensors */
+        toggleScreenRotation(pref.getBoolean("Srotation",false));
+        Beeper.setEnabled(pref.getBoolean("Sounds",true));
+
 		if (type.equals("BLE")) {
 			mAcTr = new NurApiBLEAutoConnect(this, getNurApi());
 		} else if (type.equals("USB")) {
@@ -277,9 +287,6 @@ public class Main extends AppTemplate {
 	public void onCreateSubApps(SubAppList subAppList) {
 		gInstance = this;
 		NurApi theApi = getNurApi();
-
-		/* Reader settings application. */
-		subAppList.addSubApp(new SettingsAppTabbed());
 		
 		if (AppTemplate.LARGE_SCREEN) 
 		{
@@ -302,6 +309,9 @@ public class Main extends AppTemplate {
 
 		/* Test mode application. */
 		subAppList.addSubApp(new TestModeApp());
+
+        /* Reader settings application. */
+        subAppList.addSubApp(new SettingsAppTabbed());
 
 		theApi.setLogLevel(NurApi.LOG_ERROR);
 		
@@ -397,8 +407,9 @@ public class Main extends AppTemplate {
 
 	@Override
 	public void onCreateDrawerItems(Drawer drawer) {
-		drawer.addTitle("About");
 		drawer.addTitle("Connection");
+        drawer.addTitle("About");
+		drawer.addTitle("Contact");
 	}
 
 	void handleAboutClick()
@@ -521,18 +532,28 @@ public class Main extends AppTemplate {
 		NurDeviceListActivity.startDeviceRequest(this);
 	}
 
+    void handleContactClick() {
+        final View dialogLayout = getLayoutInflater().inflate(R.layout.dialog_contact, null);
+        AlertDialog.Builder builder = new Builder(this);
+        builder.setView(dialogLayout);
+        builder.show();
+    }
+
 	@Override
 	public void onDrawerItemClick(AdapterView<?> parent, View view, int position, long id) 
 	{
 		switch (position) {
-			case 0:
-			handleAboutClick();
-			break;
-		case 1:
-			handleConnectionClick();
-			break;
-		default:
-			break;
+            case 0:
+                handleConnectionClick();
+                break;
+            case 1:
+                handleAboutClick();
+                break;
+            case 2:
+                handleContactClick();
+                break;
+            default:
+                break;
 		}
 	}
 }
