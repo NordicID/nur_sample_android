@@ -9,20 +9,20 @@ android:baselineAligned="false">
 <RelativeLayout
     android:id="@+id/location_info_container"
     android:layout_height="match_parent"
-    android:layout_width="0dp"
-    android:layout_weight="0.30"
+    android:layout_width="wrap_content"
     android:background="@android:color/holo_orange_light"
     android:orientation="vertical" >
 
     <ProgressBar
-        android:layout_height="0dp"
-        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
         android:id="@+id/progressBar"
         android:progressDrawable="@drawable/custom_progressbar"
         android:progress="0" android:max="100"
         android:indeterminateOnly="false"
         android:indeterminate="false"
         android:layout_gravity="center_vertical"
+        android:layout_centerInParent="true"
         style="?android:attr/progressBarStyleLarge"/>
 
     <EditText
@@ -50,13 +50,13 @@ android:baselineAligned="false">
 <RelativeLayout
     android:layout_height="match_parent"
     android:layout_width="0dp"
-    android:layout_weight="0.50">
+    android:layout_weight="1">
 
     <EditText
         android:id="@+id/locate_epc_edittext"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
+        android:layout_margin="1dp"
         android:ems="10"
         android:hint="@string/locatable_epc_hint"
         android:inputType="text" />
@@ -66,9 +66,9 @@ android:baselineAligned="false">
         android:layout_height="match_parent"
         android:layout_below="@+id/locate_epc_edittext"
         layout="@layout/taglist"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginBottom="5dp" />
+        android:layout_marginLeft="1dp"
+        android:layout_marginRight="1dp"
+        android:layout_marginBottom="1dp" />
 
     <RelativeLayout
         android:id="@+id/listview_empty"
