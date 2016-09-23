@@ -22,7 +22,6 @@ import android.widget.GridView;
 public class SubAppList extends Fragment implements AdapterView.OnItemClickListener {
 	public static final String TAG = "SubAppList";
 	private ArrayList<SubApp> mSubApps = new ArrayList<SubApp>();
-	private ArrayList<String> mSubAppNames = new ArrayList<String>();
 	private GridView mGridView;
 	private AppTemplate appTemplate;
 	private int currentOpenSubApp = -1;
@@ -90,7 +89,7 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 
 	@Override
 	public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {	
-		appTemplate.setApp(i, null);
+		appTemplate.setApp(i);
 		view.setSelected(true);
 	}
 
@@ -116,25 +115,25 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	 */
 	public void addSubApp(SubApp app) {
 		mSubApps.add(app);
-		mSubAppNames.add(app.getAppName());
+		updateSubAppsVisibility();
 	}
 
 	public void removeSubApp(SubApp app) {
 		try {
-			mSubAppNames.remove(app.getAppName());
 			mSubApps.remove(app);
 		}
 		catch (Exception ex)
 		{
 			ex.printStackTrace();
 		}
+		updateSubAppsVisibility();
 	}
 	
 	/**
 	 * Gets the ArrayList of SubApps
 	 * @return ArrayList of SubApp
 	 */
-	public ArrayList<SubApp> getApps() {
+	public ArrayList<SubApp> getAllApps() {
 		return mSubApps;
 	}
 
@@ -145,14 +144,25 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	public SubApp getVisibleApp(int i) {
 		return mVisibleSubApps.get(i);
 	}
-	/**
-	 * Gets all SubApp names
-	 * @return ArrayList of SubApp names
-	 */
-	public ArrayList<String> getSubAppNames() {
-		return mSubAppNames;
+
+	public int getVisibleSubAppIndex(String name) {
+		for (int n=0; n<mVisibleSubApps.size(); n++){
+			if (mVisibleSubApps.get(n).getAppName().equals(name))
+				return n;
+		}
+		return -1;
 	}
-	
+
+	public int getSubAppIndex(String name) {
+		for (int n=0; n<mSubApps.size(); n++){
+			String app = mSubApps.get(n).getAppName();
+			if (app == name) {
+				return n;
+			}
+		}
+		return -1;
+	}
+
 	/**
 	 * Gets the current open SubApps index.
 	 * Returns -1 if no SubApp open.
@@ -172,7 +182,7 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 		int index = getCurrentOpenSubAppIndex();
 		
 		if (index != -1) {
-			SubApp currentApp = getApp(index);
+			SubApp currentApp = getVisibleApp(index);
 			return currentApp;
 		}
 		
@@ -195,22 +205,12 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	}
 
 	/**
-	 * Gets SubApp object from ArrayList with index
-	 * @param i Index of and SubApp
-	 * @return SubApp
-	 */
-	public SubApp getApp(int i) {
-		return mSubApps.get(i);
-	}
-	
-	/**
 	 * Gets SubApp from ArrayList of SubApps with its name.
 	 * @param name of the SubApp
 	 * @return SubApp or null
 	 */
-	
 	public SubApp getApp(String name) {
-		int index = mSubAppNames.indexOf(name);
+		int index = getSubAppIndex(name);
 		
 		if (index != -1) {
 			return mSubApps.get(index);
@@ -218,14 +218,4 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 		
 		return null;
 	}
-	
-	/**
-	 * Gets the SubApps name
-	 * @param i index
-	 * @return Name of the SubApp
-	 */
-	public String getAppName(int i) {
-		return mSubAppNames.get(i);
-	}
-	
 }

@@ -78,7 +78,7 @@ public class AppTemplate extends FragmentActivity {
 		mConfigurationChanged = false;
 		return rc;
 	}
-	
+
 	public void setAppListener(NurApiListener l)
 	{
 		mAppListener = l;
@@ -247,7 +247,7 @@ public class AppTemplate extends FragmentActivity {
 		//Adds the users SubApps to SubAppList
 		onCreateSubApps(mSubAppList);
 		
-		if (mSubAppList.getApps().size() == 0) 
+		if (mSubAppList.getAllApps().size() == 0)
 		{
 			Toast.makeText(this, "No subapps found", Toast.LENGTH_SHORT).show();
 		} 
@@ -264,8 +264,6 @@ public class AppTemplate extends FragmentActivity {
 				onConfigurationChanged(getResources().getConfiguration());	
 			}
 		}
-
-		getSubAppList().updateSubAppsVisibility();
 	}
 	
 	public void setStatusText(String text)
@@ -350,7 +348,7 @@ public class AppTemplate extends FragmentActivity {
 			}
 		}
 		if (!applicationPaused) {
-			setFragments();
+			setFragments(true);
 		}
 		if (mSubAppList.getCurrentOpenSubAppIndex() == -1) {
 			mSubAppList.setCurrentOpenSubApp(0);
@@ -377,7 +375,7 @@ public class AppTemplate extends FragmentActivity {
 	
 		if (currentAppIndex != -1) {
 			
-			SubApp app = mSubAppList.getApp(mSubAppList.getCurrentOpenSubAppIndex());
+			SubApp app = mSubAppList.getVisibleApp(mSubAppList.getCurrentOpenSubAppIndex());
 			
 			if (app.onFragmentBackPressed()) {
 				return;
@@ -451,10 +449,9 @@ public class AppTemplate extends FragmentActivity {
 	 * Method to open SubApp with index (apps index).
 	 * If SubApp with index given not found, a Toast will be shown.
 	 * @param index Index of the app in ArrayList of SubApps
-	 * @param bundle Parameters for to be opened SubApp
 	 */
-	public void setApp(int index, Bundle bundle) {
-		openSubApp(index, bundle);
+	public void setApp(int index) {
+		openSubApp(index);
 		changeSubAppListener();
 	}
 	
@@ -463,19 +460,18 @@ public class AppTemplate extends FragmentActivity {
 	 * If SubApp with given name not found, a Toast will be shown.
 	 *
 	 *  @param name of the SubApp
-	 *  @param bundle PArameters for to be opened SubApp
 	 *
 	 *  @see SubAppList#getAppName(int)
 	 */
-	public void setApp(String name, Bundle bundle) {
+	public void setApp(String name) {
 
-		int index = mSubAppList.getSubAppNames().indexOf(name);
+		int index = mSubAppList.getVisibleSubAppIndex(name);
 		
 		if (index == -1) {
 			Toast.makeText(this, "App with name \""+name+"\" not found", Toast.LENGTH_SHORT).show();
 		}
 		else {
-			openSubApp(index, bundle);
+			openSubApp(index);
 		}
 		
 		changeSubAppListener();
@@ -487,22 +483,12 @@ public class AppTemplate extends FragmentActivity {
 	 * @param i Index of an SubApp
 	 * @param bundle Parameters.
 	 */
-	private void openSubApp(int i, Bundle bundle) {
+	private void openSubApp(int i) {
  
 		if (i != mSubAppList.getCurrentOpenSubAppIndex() && !mSubAppList.getVisibleApp(i).isVisible()) {
 			
 			if (i < mSubAppList.getVisibleApps().size()) {
 				SubApp app = getSubAppList().getVisibleApp(i);
-				
-				/*
-				 * prevents crash if user navigates fast
-				 * from subapp to another or starts the
-				 * app in landscape and first taps the 
-				 * first apps tile (that is already "open").
-				 */
-				if (bundle != null) {
-					app.setArguments(bundle);
-				}
 
 				//int[] animations = app.getAnimations();
 			
@@ -536,7 +522,7 @@ public class AppTemplate extends FragmentActivity {
 	/**
 	 *  Sets all the fragments
 	 */
-	private void setFragments() {
+	private void setFragments(boolean configChange) {
 		SubApp app;
 		int currentOpen = mSubAppList.getCurrentOpenSubAppIndex();
 		int orientation = getResources().getConfiguration().orientation;
@@ -552,10 +538,10 @@ public class AppTemplate extends FragmentActivity {
 		}
 		
 		if (currentOpen != -1) {
-			app = mSubAppList.getApp(currentOpen);
+			app = mSubAppList.getVisibleApp(currentOpen);
 		}
 		else {
-			app = mSubAppList.getApp(0);
+			app = mSubAppList.getVisibleApp(0);
 		}
 		
 		if (app.isAdded()) {
@@ -676,7 +662,7 @@ public class AppTemplate extends FragmentActivity {
 	@Override
 	protected void onResumeFragments() {
 		super.onResumeFragments();
-		setFragments();
+		setFragments(false);
 		
 		applicationPaused = false;
 	}
@@ -726,7 +712,7 @@ public class AppTemplate extends FragmentActivity {
 		
 		mApi.dispose();
 	}
-	
+
 	public void onDrawerItemClick(AdapterView<?> parent, View view, int position, long id) {}
 	
 	public String getPahtToTypeface() {
@@ -759,7 +745,6 @@ public class AppTemplate extends FragmentActivity {
 		public ArrayList<String> getDrawerItemTitles() {
 			return mDrawerItemTitles;
 		}
-
 	}
 }
 
