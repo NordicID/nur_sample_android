@@ -150,20 +150,15 @@ public class TestModeApp extends SubApp {
 
     void startTest()
     {
-        if (mNurTestTypeSpinner.getSelectedItemPosition() > 0) {
-            int nurTestType = nurTestTypes[mNurTestTypeSpinner.getSelectedItemPosition() - 1];
-            int nurTestCh = mNurChannelSpinner.getSelectedItemPosition() - 1;
+        int nurTestValue = 0;
+        int bleTestValue = 0;
 
-            try {
-                sendNurTestCommand(nurTestType, nurTestCh);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(getContext(), "Could not start NUR test mode:\n" + e.getMessage(), Toast.LENGTH_SHORT).show();
-                return;
-            }
+        if (mNurTestTypeSpinner.getSelectedItemPosition() > 0)
+        {
+            nurTestValue = ((nurTestTypes[mNurTestTypeSpinner.getSelectedItemPosition() - 1] & 0xFF) << 8); // type
+            nurTestValue |= (mNurChannelSpinner.getSelectedItemPosition() - 1) & 0xFF; // channel
         }
 
-        int bleTestValue = 0xBEEF0000;
 /*
         dtm_cmd_t      command_code = (command >> 14) & 0x03;
         dtm_freq_t     freq         = (command >> 8) & 0x3F;
@@ -212,17 +207,16 @@ public class TestModeApp extends SubApp {
                 break;
         }
         try {
-            startBleTest(bleTestValue);
+            startBleTest((bleTestValue | nurTestValue<<16) & 0xFFFFFFFF);
             Toast.makeText(getContext(), "BLE test mode started. Hold BLE device power button to exit test mode.", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Toast.makeText(getContext(), "Could not start BLE test mode:\n" + e.getMessage(), Toast.LENGTH_SHORT).show();
-            return;
         }
     }
 
     void startBleTest(int bleTestValue) throws Exception {
 
-        Log.d("TM", "startBleTest() " + Integer.toHexString(bleTestValue));
+        Log.d("TM", "startBleTest() " + Integer.toHexString(bleTestValue& 0xFFFFFFFF));
 
         byte []param = new byte[5];
         param[0] = 10;
