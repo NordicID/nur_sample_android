@@ -1,6 +1,7 @@
 package com.nordicid.rfiddemo;
 
 import java.util.HashMap;
+import java.util.concurrent.RunnableFuture;
 
 import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.apptemplate.SubApp;
@@ -18,6 +19,7 @@ import android.graphics.Point;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -32,6 +34,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class TraceApp extends SubApp {
@@ -39,10 +42,11 @@ public class TraceApp extends SubApp {
 	public static final String DATA_EPC = "epc";
 	public static final String DATA_AUTOSTART = "autostart";
 
+	static String mLocatableEpc;
+	static boolean mAutoStart = false;
+
 	private SimpleAdapter mFoundTagsListViewAdapter;
-	
-	private String mLocatableEpc;
-	
+
 	private Button mStartStopLocating;
 	private EditText mLocatableEpcEditText;
 	private EditText mPctText;
@@ -53,11 +57,38 @@ public class TraceApp extends SubApp {
 	
 	private TraceTagController mTraceController;
 
-	private boolean mAutoStart = false;
-	
 	public TraceApp() {
 		super();
 		mTraceController = new TraceTagController(getNurApi());
+
+		mTraceController.setListener(new TraceTagListener() {
+			@Override
+			public void traceTagEvent(TracedTagInfo data) {
+				mProgressBar.setProgress(data.scaledRssi);
+				mPctText.setText(data.scaledRssi + "%");
+
+				if (animation != null)
+				{
+					animation.cancel();
+				}
+
+				animation = ObjectAnimator.ofInt(mProgressBar, "progress", mLastVal, data.scaledRssi);
+				animation.setDuration(200);
+				animation.setInterpolator(new LinearInterpolator());
+				animation.start();
+
+				mLastVal = data.scaledRssi;
+			}
+
+			@Override
+			public void readerDisconnected() {
+				stopTrace();
+			}
+
+			@Override
+			public void readerConnected() {
+			}
+		});
 	}
 	
 	@Override
@@ -90,37 +121,8 @@ public class TraceApp extends SubApp {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		mTraceController.setListener(new TraceTagListener() {			
-			@Override
-			public void traceTagEvent(TracedTagInfo data) {
-				mProgressBar.setProgress(data.scaledRssi);
-				mPctText.setText(data.scaledRssi + "%");
-				
-				if (animation != null)
-				{
-					animation.cancel();
-				}
-				
-				animation = ObjectAnimator.ofInt(mProgressBar, "progress", mLastVal, data.scaledRssi);
-				animation.setDuration(200);
-				animation.setInterpolator(new LinearInterpolator());
-				animation.start();
-				
-				mLastVal = data.scaledRssi;
-			}
-
-			@Override
-			public void readerDisconnected() {
-				stopTrace();
-			}
-
-			@Override
-			public void readerConnected() {
-			}
-		});
 	}
-	
+
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
@@ -138,12 +140,14 @@ public class TraceApp extends SubApp {
 			}
 		});
 
-		mLocatableEpc = "";
 		mProgressBar = (ProgressBar) view.findViewById(R.id.progressBar);
 		mFoundTagsListView = (ListView) view.findViewById(R.id.tags_listview);
 		mEmptyListViewNotice = (RelativeLayout) view.findViewById(R.id.listview_empty);
 		mLocatableEpcEditText = (EditText) view.findViewById(R.id.locate_epc_edittext);
 		mPctText = (EditText) view.findViewById(R.id.pct_text);
+
+		// Do not save EditText state
+		mLocatableEpcEditText.setSaveEnabled(false);
 
 		mLocatableEpcEditText.addTextChangedListener(new TextWatcher() {
 
@@ -161,6 +165,10 @@ public class TraceApp extends SubApp {
 				else {
 					mLocatableEpcEditText.setBackgroundColor(getResources().getColor(android.R.color.white));
 					mLocatableEpc = mLocatableEpcEditText.getText().toString();
+
+					if (mTraceController.isTracingTag()) {
+						mTraceController.setTagTrace(mLocatableEpc);
+					}
 				}
 			}
 			
@@ -204,39 +212,44 @@ public class TraceApp extends SubApp {
 				@SuppressWarnings("unchecked")
 				HashMap<String,String> selectedTagData = (HashMap<String, String>) mFoundTagsListView.getItemAtPosition(position);
 				String epc = selectedTagData.get("epc");
+
 				mLocatableEpcEditText.setText(epc);
 				mLocatableEpc = epc;
+
+				if (mTraceController.isTracingTag()) {
+					mTraceController.setTagTrace(mLocatableEpc);
+				}
 			}			
 		});
 		
 		mFoundTagsListViewAdapter.notifyDataSetChanged();
-		
-		boolean start = false;
-
-		if (getArguments() != null) {
-			Bundle b = getArguments();
-
-			if (b.getString(DATA_EPC) != null) {
-				mLocatableEpc = b.getString(DATA_EPC);
-
-				// TODO: Fix me @ onConfigurationChange!
-				//start = b.getBoolean(DATA_AUTOSTART, false);
-			}
-		}
 
 		mLocatableEpcEditText.setText(mLocatableEpc);
 
-		if (start)
+		if (mAutoStart) {
 			startTrace();
+		}
+		mAutoStart = false;
 	}
-	
+
+	static public void setStartParams(String epc, boolean autostart)
+	{
+		mLocatableEpc = epc;
+		mAutoStart = autostart;
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		//super.onSaveInstanceState(null);
+	}
+
 	private void startTrace() {
 
 		try {
 			if (!mTraceController.isTracingTag())
 			{
-				mTraceController.startTagTrace(NurApi.hexStringToByteArray(mLocatableEpc));
-				mStartStopLocating.setText(getString(R.string.stop));
+				if (mTraceController.startTagTrace(mLocatableEpc))
+					mStartStopLocating.setText(getString(R.string.stop));
 				// Toast.makeText(getActivity(), getString(R.string.location_started), Toast.LENGTH_SHORT).show();
 			}
 		}

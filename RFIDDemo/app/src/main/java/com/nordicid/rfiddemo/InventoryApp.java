@@ -319,11 +319,10 @@ public class InventoryApp extends SubApp {
 		locateTag.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Bundle b = new Bundle();
-				b.putString(TraceApp.DATA_EPC, tagData.get("epc"));
-				b.putBoolean(TraceApp.DATA_AUTOSTART, true);
 				dialog.dismiss();
-				getAppTemplate().setApp("Locate", b);
+
+				TraceApp.setStartParams(tagData.get("epc"), true);
+				getAppTemplate().setApp("Locate");
 			}
 		});
 		

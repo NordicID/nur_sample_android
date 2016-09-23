@@ -52,8 +52,7 @@ public class AuthenticationAppFoundTab extends Fragment {
 			Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.tab_inventory_taglist, container, false);
 	}
-	
-	
+
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
@@ -150,11 +149,10 @@ public class AuthenticationAppFoundTab extends Fragment {
 			public void onClick(View v) {
 				Bundle b = new Bundle();
 
-				b.putString(TraceApp.DATA_EPC, tagData.get(DATA_TAG_EPC));
-				b.putBoolean(TraceApp.DATA_AUTOSTART, true);
-
 				dialog.dismiss();
-				mOwner.getAppTemplate().setApp("Locate", b);
+
+				TraceApp.setStartParams(tagData.get(DATA_TAG_EPC), true);
+				mOwner.getAppTemplate().setApp("Locate");
 			}			
 		});
 

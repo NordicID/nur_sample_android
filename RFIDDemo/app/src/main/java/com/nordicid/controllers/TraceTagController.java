@@ -222,14 +222,24 @@ public class TraceTagController {
 	};
 	Thread mTraceThread;
 
-	public boolean startTagTrace(byte[] epc) 
+	public boolean setTagTrace(String epc)
+	{
+		try {
+			byte []epcData = NurApi.hexStringToByteArray(epc);
+			mTracedTagInfo.epc = epcData;
+			return true;
+		} catch (Exception e) { }
+		return false;
+	}
+
+	public boolean startTagTrace(String epc)
 	{
 		if (isTracingTag())
 			return true;
 		
-		if (mApi.isConnected() && epc.length > 0) {
+		if (mApi.isConnected() && epc.length() > 0) {
 			try {
-				mTracedTagInfo.epc = epc;				
+				setTagTrace(epc);
 				
 				mTraceRunning = true;
 				mTraceThread = new Thread(mTraceThreadRunnable);
