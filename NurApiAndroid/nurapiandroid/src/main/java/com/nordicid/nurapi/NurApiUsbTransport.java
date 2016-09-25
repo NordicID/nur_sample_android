@@ -25,6 +25,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
+import android.util.Log;
 
 /**
  * USB transport for NUR in Android OS.
@@ -34,6 +35,8 @@ import android.hardware.usb.UsbManager;
  */
 public class NurApiUsbTransport implements NurApiTransport 
 {
+	static final String TAG = "NurApiUsbTransport";
+
 	private UsbManager mManager = null;
 	private UsbDevice mDevice = null;
 	private UsbDeviceConnection mDeviceConnection = null;
@@ -62,9 +65,21 @@ public class NurApiUsbTransport implements NurApiTransport
 	@Override
 	public int readData(byte []buffer) throws IOException
 	{
-		if (mDeviceConnection == null) 
-			return -1;
-		return mDeviceConnection.bulkTransfer(mInput, buffer, buffer.length, TRANSFER_TIMEOUT);
+		int ret = -1;
+		if (mDeviceConnection == null) {
+			Log.d(TAG, "readData mDeviceConnection == null");
+			return ret;
+		}
+
+		try {
+			ret = mDeviceConnection.bulkTransfer(mInput, buffer, buffer.length, TRANSFER_TIMEOUT);
+			//Log.d(TAG, "readData ret: " + ret);
+		} catch (Exception e)
+		{
+			Log.d(TAG, "readData error: " + e.getMessage());
+			disconnect();
+		}
+		return ret;
 	}
 
 	/**
@@ -73,9 +88,21 @@ public class NurApiUsbTransport implements NurApiTransport
 	@Override
 	public int writeData(byte []buffer, int len) throws IOException
 	{
-		if (mDeviceConnection == null) 
-			return -1;
-		return mDeviceConnection.bulkTransfer(mOutput, buffer, len, TRANSFER_TIMEOUT);
+		int ret = -1;
+		if (mDeviceConnection == null) {
+			Log.d(TAG, "writeData mDeviceConnection == null");
+			return ret;
+		}
+
+		try {
+			ret = mDeviceConnection.bulkTransfer(mOutput, buffer, len, TRANSFER_TIMEOUT);
+			//Log.d(TAG, "writeData ret: " + ret);
+		} catch (Exception e)
+		{
+			Log.d(TAG, "writeData error: " + e.getMessage());
+			disconnect();
+		}
+		return ret;
 	}
 
 	/**
@@ -119,9 +146,12 @@ public class NurApiUsbTransport implements NurApiTransport
 			{
 				throw new Exception("Could not open EP's");
 			}
+
+			Log.d(TAG, "connect OK");
 		}
 		catch (Exception ex)
 		{
+			Log.d(TAG, "connect failed: " + ex.getMessage());
 			disconnect();
 			throw ex;
 		}
@@ -133,12 +163,15 @@ public class NurApiUsbTransport implements NurApiTransport
 	@Override
 	public void disconnect()
 	{
-		if (mDeviceConnection != null)
-		{
-			if (mInterface != null) {
-				mDeviceConnection.releaseInterface(mInterface);
+		Log.d(TAG, "disconnect");
+
+		synchronized (this) {
+			if (mDeviceConnection != null) {
+				if (mInterface != null) {
+					mDeviceConnection.releaseInterface(mInterface);
+				}
+				mDeviceConnection.close();
 			}
-			mDeviceConnection.close();
 		}
 		
 		mDeviceConnection = null;

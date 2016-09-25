@@ -24,29 +24,23 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 //import android.util.Log;
+import android.os.Handler;
 import android.util.Log;
 
 public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 {
+	static final String TAG = "NurApiUsbAutoConnect";
+
 	private NurApi mApi = null;
 	private Context mContext = null;
 	private UsbManager mUsbManager = null;
 	private UsbDevice mUsbDevice = null;
 	private IntentFilter mIntentFilter = null;
 	private static final String ACTION_USB_PERMISSION = "com.nordicid.nurapi.USB_PERMISSION";
-	protected static final String TAG = null;
 	private boolean mEnabled = false;
 	private boolean mReceiverRegistered = false;
 	private PendingIntent mPermissionIntent;
-	
-	public boolean isEnabled() {
-		return mEnabled;
-	}
-
-	public void setEnabled(boolean mEnabled) 
-	{
-		
-	}
+	private boolean mRequestingPermission = false;
 
 	public NurApiUsbAutoConnect(Context c, NurApi na) 
 	{
@@ -63,40 +57,42 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 		public void onReceive(Context context, Intent intent) 
 		{
 			String action = intent.getAction();
-			if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
+			if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action))
+			{
 				synchronized (this) {
-					Log.d(TAG, "Usb device attached");
+					Log.d(TAG, "ACTION_USB_DEVICE_ATTACHED " + intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false));
 					mUsbDevice = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-					if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) 
+					if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false))
 					{
-						if (mUsbDevice != null && mEnabled) {
-							connect();
+						if (mUsbDevice != null) {
+							NurApiUsbAutoConnect.this.setAddress(getAddress());
 						}
 					} 
 					else {
-						Log.d(TAG, "permission denied for device " + mUsbDevice);
-						mUsbManager.requestPermission(mUsbDevice, mPermissionIntent);
+						Log.d(TAG, "ACTION_USB_DEVICE_ATTACHED permission denied for device " + mUsbDevice);
 					}
 				}
 			} 
 			else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
-				Log.d(TAG, "Usb device detached");
+				Log.d(TAG, "ACTION_USB_DEVICE_DETACHED");
 				disconnect();
 			}
 			else if (ACTION_USB_PERMISSION.equals(action))
 			{
+				mRequestingPermission = false;
+				Log.d(TAG, "ACTION_USB_PERMISSION " + intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false));
+
 				if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false))
-				{
-					if (mUsbDevice != null && mEnabled) {
-						connect();
-					}
-				}
+					NurApiUsbAutoConnect.this.setAddress(getAddress());
 			}
 		}
 	};
 
-	private void connect() 
+	private void connect()
 	{
+		if (!mEnabled)
+			return;
+
 		if (mUsbDevice != null && mUsbManager.hasPermission(mUsbDevice)) 
 		{
 			try {
@@ -120,6 +116,7 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 		}
 		else if(mUsbDevice != null && !mUsbManager.hasPermission(mUsbDevice))
 		{
+			mRequestingPermission = true;
 			mUsbManager.requestPermission(mUsbDevice,mPermissionIntent);
 		}
 	}
@@ -145,18 +142,13 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 	@Override
 	public void onResume() 
 	{
-		if (mEnabled) 
+		if (mEnabled)
 		{
 			if (mApi.isConnected())
 				return;
-			
-			for (UsbDevice device : mUsbManager.getDeviceList().values()) {
-				if(device.getVendorId() == 1254) {
-					this.mUsbDevice = device;
-					connect();
-					break;
-				}
-			}
+
+			if (!mRequestingPermission)
+				this.setAddress(getAddress());
 		}
 	}
 	
@@ -167,20 +159,23 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 	}
 
 	@Override
-	public void setAddress(String addr) {
-		this.mEnabled = !addr.equals("disabled");
+	public void setAddress(String addr)
+	{
+		Log.d(TAG, "setAddress " + addr);
+
+		this.mEnabled = !addr.toLowerCase().equals("disabled");
 		if (mEnabled) 
 		{
 			this.mUsbDevice = null;
 			for (UsbDevice device : mUsbManager.getDeviceList().values()) {
-				if(device.getVendorId() == 1254) {
+				if(device.getVendorId() == 1254 || device.getVendorId() == 3589) {
 					this.mUsbDevice = device;
 					break;
 				}
 			} 
 			mIntentFilter = new IntentFilter();
+			mIntentFilter.addAction(ACTION_USB_PERMISSION);
 			if (mUsbDevice == null) {
-				mIntentFilter.addAction(ACTION_USB_PERMISSION);
 				mIntentFilter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
 			} else {
 				mIntentFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
@@ -228,11 +223,11 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 
 	@Override
 	public String getAddress() {
-		return "";
+		return mEnabled ? "OTG" : "Disabled";
 	}
 
 	@Override
 	public String getDetails() {
-		return "USB OTG connection";
+		return "";
 	}
 }
