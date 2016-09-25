@@ -222,9 +222,11 @@ public class Main extends AppTemplate {
 
         if (mAcTr == null)
             loadSettings();
+
 		if (mAcTr != null) {
 			mAcTr.onResume();
 		}
+
 
 		startTimer();
 	}
@@ -385,10 +387,10 @@ public class Main extends AppTemplate {
 		@Override
 		public void onClick(View v) {
 			if (testmodeClickCount < 10) {
-				if (testmodeClickTime != 0 && SystemClock.uptimeMillis() - testmodeClickTime > 5000) {
+				if (testmodeClickTime != 0 && System.currentTimeMillis() - testmodeClickTime > 5000) {
 					testmodeClickCount = 0;
 				}
-				testmodeClickTime = SystemClock.uptimeMillis();
+				testmodeClickTime = System.currentTimeMillis();
 				testmodeClickCount++;
 
 				if (testmodeClickCount == 10) {
@@ -403,13 +405,14 @@ public class Main extends AppTemplate {
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
 		((TextView)findViewById(R.id.app_statustext)).setOnClickListener(mStatusBarOnClick);
+		updateStatus();
 	}
 
 	@Override
 	public void onCreateDrawerItems(Drawer drawer) {
 		drawer.addTitle("Connection");
-        drawer.addTitle("About");
 		drawer.addTitle("Contact");
+        drawer.addTitle("About");
 	}
 
 	void handleAboutClick()
@@ -526,8 +529,9 @@ public class Main extends AppTemplate {
 
 	void handleConnectionClick()
 	{
-		if (mAcTr != null)
-			mAcTr.dispose();
+		//if (mAcTr != null)
+		//	mAcTr.dispose();
+
 		// Request for "all devices", not filtering "nordicid_*".
 		NurDeviceListActivity.startDeviceRequest(this);
 	}

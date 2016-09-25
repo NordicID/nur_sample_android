@@ -50,8 +50,9 @@
     
     <string name="no_tags_found">No tags found</string>
     <string name="write_app_top_hint">Select a tag to write from list</string>
-    
+
     <string name="reader_connection_error">Reader not connected</string>
+    <string name="reader_error">Reader error</string>
     <string name="unexpected_error">Unexpected error has occurred</string>
     
     <string name="cannot_clear">Cannot clear while inventory is running</string>

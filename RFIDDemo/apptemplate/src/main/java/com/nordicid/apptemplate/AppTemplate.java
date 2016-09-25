@@ -241,7 +241,6 @@ public class AppTemplate extends FragmentActivity {
 		LARGE_SCREEN = ((getResources().getConfiguration().screenLayout &
 				Configuration.SCREENLAYOUT_SIZE_MASK) ==
 				Configuration.SCREENLAYOUT_SIZE_LARGE);
-
 		mSubAppList = new SubAppList();
 		
 		//Adds the users SubApps to SubAppList

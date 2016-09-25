@@ -16,6 +16,8 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import com.nordicid.controllers.InventoryController;
+
 public class InventoryAppFoundTab extends Fragment {
 
 	public SimpleAdapter mFoundTagsListViewAdapter;
@@ -35,11 +37,9 @@ public class InventoryAppFoundTab extends Fragment {
 		mInventoryTagList = (ListView) view.findViewById(R.id.tags_listview);
 		
 		mFoundTagsListViewAdapter = new SimpleAdapter(
-				getActivity(), 
-				/* InventoryApp.FOUND ! */
-				//mParent.foundTags,
-				InventoryApp.FOUND_TAGS,
-				R.layout.taglist_row, 
+				getActivity(),
+				InventoryAppTabbed.getInstance().getInventoryController().getListViewAdapterData(),
+				R.layout.taglist_row,
 				new String[] {"epc"}, 
 				new int[] {R.id.tagText});
 
@@ -54,65 +54,11 @@ public class InventoryAppFoundTab extends Fragment {
 			
 				@SuppressWarnings("unchecked")
 				final HashMap<String, String> selectedTagData = (HashMap<String, String>) mInventoryTagList.getItemAtPosition(position);
-				showTagDialog(selectedTagData);
+				InventoryController.showTagDialog(getActivity(), selectedTagData);
 			}
 		
 		});
 
 		mFoundTagsListViewAdapter.notifyDataSetChanged();
-		
-	}
-	
-	private void showTagDialog(final HashMap<String, String> tagData) {
-		
-		View tagDialogLayout = getLayoutInflater(null).inflate(R.layout.dialog_tagdata, null);
-		final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		
-		builder.setView(tagDialogLayout);
-		
-		final TextView epcTextView = (TextView) tagDialogLayout.findViewById(R.id.selected_tag_epc);
-		epcTextView.setText(getString(R.string.dialog_epc)+" "+tagData.get("epc"));
-		
-		final TextView rssiTextView = (TextView) tagDialogLayout.findViewById(R.id.selected_tag_rssi);
-		rssiTextView.setText(getString(R.string.dialog_rssi)+" "+tagData.get("rssi"));
-		
-		final TextView timestampTextView = (TextView) tagDialogLayout.findViewById(R.id.selected_tag_timestamp);
-		timestampTextView.setText(getString(R.string.dialog_timestamp)+" "+tagData.get("timestamp"));
-		
-		final TextView fregTextView = (TextView) tagDialogLayout.findViewById(R.id.selected_tag_freq);
-		fregTextView.setText(getString(R.string.dialog_freg)+" "+tagData.get("freq"));
-		
-		final TextView foundTextView = (TextView) tagDialogLayout.findViewById(R.id.selected_tag_found);
-		foundTextView.setText(getString(R.string.dialog_found)+" "+tagData.get("found"));
-		
-		final TextView foundPercentTextView = (TextView) tagDialogLayout.findViewById(R.id.selected_tag_foundpercent);
-		foundPercentTextView.setText(getString(R.string.dialog_found_precent)+" "+tagData.get("foundpercent"));
-		
-		final AlertDialog dialog = builder.create();
-		
-		final Button closeDialog = (Button) tagDialogLayout.findViewById(R.id.selected_tag_close_button);
-		closeDialog.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				dialog.dismiss();
-			}
-			
-		});
-	
-		final Button locateTag = (Button) tagDialogLayout.findViewById(R.id.selected_tag_locate_button);
-		locateTag.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-
-				dialog.dismiss();
-
-				TraceApp.setStartParams(tagData.get("epc"), true);
-				InventoryAppTabbed.getInstance().getAppTemplate().setApp("Locate");
-			}			
-		});
-		
-		dialog.show();
 	}
 }

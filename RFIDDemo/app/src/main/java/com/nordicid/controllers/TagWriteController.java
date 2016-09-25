@@ -1,6 +1,7 @@
 package com.nordicid.controllers;
 
 import com.nordicid.nurapi.NurApi;
+import com.nordicid.nurapi.NurApiException;
 import com.nordicid.nurapi.NurApiListener;
 import com.nordicid.nurapi.NurEventAutotune;
 import com.nordicid.nurapi.NurEventClientInfo;
@@ -71,43 +72,14 @@ public class TagWriteController {
 			@Override public void tagTrackingChangeEvent(NurEventTagTrackingChange event) { }			
 		};
 	}
-	
-	public void performSingleRead() {
-		
-		if (mApi.isConnected()) {
-			
-			try {
-				NurRespInventory inventoryResp = mApi.inventory();
-				
-				if (inventoryResp.numTagsFound > 0) {
-					
-					try {
-						mApi.fetchTags();
-						
-						synchronized (mApi.getStorage()) {
-							
-							NurTagStorage tagStorage = mApi.getStorage();
-							
-							for (int i = 0; i < tagStorage.size(); i++) {
-								NurTag tag = tagStorage.get(i);
-								mWriteListener.singleReadTagFound(tag);
-							}
-							
-							tagStorage.clear();
-							
-						}
-						
-					} catch (Exception err) {
-						err.printStackTrace();
-					}
-				}
-				
-			} catch (Exception err) {
-				err.printStackTrace();
-			}
-		}
+
+	String mLastWriteError = "";
+
+	public String getLastWriteError()
+	{
+		return mLastWriteError;
 	}
-	
+
 	public boolean writeTagByEpc(byte[] epcBuffer, int epcBufferLength, 
 			int newEpcBufferLength, byte[] newEpcBuffer) {
 		
@@ -138,7 +110,10 @@ public class TagWriteController {
 				// Write tag
 				mApi.writeEpcByEpc(epcBuffer, epcBufferLength, newEpcBufferLength, newEpcBuffer);
 				ret = true;
-			} catch (Exception err) {			
+			}
+			catch (Exception err) {
+				mLastWriteError = err.getMessage();
+				ret = false;
 			}
 		}
 		
@@ -158,10 +133,8 @@ public class TagWriteController {
 	}
 	
 	public interface WriteTagControllerListener {
-		
 		public void readerDisconnected();
 		public void readerConnected();
-		public void singleReadTagFound(NurTag tag);
 	}
 	
 }

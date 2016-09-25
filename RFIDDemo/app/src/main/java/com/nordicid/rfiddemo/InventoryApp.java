@@ -1,22 +1,16 @@
 package com.nordicid.rfiddemo;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 
-import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.apptemplate.SubApp;
 import com.nordicid.controllers.InventoryController;
 import com.nordicid.controllers.InventoryController.InventoryControllerListener;
-import com.nordicid.nurapi.NurApi;
+import com.nordicid.nuraccessory.NurAccessoryExtension;
 import com.nordicid.nurapi.NurApiListener;
+import com.nordicid.nurapi.NurEventIOChange;
 import com.nordicid.nurapi.NurTag;
 import com.nordicid.nurapi.NurTagStorage;
 
-import android.app.AlertDialog;
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -41,21 +35,9 @@ public class InventoryApp extends SubApp {
 	private SimpleAdapter mFoundTagsListViewAdapter;
 	private Button mStartStopInventory;
 	private View mView;
-    private long lastTagCount = 0;
 
-    private long tagsPerSecond = 0;
-    private long maxTagsPerSecond = 0;
-    private long averageTagsPerSecond = 0;
-    private long mTagsPerSecondSum = 0;
-    private long mTagsPerSecondCounter = 0;
-
-	private int mNumTags = 0;
 	long mLastUpdateTagCount = 0;
 	Handler mHandler;
-    Handler tagsPerSecondHandler;
-	
-	private NurTagStorage mTagStorage = new NurTagStorage();
-	public static ArrayList<HashMap<String, String>> FOUND_TAGS = new ArrayList<HashMap<String,String>>(); 
 
 	private InventoryController mInventoryController;
 
@@ -69,8 +51,6 @@ public class InventoryApp extends SubApp {
 		super();
 		mHandler = new Handler(Looper.getMainLooper());
 		mInventoryController = new InventoryController(getNurApi());
-        tagsPerSecondHandler = new Handler();
-        tagsPerSecondHandler.postDelayed(tagsPerSecondRunnable, 1000);
 	}
 
 	@Override
@@ -91,12 +71,13 @@ public class InventoryApp extends SubApp {
 	Runnable mTimeUpdate = new Runnable() {
 		@Override
 		public void run() {
-			updateNumTags(mNumTags);
+
+			updateStats(mInventoryController);
 			
-			if (mLastUpdateTagCount != mNumTags)
+			if (mLastUpdateTagCount != mInventoryController.getTagStorage().size())
 				mFoundTagsListViewAdapter.notifyDataSetChanged();
 			
-			mLastUpdateTagCount = mNumTags;
+			mLastUpdateTagCount = mInventoryController.getTagStorage().size();
 			
 			if (mInventoryController.isInventoryRunning())
 				mHandler.postDelayed(mTimeUpdate, 250);				
@@ -109,32 +90,10 @@ public class InventoryApp extends SubApp {
         mInventoryController.setListener(new InventoryControllerListener() {
 			@SuppressWarnings("unchecked")
 			@Override
-			public void tagFound(NurTag tag, int roundsDone) {
-				HashMap<String, String> tmp;
-				if (mTagStorage.addTag(tag)) {
-					tmp = new HashMap<String, String>();
-					tmp.put("epc", tag.getEpcString());
-					tmp.put("rssi", Integer.toString(tag.getRssi()));
-					tmp.put("timestamp", Integer.toString(tag.getTimestamp()));
-					tmp.put("freq", Integer.toString(tag.getFreq())+" kHz Ch: "+Integer.toString(tag.getChannel()));
-					tmp.put("found", "1");
-					tmp.put("foundpercent", "100");
-					tag.setUserdata(tmp);
-					FOUND_TAGS.add(tmp);
-					mFoundTagsListViewAdapter.notifyDataSetChanged();
-					mNumTags++;
-					mInventoryCountTextView.setText(Integer.toString(mNumTags));
-				}
-				else {
-					tag = mTagStorage.getTag(tag.getEpc());
-					tmp = (HashMap<String, String>) tag.getUserdata();
-					tmp.put("rssi", Integer.toString(tag.getRssi()));
-					tmp.put("timestamp", Integer.toString(tag.getTimestamp()));
-					tmp.put("freq", Integer.toString(tag.getFreq())+" kHz (Ch: "+Integer.toString(tag.getChannel())+")");
-					tmp.put("found", Integer.toString(tag.getUpdateCount()));
-					tmp.put("foundpercent", Integer.toString((int) (((double) tag.getUpdateCount()) / (double) roundsDone * 100)));
-				}
-			}
+			public void tagFound(NurTag tag, boolean isNew) { }
+
+			@Override
+			public void inventoryRoundDone(NurTagStorage storage, int newTagsOffset, int newTagsAdded) { }
 
 			@Override
 			public void readerDisconnected() {
@@ -142,8 +101,7 @@ public class InventoryApp extends SubApp {
 			}
 
 			@Override
-			public void readerConnected() {
-			}
+			public void readerConnected() { }
 
 			@Override
 			public void inventoryStateChanged() {
@@ -158,58 +116,39 @@ public class InventoryApp extends SubApp {
 					mStartStopInventory.setText(getString(R.string.start));
 				}
 			}
-			
+
+			@Override
+			public void IOChangeEvent(NurEventIOChange event) {
+				// Handle BLE trigger
+				if (event.source == NurAccessoryExtension.TRIGGER_SOURCE && event.direction == 0)
+				{
+					if (mInventoryController.isInventoryRunning())
+						stopInventory();
+					else {
+						startInventory();
+					}
+				}
+			}
+
 		});
 	}
 
-    Runnable tagsPerSecondRunnable = new Runnable() {
-        @Override
-        public void run() {
-            try{
-                if(mInventoryController.isInventoryRunning()){
-                    tagsPerSecond = mInventoryController.getReadTagsCount();
-                    mTagsPerSecondSum += tagsPerSecond;
-                    mTagsPerSecondCounter++;
-                    averageTagsPerSecond = mTagsPerSecondSum/mTagsPerSecondCounter;
-                    if(tagsPerSecond > maxTagsPerSecond)
-                        maxTagsPerSecond = tagsPerSecond;
-                    mInventoryController.clearReadTagBuffer();
-                }
-            }
-            catch (Exception e) {
-                // TODO: handle exception
-            }
-            finally{
-                //also call the same runnable to call it at regular interval
-                tagsPerSecondHandler.postDelayed(this, 1000);
-            }
-        }
-    };
+    public void updateStats(InventoryController invCtl)
+	{
+		InventoryController.Stats stats = invCtl.getStats();
 
-    public void updateNumTags(long numTags) {
-        if (numTags < 0)
-            numTags = 0;
-        if (lastTagCount != numTags) {
-            mInventoryTagsInTime.setText(String.format("%.1f", mInventoryController.getElapsedSecs()));
-            lastTagCount = numTags;
-        }
-        mInventoryTagsPerSecond.setText(String.format("%d", tagsPerSecond));
-        mInventoryCountTextView.setText(Long.toString(numTags));
-        mInventoryMaxTagsPerSecond.setText(String.format("%d", maxTagsPerSecond));
-        mInventoryAvgTagPerSecond.setText(String.format("%d", averageTagsPerSecond));
+		mInventoryTagsInTime.setText(String.format("%.1f", stats.getTagsFoundInTimeSecs()));
+		mInventoryTagsPerSecond.setText(String.format("%.1f", stats.getTagsPerSec()));
+		mInventoryCountTextView.setText(Long.toString(invCtl.getTagStorage().size()));
+        mInventoryMaxTagsPerSecond.setText(String.format("%.1f", stats.getMaxTagsPerSec()));
+        mInventoryAvgTagPerSecond.setText(String.format("%.1f", stats.getAvgTagsPerSec()));
     }
 	
 	private void clearReadings() {
-
-		mTagStorage.clear();
-		InventoryApp.FOUND_TAGS.clear();
+		mInventoryController.clearInventoryReadings();
 		mFoundTagsListViewAdapter.notifyDataSetChanged();
-		mNumTags = 0;
-        tagsPerSecond = 0;
-        lastTagCount = 0;
-		mLastUpdateTagCount = -1;
-		updateNumTags(-1);
-		mInventoryController.clearInventoryReadings();		
+		mLastUpdateTagCount = 0;
+		updateStats(mInventoryController);
 	}
 
 	@Override
@@ -235,7 +174,7 @@ public class InventoryApp extends SubApp {
 			mStartStopInventory.setText(getString(R.string.stop));
 		}
 			
-		//Clear button and alertdialog
+		// Clear button and alertdialog
 		addButtonBarButton(getString(R.string.clear), new OnClickListener(){
 			@Override
 			public void onClick(View v) {
@@ -243,22 +182,19 @@ public class InventoryApp extends SubApp {
 			}
 		});
 		
-		//statistics UI
+		// statistics UI
         mInventoryCountTextView = (TextView) mView.findViewById(R.id.num_of_tags_textview);
         mInventoryAvgTagPerSecond = (TextView) view.findViewById(R.id.average_tags_per_second_textview);
-        mInventoryAvgTagPerSecond.setText("-");
         mInventoryTagsInTime = (TextView) view.findViewById(R.id.tags_in_time_textview);
-        mInventoryTagsInTime.setText("0");
         mInventoryMaxTagsPerSecond = (TextView) view.findViewById(R.id.max_tags_per_second);
-        mInventoryMaxTagsPerSecond.setText("-");
-        mFoundTagsListView = (ListView) mView.findViewById(R.id.tags_listview);
         mInventoryTagsPerSecond = (TextView) view.findViewById(R.id.tags_per_second_textview);
-        mInventoryTagsPerSecond.setText("-");
-	
+
+		mFoundTagsListView = (ListView) mView.findViewById(R.id.tags_listview);
+
 		//sets simple adapter for foundtags list
 		mFoundTagsListViewAdapter = new SimpleAdapter(
 											getActivity(), 
-											FOUND_TAGS, 
+											mInventoryController.getListViewAdapterData(),
 											R.layout.taglist_row,
 											new String[] { "epc" },
 											new int[] { R.id.tagText });
@@ -275,87 +211,41 @@ public class InventoryApp extends SubApp {
 				
 				//if tag clicked
 				HashMap<String, String> selectedTagData =(HashMap<String, String>) mFoundTagsListView.getItemAtPosition(position);
-				showTagDialog(selectedTagData);
+				InventoryController.showTagDialog(getActivity(), selectedTagData);
 			}
 			
 		});
-		
+
+		updateStats(mInventoryController);
 	}
 	
 	public void startInventory() {
-		if (!mInventoryController.startContinuousInventory()) {
-			Toast.makeText(getActivity(), getString(R.string.reader_connection_error), Toast.LENGTH_SHORT).show();
+		try {
+			if (!mInventoryController.startContinuousInventory()) {
+				Toast.makeText(getActivity(), getString(R.string.reader_connection_error), Toast.LENGTH_SHORT).show();
+			}
+		} catch (Exception e)
+		{
+			Toast.makeText(getActivity(), getString(R.string.reader_error), Toast.LENGTH_SHORT).show();
 		}
 	}
 	
 	public void stopInventory() {
 		mInventoryController.stopInventory();
 	}
-	
-	private void showTagDialog(final HashMap<String, String> tagData) {
-		//shows dialog and the clicked tags information
-		View tagDialogLayout = getLayoutInflater(null).inflate(R.layout.dialog_tagdata, null);
-		final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		
-		builder.setView(tagDialogLayout);
-		
-		final TextView epcTextView = (TextView) tagDialogLayout.findViewById(R.id.selected_tag_epc);
-		epcTextView.setText(getString(R.string.dialog_epc)+" "+tagData.get("epc"));
-		
-		final TextView rssiTextView = (TextView) tagDialogLayout.findViewById(R.id.selected_tag_rssi);
-		rssiTextView.setText(getString(R.string.dialog_rssi)+" "+tagData.get("rssi"));
-		
-		final TextView timestampTextView = (TextView) tagDialogLayout.findViewById(R.id.selected_tag_timestamp);
-		timestampTextView.setText(getString(R.string.dialog_timestamp)+" "+tagData.get("timestamp"));
-		
-		final TextView fregTextView = (TextView) tagDialogLayout.findViewById(R.id.selected_tag_freq);
-		fregTextView.setText(getString(R.string.dialog_freg)+" "+tagData.get("freq"));
-		
-		final TextView foundTextView = (TextView) tagDialogLayout.findViewById(R.id.selected_tag_found);
-		foundTextView.setText(getString(R.string.dialog_found)+" "+tagData.get("found"));
-		
-		final TextView foundPercentTextView = (TextView) tagDialogLayout.findViewById(R.id.selected_tag_foundpercent);
-		foundPercentTextView.setText(getString(R.string.dialog_found_precent)+" "+tagData.get("foundpercent"));
-		
-		final AlertDialog dialog = builder.create();
-		
-		//close button made in "Android L" style. See the layout
-		final Button closeDialog = (Button) tagDialogLayout.findViewById(R.id.selected_tag_close_button);
-		closeDialog.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				dialog.dismiss();
-			}
-		});
-	
-		final Button locateTag = (Button) tagDialogLayout.findViewById(R.id.selected_tag_locate_button);
-		locateTag.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				dialog.dismiss();
-
-				TraceApp.setStartParams(tagData.get("epc"), true);
-				getAppTemplate().setApp("Locate");
-			}
-		});
-		
-		dialog.show();
-	}
 
 	//if back pressed when fragment is active
 	@Override
 	public boolean onFragmentBackPressed() {
 		
-		//if inventory running close it and return true
+		// if inventory running, stop it and return true to indicate AppTemplate we've handled back press
 		if (mInventoryController.isInventoryRunning()) {
-			mInventoryController.stopInventory();
-			mStartStopInventory.setText(getString(R.string.start));
+			stopInventory();
 			return true;
 		}
-		else {
-			//if not return false and AppTemplate closes the app
-			return false;
-		}
+
+		// Return false to let AppTemplate to handle back press
+		return false;
 	}
 	
 	//When inventory is running keep screen on
@@ -375,5 +265,4 @@ public class InventoryApp extends SubApp {
 			}
 		}
 	}
-	
 }

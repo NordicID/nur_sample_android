@@ -14,7 +14,7 @@ public class TraceAntennaSelector
     
     int mCurrentAnt = ANT_UNKNOWN;
 
-	AvgIntBuffer mSignalAvg = new AvgIntBuffer(3);
+	AvgBuffer mSignalAvg = new AvgBuffer(3, 0);
 	NurApi mApi;
 	
 	int mBackupSelectedAntenna;
@@ -42,8 +42,9 @@ public class TraceAntennaSelector
 	{
 		mApi = api;
 		
-		mSignalAvg.Reset();
-		
+		//mSignalAvg.Reset();
+		mSignalAvg.clear();
+
 		mBackupAntennaMask = mApi.getSetupAntennaMaskEx();
 		mBackupSelectedAntenna = mApi.getSetupSelectedAntenna();
 		mBackupTxLevel = mApi.getSetupTxLevel();
@@ -70,7 +71,7 @@ public class TraceAntennaSelector
 	
 	public int getSignalStrength()
 	{
-		return mSignalAvg.getValue();
+		return (int)mSignalAvg.getAvgValue();
 	}
 	
 	public int getCurrentAntenna()
@@ -120,8 +121,9 @@ public class TraceAntennaSelector
             if (locateSignal > 100) locateSignal = 100;
 		}
 		//Log.d("TRACE", "locateSignal " + locateSignal);
-		
-		int avgSignal = mSignalAvg.Add(locateSignal);
+
+		mSignalAvg.add(locateSignal);
+		int avgSignal = (int)mSignalAvg.getAvgValue();
 
 		if (locateSignal == 0)
 		{

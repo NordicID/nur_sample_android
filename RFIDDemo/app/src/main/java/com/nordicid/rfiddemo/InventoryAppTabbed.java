@@ -1,12 +1,11 @@
 package com.nordicid.rfiddemo;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
-import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.apptemplate.SubAppTabbed;
 import com.nordicid.controllers.InventoryController;
 import com.nordicid.controllers.InventoryController.InventoryControllerListener;
+import com.nordicid.nuraccessory.NurAccessoryExtension;
 import com.nordicid.nurapi.*;
 
 import android.os.Bundle;
@@ -31,16 +30,7 @@ public class InventoryAppTabbed extends SubAppTabbed {
 
 	private InventoryController mInventoryController;
 	
-	private NurTagStorage mTagStorage = new NurTagStorage();
-	
-	long mNumTags = 0;
 	long mLastUpdateTagCount = 0;
-    protected long lastTagCount = 0;
-    protected long tagsPerSecond = 0;
-    protected long maxTagsPerSecond = 0;
-    protected long averageTagsPerSecond = 0;
-    protected long mTagsPerSecondSum = 0;
-    protected long mTagsPerSecondCounter = 0;
 
 	Handler mHandler;
 
@@ -67,7 +57,11 @@ public class InventoryAppTabbed extends SubAppTabbed {
 		mHandler = new Handler(Looper.getMainLooper());
 		mInventoryController = new InventoryController(getNurApi());
 	}
-	
+
+	@Override
+	public void onVisibility(boolean val) {
+	}
+
 	@Override
 	protected int onGetFragments(ArrayList<Fragment> fragments, ArrayList<String> fragmentNames) throws Exception
 	{
@@ -80,7 +74,7 @@ public class InventoryAppTabbed extends SubAppTabbed {
 
 		fragmentNames.add("Found");
 		fragments.add(mFoundTab);
-		
+
 		return R.id.pager;
 	}
 	
@@ -99,12 +93,12 @@ public class InventoryAppTabbed extends SubAppTabbed {
 	Runnable mTimeUpdate = new Runnable() {
 		@Override
 		public void run() {
-			mReadingTab.updateNumTags(mNumTags);
+			mReadingTab.updateStats(mInventoryController);
 			
-			if (mLastUpdateTagCount != mNumTags)
+			if (mLastUpdateTagCount != mInventoryController.getTagStorage().size())
 				mFoundTab.mFoundTagsListViewAdapter.notifyDataSetChanged();
 			
-			mLastUpdateTagCount = mNumTags;
+			mLastUpdateTagCount = mInventoryController.getTagStorage().size();
 			
 			if (mInventoryController.isInventoryRunning())
 				mHandler.postDelayed(mTimeUpdate, 250);				
@@ -119,42 +113,14 @@ public class InventoryAppTabbed extends SubAppTabbed {
 
 			@SuppressWarnings("unchecked")
 			@Override
-			public void tagFound(NurTag tag, int roundsDone) {
-				
-				HashMap<String, String> tmp;
-				
-				if (mTagStorage.addTag(tag)) {
-					
-					tmp = new HashMap<String, String>();
-					tmp.put("epc", tag.getEpcString());
-					tmp.put("rssi", Integer.toString(tag.getRssi()));
-					tmp.put("timestamp", Integer.toString(tag.getTimestamp()));
-					tmp.put("freq", Integer.toString(tag.getFreq())+" kHz Ch: "+Integer.toString(tag.getChannel()));
-					tmp.put("found", "1");
-					tmp.put("foundpercent", "100");
-					tag.setUserdata(tmp);
-					
-					InventoryApp.FOUND_TAGS.add(tmp);
-					
-					mNumTags++;
-				}
-				else {
-					
-					tag = mTagStorage.getTag(tag.getEpc());
-					
-					tmp = (HashMap<String, String>) tag.getUserdata();
-					tmp.put("rssi", Integer.toString(tag.getRssi()));
-					tmp.put("timestamp", Integer.toString(tag.getTimestamp()));
-					tmp.put("freq", Integer.toString(tag.getFreq())+" kHz (Ch: "+Integer.toString(tag.getChannel())+")");
-					tmp.put("found", Integer.toString(tag.getUpdateCount()));
-					tmp.put("foundpercent", Integer.toString((int) (((double) tag.getUpdateCount()) / (double) roundsDone * 100)));
-				}
-			}
+			public void tagFound(NurTag tag, boolean isNew) { }
+
+			@Override
+			public void inventoryRoundDone(NurTagStorage storage, int newTagsOffset, int newTagsAdded) { }
 
 			@Override
 			public void readerDisconnected() {
 				mStartStopInventory.setText(getString(R.string.start));
-				Toast.makeText(getActivity(), getString(R.string.reader_connection_error), Toast.LENGTH_SHORT).show();
 			}
 
 			@Override
@@ -175,7 +141,19 @@ public class InventoryAppTabbed extends SubAppTabbed {
 					mStartStopInventory.setText(getString(R.string.start));
 				}
 			}
-			
+
+			@Override
+			public void IOChangeEvent(NurEventIOChange event) {
+				// Handle BLE trigger
+				if (event.source == NurAccessoryExtension.TRIGGER_SOURCE && event.direction == 0)
+				{
+					if (mInventoryController.isInventoryRunning())
+						stopInventory();
+					else {
+						startInventory();
+					}
+				}
+			}
 		});
 		
 		mStartStopInventory = addButtonBarButton(getString(R.string.start), new OnClickListener() {
@@ -198,7 +176,7 @@ public class InventoryAppTabbed extends SubAppTabbed {
 				clearReadings();
 			}
 		});
-		
+
 		super.onViewCreated(view, savedInstanceState);
 	}
 	
@@ -207,25 +185,21 @@ public class InventoryAppTabbed extends SubAppTabbed {
 	}
 	
 	public void startInventory() {
-		if (!mInventoryController.startContinuousInventory()) {			
-			Toast.makeText(getActivity(), getString(R.string.reader_connection_error), Toast.LENGTH_SHORT).show();		
+		try {
+			if (!mInventoryController.startContinuousInventory()) {
+				Toast.makeText(getActivity(), getString(R.string.reader_connection_error), Toast.LENGTH_SHORT).show();
+			}
+		} catch (Exception e)
+		{
+			Toast.makeText(getActivity(), getString(R.string.reader_error), Toast.LENGTH_SHORT).show();
 		}
 	}
 	
 	public void clearReadings() {
-        mTagStorage.clear();
-        mNumTags = 0;
-        mLastUpdateTagCount = -1;
-        InventoryApp.FOUND_TAGS.clear();
-        mFoundTab.mFoundTagsListViewAdapter.notifyDataSetChanged();
-        mReadingTab.updateNumTags(-1);
-        tagsPerSecond = 0;
-        maxTagsPerSecond = 0;
-        averageTagsPerSecond = 0;
-        mTagsPerSecondSum = 0;
-        mTagsPerSecondCounter = 0;
-        lastTagCount = 0;
-        mInventoryController.clearInventoryReadings();
+		mInventoryController.clearInventoryReadings();
+		mFoundTab.mFoundTagsListViewAdapter.notifyDataSetChanged();
+        mLastUpdateTagCount = 0;
+		mReadingTab.updateStats(mInventoryController);
 	}
 
 	//main layout
@@ -258,5 +232,18 @@ public class InventoryAppTabbed extends SubAppTabbed {
 		if (mInventoryController.isInventoryRunning()) {
 			stopInventory();
 		}
+	}
+
+	@Override
+	public boolean onFragmentBackPressed() {
+
+		// if inventory running, stop it and return true to indicate AppTemplate we've handled back press
+		if (mInventoryController.isInventoryRunning()) {
+			stopInventory();
+			return true;
+		}
+
+		// Return false to let AppTemplate to handle back press
+		return false;
 	}
 }

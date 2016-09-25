@@ -54,12 +54,14 @@ public class TraceApp extends SubApp {
 	private ProgressBar mProgressBar;
 	private ListView mFoundTagsListView;
 	private RelativeLayout mEmptyListViewNotice;
-	
+
 	private TraceTagController mTraceController;
+	private InventoryController mInventoryController;
 
 	public TraceApp() {
 		super();
 		mTraceController = new TraceTagController(getNurApi());
+		mInventoryController = new InventoryController(getNurApi());
 
 		mTraceController.setListener(new TraceTagListener() {
 			@Override
@@ -68,9 +70,7 @@ public class TraceApp extends SubApp {
 				mPctText.setText(data.scaledRssi + "%");
 
 				if (animation != null)
-				{
 					animation.cancel();
-				}
 
 				animation = ObjectAnimator.ofInt(mProgressBar, "progress", mLastVal, data.scaledRssi);
 				animation.setDuration(200);
@@ -139,6 +139,23 @@ public class TraceApp extends SubApp {
 				}
 			}
 		});
+		addButtonBarButton(getString(R.string.refresh_list), new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				try {
+					if (!mInventoryController.doSingleInventory()) {
+						Toast.makeText(getActivity(), getString(R.string.reader_connection_error), Toast.LENGTH_SHORT).show();
+					}
+					else if (mInventoryController.getTagStorage().size() == 0) {
+						Toast.makeText(getActivity(), "No tags found", Toast.LENGTH_SHORT).show();
+					}
+
+				} catch (Exception e) {
+					Toast.makeText(getActivity(), getString(R.string.reader_error), Toast.LENGTH_SHORT).show();
+				}
+				mFoundTagsListViewAdapter.notifyDataSetChanged();
+			}
+		});
 
 		mProgressBar = (ProgressBar) view.findViewById(R.id.progressBar);
 		mFoundTagsListView = (ListView) view.findViewById(R.id.tags_listview);
@@ -150,7 +167,6 @@ public class TraceApp extends SubApp {
 		mLocatableEpcEditText.setSaveEnabled(false);
 
 		mLocatableEpcEditText.addTextChangedListener(new TextWatcher() {
-
 			@Override public void afterTextChanged(Editable s) {
 				String tmp = mLocatableEpcEditText.getText().toString().replaceAll("[^a-fA-F_0-9]", "");
 				
@@ -199,7 +215,7 @@ public class TraceApp extends SubApp {
 			mPctText.setLayoutParams(lp);
 		}
 		
-		mFoundTagsListViewAdapter = new SimpleAdapter(getActivity(), InventoryApp.FOUND_TAGS, R.layout.taglist_row, new String[] {"epc"}, new int[] {R.id.tagText});
+		mFoundTagsListViewAdapter = new SimpleAdapter(getActivity(), mInventoryController.getListViewAdapterData(), R.layout.taglist_row, new String[] {"epc"}, new int[] {R.id.tagText});
 		mFoundTagsListView.setEmptyView(mEmptyListViewNotice);
 		mFoundTagsListView.setAdapter(mFoundTagsListViewAdapter);
 		mFoundTagsListView.setCacheColorHint(0);
@@ -248,13 +264,16 @@ public class TraceApp extends SubApp {
 		try {
 			if (!mTraceController.isTracingTag())
 			{
-				if (mTraceController.startTagTrace(mLocatableEpc))
+				if (!getNurApi().isConnected())
+					Toast.makeText(getActivity(), getString(R.string.reader_connection_error), Toast.LENGTH_SHORT).show();
+				else  if (mTraceController.startTagTrace(mLocatableEpc))
 					mStartStopLocating.setText(getString(R.string.stop));
-				// Toast.makeText(getActivity(), getString(R.string.location_started), Toast.LENGTH_SHORT).show();
+				else
+					Toast.makeText(getActivity(), "Invalid EPC", Toast.LENGTH_SHORT).show();
 			}
 		}
-		catch (Exception ex) { 
-			
+		catch (Exception ex) {
+			Toast.makeText(getActivity(), getString(R.string.reader_error), Toast.LENGTH_SHORT).show();
 		}
 	}
 	
@@ -263,7 +282,6 @@ public class TraceApp extends SubApp {
 		{
 			mTraceController.stopTagTrace();
 			mStartStopLocating.setText(getString(R.string.start));
-			// Toast.makeText(getActivity(), getString(R.string.location_stopped), Toast.LENGTH_SHORT).show();
 		}
 	}
 	
@@ -276,13 +294,7 @@ public class TraceApp extends SubApp {
 	public boolean onFragmentBackPressed() {
 		
 		if (mTraceController.isTracingTag()) {
-			
-			try {
-				stopTrace();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
+			stopTrace();
 			return true;
 		}
 		else {
@@ -295,11 +307,7 @@ public class TraceApp extends SubApp {
 		super.onPause();
 		
 		if (mTraceController.isTracingTag()) {
-			try {
-				stopTrace();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			stopTrace();
 		}
 	}
 	
