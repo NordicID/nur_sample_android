@@ -551,11 +551,11 @@ public class Main extends AppTemplate {
                 handleConnectionClick();
                 break;
             case 1:
-                handleAboutClick();
-                break;
-            case 2:
                 handleContactClick();
                 break;
+			case 2:
+				handleAboutClick();
+				break;
             default:
                 break;
 		}
