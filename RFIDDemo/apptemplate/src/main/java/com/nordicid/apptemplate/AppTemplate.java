@@ -2,6 +2,7 @@ package com.nordicid.apptemplate;
 
 import java.util.ArrayList;
 
+import com.nordicid.nuraccessory.NurAccessoryExtension;
 import com.nordicid.nurapi.NurApi;
 import com.nordicid.nurapi.NurApiListener;
 import com.nordicid.nurapi.NurApiUiThreadRunner;
@@ -57,7 +58,9 @@ public class AppTemplate extends FragmentActivity {
 	private Menu mMenu;
 	private MenuItem mCloseButton;
 	private Drawer mDrawer;
-	
+    private TextView mBatteryStatus = null;
+    private NurAccessoryExtension mAccessoryApi = null;
+
 	private FragmentManager mFragmentManager;
 	private FragmentTransaction mFragmentTransaction;
 	
@@ -215,6 +218,7 @@ public class AppTemplate extends FragmentActivity {
 		//int layoutMask = 0;
 		
 		mApi = new NurApi();
+        mAccessoryApi = new NurAccessoryExtension(mApi);
 		
 		mApi.setUiThreadRunner(new NurApiUiThreadRunner() {
 			@Override
@@ -236,6 +240,8 @@ public class AppTemplate extends FragmentActivity {
 		
 		//Set the drawer and add items to it
 		setDrawer(true);
+
+        mBatteryStatus = (TextView) findViewById(R.id.battery_level);
 
 		//setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		LARGE_SCREEN = ((getResources().getConfiguration().screenLayout &
@@ -269,7 +275,21 @@ public class AppTemplate extends FragmentActivity {
 	{
 		TextView t = (TextView) findViewById(R.id.app_statustext);
 		t.setText(text.toUpperCase());
+        if(getNurApi().isConnected() && getExtensionApi().isSupported()) {
+            try {
+                setBatteryStatus("BAT: " + getExtensionApi().getBatteryInfo().getPercentageString());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            setBatteryStatus("");
+        }
 	}
+
+    public void setBatteryStatus(String text){
+        mBatteryStatus.setText(text);
+    }
 	
 	@Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -353,6 +373,7 @@ public class AppTemplate extends FragmentActivity {
 			mSubAppList.setCurrentOpenSubApp(0);
 		}
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+        mBatteryStatus = (TextView) findViewById(R.id.battery_level);
 		setDrawer(false);
         mDrawerToggle.onConfigurationChanged(newConfig);
 	}
@@ -517,7 +538,9 @@ public class AppTemplate extends FragmentActivity {
 	public NurApi getNurApi() {
 		return mApi;
 	}
-	
+
+    public NurAccessoryExtension getExtensionApi() { return mAccessoryApi; }
+
 	/**
 	 *  Sets all the fragments
 	 */
