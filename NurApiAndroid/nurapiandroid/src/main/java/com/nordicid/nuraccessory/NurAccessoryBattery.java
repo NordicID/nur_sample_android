@@ -119,9 +119,7 @@ public class NurAccessoryBattery {
      */
 	public String getCurrentString()
 	{
-		if (current < 0)
-			return "N/A";
-		return current + "mA";
+        return current + "mA";
 	}
 
 	/**
