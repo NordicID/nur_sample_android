@@ -49,7 +49,7 @@ public class SettingsAppTab extends Fragment {
                              Bundle savedInstanceState) {
         settings = SettingsAppTabbed.getInstance().getAppPreferences();
         settingEditor = settings.edit();
-        rotationEnabled = settings.getBoolean("Srotation",false);
+        rotationEnabled = settings.getBoolean("Rotation",false);
         soundsEnabled = !settings.getBoolean("Sounds",true);
         return inflater.inflate(R.layout.tab_settings_app, container, false);
     }
@@ -67,7 +67,7 @@ public class SettingsAppTab extends Fragment {
     OnCheckedChangeListener mOnCheckedChangeListenerRotation = new OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            settingEditor.putBoolean("Srotation",mScreenOrientationCheckBox.isChecked());
+            settingEditor.putBoolean("Rotation",mScreenOrientationCheckBox.isChecked());
             settingEditor.apply();
             ((Main)getActivity()).toggleScreenRotation(isChecked);
         }

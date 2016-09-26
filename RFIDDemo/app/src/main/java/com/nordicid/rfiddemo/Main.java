@@ -1,5 +1,10 @@
 package com.nordicid.rfiddemo;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -15,10 +20,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.TextView;
@@ -109,15 +116,13 @@ public class Main extends AppTemplate {
 		}
 	}
 
-	void saveSettings() {
+	void saveSettings(NurDeviceSpec connSpec) {
 		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = pref.edit();
 		if (mAcTr == null) {
-			editor.putString("connType", "");
-			editor.putString("connAddr", "");
+			editor.putString("specStr", "");
 		} else {
-			editor.putString("connType", mAcTr.getType());
-			editor.putString("connAddr", mAcTr.getAddress());
+			editor.putString("specStr", connSpec.getSpec());
 		}
 		editor.commit();
 
@@ -162,21 +167,27 @@ public class Main extends AppTemplate {
 
 	void loadSettings() {
 		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
-		String type = pref.getString("connType", "");
 
         /* Get rotation setting enable / disable rotation sensors */
-        toggleScreenRotation(pref.getBoolean("Srotation",false));
+        toggleScreenRotation(pref.getBoolean("Rotation",false));
         Beeper.setEnabled(pref.getBoolean("Sounds",true));
 
-		if (type.equals("BLE")) {
-			mAcTr = new NurApiBLEAutoConnect(this, getNurApi());
-		} else if (type.equals("USB")) {
-			mAcTr = new NurApiUsbAutoConnect(this, getNurApi());
-		} else {
-			mAcTr = null;
-		}
-		if (mAcTr != null) {
-			mAcTr.setAddress(pref.getString("connAddr", ""));
+		String specStr = pref.getString("specStr", "");
+		if (specStr.length() > 0)
+		{
+			NurDeviceSpec spec = new NurDeviceSpec(specStr);
+
+			if (mAcTr != null) {
+				System.out.println("Dispose transport");
+				mAcTr.dispose();
+			}
+
+			try {
+				mAcTr = NurDeviceSpec.createAutoConnectTransport(this, getNurApi(), spec);
+				mAcTr.setAddress(spec.getAddress());
+			} catch (NurApiException e) {
+				e.printStackTrace();
+			}
 		}
 		updateStatus();
 	}
@@ -276,14 +287,6 @@ public class Main extends AppTemplate {
 	}
 
 	private String mDetectedFw = "";
-
-	// Visible app choices / not.
-	public void syncViewContents()
-	{
-		super.onResume();
-	}
-
-	private boolean mAuthAppAdded = false;
 
 	@Override
 	public void onCreateSubApps(SubAppList subAppList) {
@@ -497,31 +500,24 @@ public class Main extends AppTemplate {
 			break;
 
 			case NurDeviceListActivity.REQUEST_SELECT_DEVICE: {
-				if (data == null || (resultCode != NurDeviceListActivity.RESULT_BLE && resultCode != NurDeviceListActivity.RESULT_USB))
+				if (data == null || resultCode != NurDeviceListActivity.RESULT_OK)
 					return;
 
-				if (data != null) {
-					String deviceAddress, transportType;
+				try {
+					NurDeviceSpec spec = new NurDeviceSpec(data.getStringExtra(NurDeviceListActivity.SPECSTR));
 
-					try {
-						deviceAddress = data.getStringExtra(NurDeviceListActivity.DEVICE_ADDRESS);
-						if (resultCode == NurDeviceListActivity.RESULT_BLE)
-							transportType = NurDeviceSpec.BLE_TYPESTR;
-						else
-							transportType = NurDeviceSpec.USB_TYPESTR;
-
-						if (mAcTr != null) {
-							System.out.println("Dispose transport");
-							mAcTr.dispose();
-						}
-
-						mAcTr = NurDeviceSpec.getAutoConnectTransport(this, transportType, getNurApi());
-						mAcTr.setAddress(deviceAddress);
-						saveSettings();
-					} catch (Exception e) {
-						e.printStackTrace();
+					if (mAcTr != null) {
+						System.out.println("Dispose transport");
+						mAcTr.dispose();
 					}
+
+					mAcTr = NurDeviceSpec.createAutoConnectTransport(this, getNurApi(), spec);
+					mAcTr.setAddress(spec.getAddress());
+					saveSettings(spec);
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
+
 			}
 			break;
 		}
