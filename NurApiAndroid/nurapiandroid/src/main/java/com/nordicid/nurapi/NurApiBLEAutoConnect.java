@@ -351,12 +351,6 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 
 	@Override
 	public String getDetails() {
-		String details = "BLE connection";
-		if (!mAddr.isEmpty())
-			details += (" (" + mAddr + ")");
-
-		return details;
-/*
 		BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (bluetoothAdapter == null) {
 			return "No BT adapter";
@@ -364,7 +358,8 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 		if (!bluetoothAdapter.isEnabled()) {
 			return "BT not enabled";
 		}
-
+		return "";
+/*
 		if (mApi != null && mApi.isConnected()) {
 			try {
 				if (bleVersion.length() == 0)

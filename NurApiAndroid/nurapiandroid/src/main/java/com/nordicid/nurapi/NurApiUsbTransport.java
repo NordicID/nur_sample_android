@@ -33,7 +33,7 @@ import android.util.Log;
  * @author Nordic ID
  * @version 1.0.0
  */
-public class NurApiUsbTransport implements NurApiTransport 
+public class 	NurApiUsbTransport implements NurApiTransport
 {
 	static final String TAG = "NurApiUsbTransport";
 

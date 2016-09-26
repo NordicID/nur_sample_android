@@ -19,107 +19,142 @@ package com.nordicid.nurapi;
 
 import android.content.Context;
 
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Created by Nordic ID on 18.7.2016.
  */
 public class NurDeviceSpec {
 
-    public static final int BOND_NONE = 0;
-    public static final int BOND_BONDED = 1;
+    private String mSpecStr = "";
+    private boolean mNeedRegen = false;
+    private LinkedHashMap<String, String> mParams = new LinkedHashMap<String,String>();
 
-    public static final String BLE_TYPESTR = "BLE";
-    public static final String USB_TYPESTR = "USB";
-    public static final String ETH_TYPESTR = "ETH";
-
-    private String mConnectionType = "";
-    private String mConnectionAddress = "";
-    private int mPort = 0;
-    private String mName = "";
-    private int mRSSI = 0;
-    private int mHasBeenBonded = BOND_NONE;
-
-    public NurDeviceSpec(String connectionAddress, String name, String connectionType, int port, boolean bonded, int rssi)
+    public void parse(String specStr)
     {
-        mConnectionType = connectionType;
-        mConnectionAddress = connectionAddress;
-        mPort = port;
-        mName = name;
-        setBondState(bonded);
-        setRSSI(rssi);
+        mParams.clear();
+        mSpecStr = specStr;
+
+        String []parts = specStr.split(";");
+        for (String part : parts) {
+            int equalPos = part.indexOf('=');
+            if (equalPos != -1) {
+                String key = part.substring(0, equalPos);
+                String val = part.substring(equalPos+1);
+                mParams.put(key, val);
+            } else {
+                mParams.put(part, null);
+            }
+        }
     }
 
-    public NurDeviceSpec(String connectionAddress, String name, String connectionType, int port)
+    public String getSpec()
     {
-        this(connectionAddress, name, connectionType, port, false, 0);
+        if (mNeedRegen) {
+            regenerateSpec();
+        }
+        return mSpecStr;
     }
 
-    public void setBondState(boolean hasBeenBonded)
-    {
-        mHasBeenBonded = hasBeenBonded ? BOND_BONDED : BOND_NONE;
+    public boolean hasPart(String name) {
+        return mParams.containsKey(name);
     }
 
-    public int getBondState()
-    {
-        return mHasBeenBonded;
+    public String getPart(String name) throws Exception {
+        String ret = mParams.get(name);
+        if (ret == null)
+            throw new Exception("Part " + name + " not found");
+        return ret;
     }
 
-    public void setRSSI(int newRssi)
+    public int getPartInt(String name) throws Exception {
+        return Integer.parseInt(getPart(name));
+    }
+
+    public boolean getPartBoolean(String name) throws Exception {
+        return Boolean.parseBoolean(getPart(name));
+    }
+
+    public void setPart(String key, String val)
     {
-        mRSSI = newRssi;
+        mNeedRegen = true;
+        mParams.put(key, val);
+    }
+
+    private void regenerateSpec()
+    {
+        String ret = "";
+        Iterator<LinkedHashMap.Entry<String,String>> itr = mParams.entrySet().iterator();
+        while (itr.hasNext())
+        {
+            LinkedHashMap.Entry<String,String> entry = itr.next();
+            if (ret.length() > 0)
+                ret += ";";
+            ret += entry.getKey();
+            if (entry.getValue() != null)
+                ret += "=" + entry.getValue();
+        }
+        mSpecStr = ret;
+        mNeedRegen = false;
+    }
+
+    public NurDeviceSpec(String specStr)
+    {
+        parse(specStr);
+    }
+
+
+    public boolean getBondState()
+    {
+        try {
+            return getPartBoolean("bonded");
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public int getRSSI()
     {
-        return mRSSI;
+        try {
+            return getPartInt("rssi");
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
-    public boolean isTypeOfEthernet()
+    public String getType()
     {
-        if (mConnectionType.equalsIgnoreCase(ETH_TYPESTR))
-            return true;
-        return false;
-    }
-
-    public boolean isTypeOfUSB()
-    {
-        if (mConnectionType.equalsIgnoreCase(USB_TYPESTR))
-            return true;
-        return false;
-    }
-
-    public boolean isTypeOfBLE()
-    {
-        if (mConnectionType.equalsIgnoreCase(BLE_TYPESTR))
-            return true;
-        return false;
-    }
-
-    public String getType() {
-        return mConnectionType;
+        try {
+            return getPart("type");
+        } catch (Exception e) {
+            return "Unknown";
+        }
     }
 
     public String getAddress() {
-        return mConnectionAddress;
+        try {
+            return getPart("addr");
+        } catch (Exception e) {
+            return "Unknown";
+        }
     }
 
     public int getPort() {
-        return mPort;
+        try {
+            return getPartInt("port");
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
     public String getName() {
-        return mName;
-    }
-
-    public static NurApiAutoConnectTransport getAutoConnectTransport(Context ctx, String typeString, NurApi api) throws NurApiException
-    {
-        NurDeviceSpec spec = new NurDeviceSpec("", "", typeString, 0);
-
-        if (spec.isTypeOfBLE())
-            return new NurApiBLEAutoConnect(ctx, api);
-        else if (spec.isTypeOfUSB())
-            return new NurApiUsbAutoConnect(ctx, api);
-
-        throw new NurApiException("NurDeviceSpec::getTransport() : can't determine type of transport");
+        try {
+            return getPart("name");
+        } catch (Exception e) {
+            return "Unknown";
+        }
     }
 
     @Override
@@ -128,7 +163,7 @@ public class NurDeviceSpec {
         if (other == null || !(other instanceof NurDeviceSpec))
             return false;
 
-        if (((NurDeviceSpec)other).getAddress().equalsIgnoreCase(mConnectionAddress))
+        if (((NurDeviceSpec)other).getSpec().equalsIgnoreCase(this.getSpec()))
             return true;
 
         return false;
@@ -137,6 +172,21 @@ public class NurDeviceSpec {
     @Override
     public int hashCode()
     {
-        return mConnectionAddress.hashCode();
+        return getSpec().hashCode();
+    }
+
+    public static NurApiAutoConnectTransport createAutoConnectTransport(Context ctx, NurApi api, NurDeviceSpec spec) throws NurApiException
+    {
+        switch (spec.getType())
+        {
+            case "BLE":
+                return new NurApiBLEAutoConnect(ctx, api);
+            case "USB":
+                return new NurApiUsbAutoConnect(ctx, api);
+            case "TCP":
+                return new NurApiSocketAutoConnect(ctx, api);
+        }
+
+        throw new NurApiException("NurDeviceSpec::createAutoConnectTransport() : can't determine type of transport: " + spec.getType());
     }
 }

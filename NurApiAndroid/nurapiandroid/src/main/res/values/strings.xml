@@ -9,7 +9,4 @@
     <string name="text_scan">SCAN</string>
     <string name="text_cancel">CANCEL</string>
 
-    <string name="usb_device">USB device (e.g STIX)</string>
-    <string name="usb_otg">Connect via USB OTG</string>
-    
 </resources>

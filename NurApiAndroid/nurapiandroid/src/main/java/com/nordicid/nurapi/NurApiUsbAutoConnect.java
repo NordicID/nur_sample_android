@@ -222,12 +222,12 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 	}
 
 	@Override
-	public String getAddress() {
-		return mEnabled ? "OTG" : "Disabled";
-	}
+	public String getAddress() { return "OTG"; }
 
 	@Override
 	public String getDetails() {
+		if (!mEnabled)
+			return "Disabled";
 		return "";
 	}
 }

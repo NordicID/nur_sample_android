@@ -54,13 +54,13 @@ import android.widget.Toast;
  */
 
 public class NurDeviceListActivity extends Activity  {
+    public static final String TAG = "NurDeviceListActivity";
+
     public static final String REQUESTED_DEVICE_TYPES = "TYPE_LIST";
     public static final int REQUEST_SELECT_DEVICE = 0x800A;
 
     public static final int RESULT_CANCELED = 0;
-    public static final int RESULT_BLE = 1;
-    public static final int RESULT_USB = 2;
-    public static final int RESULT_ETH = 3;
+    public static final int RESULT_OK = 1;
 
     public static final int REQ_BLE_DEVICES = (1 << 0);
     public static final int REQ_USB_DEVICES = (1 << 1);
@@ -69,24 +69,14 @@ public class NurDeviceListActivity extends Activity  {
     // public static final int LAST_DEVICE = REQ_USB_DEVICES;
     public static final int ALL_DEVICES = (LAST_DEVICE << 1) - 1;
 
-    public static final String STR_TYPE_DEF = "connType";
-    public static final String STR_ADDR_DEF = "connAddr";
     public static final String STR_SCANTIMEOUT = "SCAN_TIMEOUT";
     public static final String STR_CHECK_NID = "NID_FILTER_CHECK";
 
-    public static final String CONNECTION_TYPE = "CONNECTION_TYPE";
-    public static final String DEVICE_ADDRESS = "DEVICE_ADDRESS";
-    public static final String DEVICE_NAME = "DEVICE_NAME";
-    public static final String DEVICE_PORT = "DEVICE_PORT";
-
-    public static String CONNTYPE_BLE = "BLE";
-    public static String CONNTYPE_USB = "USB";
-    public static String CONNTYPE_ETH = "ETH";
+    public static final String SPECSTR = "SPECSTR";
 
     private BluetoothAdapter mBluetoothAdapter;
 
     private TextView mEmptyList;
-    public static final String TAG = "NurDeviceListActivity";
     private int mRequestedDevices = 0;
 
     private static final String NID_FILTER = "nordicid_";
@@ -233,15 +223,15 @@ public class NurDeviceListActivity extends Activity  {
     }
 
     public NurDeviceSpec getBtDeviceSpec(BluetoothDevice device, boolean bonded, int rssi) {
-        NurDeviceSpec newDevice;
-        newDevice = new NurDeviceSpec(device.getAddress(), device.getName(), CONNTYPE_BLE, 0, bonded, rssi);
-        return newDevice;
+        return new NurDeviceSpec("type=BLE;addr="+device.getAddress()+";name="+device.getName()+";bonded="+bonded+";rssi="+rssi);
     }
 
     public NurDeviceSpec getEthDeviceSpec(NurEthConfig ethCfg) {
-        NurDeviceSpec newDevice;
-        newDevice = new NurDeviceSpec(ethCfg.hostip, ethCfg.title, CONNTYPE_ETH, ethCfg.hostPort);
-        return newDevice;
+        return new NurDeviceSpec("type=TCP;addr="+ethCfg.ip+":"+ethCfg.serverPort+";port="+ethCfg.serverPort+";name="+ethCfg.title);
+    }
+
+    public NurDeviceSpec getUsbDeviceSpec() {
+        return new NurDeviceSpec("type=USB;addr=OTG;name=USB Device");
     }
 
     private void populateList() {
@@ -257,7 +247,7 @@ public class NurDeviceListActivity extends Activity  {
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
 
         if (requestingUSBDevice()) {
-            addDevice("USB", "USB");
+            addDevice(getUsbDeviceSpec());
         }
 
         if (requestingETHDevice()) {
@@ -322,8 +312,9 @@ public class NurDeviceListActivity extends Activity  {
         ArrayList<NurEthConfig> theDevices = null;
         try {
             theDevices = mApi.queryEthDevices();
-            for (NurEthConfig cfg : theDevices)
+            for (NurEthConfig cfg : theDevices) {
                 postNewDevice(getEthDeviceSpec(cfg));
+            }
         }
         catch (Exception ex)
         {
@@ -379,11 +370,6 @@ public class NurDeviceListActivity extends Activity  {
             });
         }
     };
-    
-    private void addDevice(String type, String address)
-    {
-        addDevice(new NurDeviceSpec(address, "", type, 0));
-    }
 
     private void postNewDevice(final NurDeviceSpec device)
     {
@@ -436,27 +422,11 @@ public class NurDeviceListActivity extends Activity  {
         mBluetoothAdapter.stopLeScan(mLeScanCallback);
     }
 
-    private void finishWithUSBResult()
-    {
-        Bundle b = new Bundle();
-        b.putString(CONNECTION_TYPE, CONNTYPE_USB);
-        b.putString(DEVICE_ADDRESS, CONNTYPE_USB);
-        b.putInt(DEVICE_PORT, 0);
-        b.putString(DEVICE_NAME, "");
-
-        Intent result = new Intent();
-        result.putExtras(b);
-        setResult(RESULT_USB, result);
-        finish();
-    }
-
     private OnItemClickListener mDeviceClickListener = new OnItemClickListener() {
     	
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            // BluetoothDevice device = mDeviceList.get(position);
             NurDeviceSpec deviceSpec;
-            int resultCode;
 
             if (requestingBLEDevices())
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
@@ -465,25 +435,12 @@ public class NurDeviceListActivity extends Activity  {
 
             Bundle b = new Bundle();
 
-            // "BLE", "USB", ...
-            b.putString(CONNECTION_TYPE, deviceSpec.getType());
-            // "AB:01:AC:02:AD:03", "USB", 10.0.0.1", ...
-            b.putString(DEVICE_ADDRESS, deviceSpec.getAddress());
-            // 0 / 4333 / ...
-            b.putInt(DEVICE_PORT, deviceSpec.getPort());
-            // "NordicID_...", "Sampo-xyz", ...
-            b.putString(DEVICE_NAME, deviceSpec.getName());
-
-            if (deviceSpec.isTypeOfEthernet())
-                resultCode = RESULT_ETH;
-            else if (deviceSpec.isTypeOfUSB())
-                resultCode = RESULT_USB;
-            else
-                resultCode = RESULT_BLE;
+            // e.g. "type=BLE;addr=00:00:00:00:00:00;name=XXX;rssi=-44"
+            b.putString(SPECSTR, deviceSpec.getSpec());
 
             Intent result = new Intent();
             result.putExtras(b);
-            setResult(resultCode, result);
+            setResult(RESULT_OK, result);
             finish();
         }
     };
@@ -536,25 +493,30 @@ public class NurDeviceListActivity extends Activity  {
             final TextView tvrssi = (TextView) vg.findViewById(R.id.rssi);
 
             tvrssi.setVisibility(View.VISIBLE);
-            int rssiVal = deviceSpec.getRSSI();
 
-            if (rssiVal < 0)    // Might be also != 0...
-                tvrssi.setText("RSSI: " + rssiVal);
-            else if (deviceSpec.isTypeOfEthernet())
-                tvrssi.setText("Port: "+ deviceSpec.getPort());
-            else
-                tvrssi.setText("RSSI: N/A");
+            Log.d(TAG, "deviceSpec.getType() = " + deviceSpec.getType());
 
-            if (deviceSpec.isTypeOfUSB())
-            {
-                tvname.setText(R.string.usb_device);
-                tvadd.setText(R.string.usb_otg);
+            if (deviceSpec.getType().equals("TCP")) {
+                tvrssi.setText("Port: " + deviceSpec.getPort());
+                tvrssi.setVisibility(View.VISIBLE);
+                tvrssi.setTextColor(Color.WHITE);
             }
-            else {
-                tvname.setText(deviceSpec.getName());
-                tvadd.setText(deviceSpec.getAddress());
+            else if (deviceSpec.getType().equals("BLE")) {
+                int rssiVal = deviceSpec.getRSSI();
+                if (rssiVal < 0)    // Might be also != 0...
+                    tvrssi.setText("RSSI: " + rssiVal);
+                else
+                    tvrssi.setText("RSSI: N/A");
+
+                tvrssi.setVisibility(View.VISIBLE);
+                tvrssi.setTextColor(Color.WHITE);
             }
-            if (deviceSpec.getBondState() == NurDeviceSpec.BOND_BONDED) {
+
+            tvname.setText(deviceSpec.getName());
+            tvadd.setText(deviceSpec.getAddress());
+            tvrssi.setVisibility(View.GONE);
+
+            if (deviceSpec.getBondState()) {
                 Log.i(TAG, "device::" + deviceSpec.getName());
                 tvname.setTextColor(Color.WHITE);
                 tvadd.setTextColor(Color.WHITE);
@@ -563,18 +525,10 @@ public class NurDeviceListActivity extends Activity  {
                 tvpaired.setText(R.string.text_paired);
                 tvrssi.setVisibility(View.VISIBLE);
                 tvrssi.setTextColor(Color.WHITE);
-                
             } else {
                 tvname.setTextColor(Color.WHITE);
                 tvadd.setTextColor(Color.WHITE);
                 tvpaired.setVisibility(View.GONE);
-                if (deviceSpec.isTypeOfUSB()) {
-                    tvrssi.setVisibility(View.GONE);
-                }
-                else {
-                    tvrssi.setVisibility(View.VISIBLE);
-                    tvrssi.setTextColor(Color.WHITE);
-                }
             }
             return vg;
         }
