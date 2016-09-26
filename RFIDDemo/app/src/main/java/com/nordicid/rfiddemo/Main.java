@@ -33,25 +33,27 @@ import android.widget.Toast;
 
 public class Main extends AppTemplate {
 
-	// Authentication app requirements.
-	public static final int AUTH_REQUIRED_VERSION = 0x050500 + ('A' & 0xFF);
-	public static final String AUTH_REQUIRED_VERSTRING = "5.5-A";
+    // Authentication app requirements.
+    public static final int AUTH_REQUIRED_VERSION = 0x050500 + ('A' & 0xFF);
+    public static final String AUTH_REQUIRED_VERSTRING = "5.5-A";
 
-	/** Requesting file for key reading. */
-	public static final int REQ_FILE_OPEN = 4242;
+    /**
+     * Requesting file for key reading.
+     */
+    public static final int REQ_FILE_OPEN = 4242;
 
-	Timer timer;
-	TimerTask timerTask;
-	final Handler timerHandler = new Handler();
+    Timer timer;
+    TimerTask timerTask;
+    final Handler timerHandler = new Handler();
 
-	private NurApiAutoConnectTransport mAcTr;
+    private NurApiAutoConnectTransport mAcTr;
 
-	public static final String KEYFILE_PREFNAME = "TAM1_KEYFILE";
-	public static final String KEYNUMBER_PREFNAME = "TAM1_KEYNUMBER";
+    public static final String KEYFILE_PREFNAME = "TAM1_KEYFILE";
+    public static final String KEYNUMBER_PREFNAME = "TAM1_KEYNUMBER";
 
-	private static Main gInstance;
+    private static Main gInstance;
 
-    public void toggleScreenRotation(boolean enable){
+    public void toggleScreenRotation(boolean enable) {
         setRequestedOrientation((enable) ? ActivityInfo.SCREEN_ORIENTATION_SENSOR : ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
     }
 
@@ -229,64 +231,63 @@ public class Main extends AppTemplate {
 	protected void onResume() {
         super.onResume();
 
-		Beeper.init();
+        Beeper.init();
 
         if (mAcTr == null)
             loadSettings();
 
-		if (mAcTr != null) {
-			mAcTr.onResume();
-		}
+        if (mAcTr != null) {
+            mAcTr.onResume();
+        }
 
 
-		startTimer();
-	}
+        startTimer();
+    }
 
-	@Override
-	protected void onStop() {
-		super.onStop();
+    @Override
+    protected void onStop() {
+        super.onStop();
 
-		if (mAcTr != null) {
-			mAcTr.onStop();
-		}
-	}
+        if (mAcTr != null) {
+            mAcTr.onStop();
+        }
+    }
 
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
 
-		if (mAcTr != null) {
-			mAcTr.onDestroy();
-		}
-	}
+        if (mAcTr != null) {
+            mAcTr.onDestroy();
+        }
+    }
 
-	private int getFwIntVersion(NurApi api)
-	{
-		int iVersion = 0;
-		mDetectedFw = "";
+    private int getFwIntVersion(NurApi api) {
+        int iVersion = 0;
+        mDetectedFw = "";
 
-		if (api != null && api.isConnected()) {
-			try {
-				NurRespReaderInfo ri;
-				ri = api.getReaderInfo();
+        if (api != null && api.isConnected()) {
+            try {
+                NurRespReaderInfo ri;
+                ri = api.getReaderInfo();
 
-				mDetectedFw = ri.swVersion;
+                mDetectedFw = ri.swVersion;
 
-				iVersion = ri.swVerMajor & 0xFF;
-				iVersion <<= 8;
-				iVersion |= (ri.swVerMinor & 0xFF);
-				iVersion <<= 8;
-				iVersion |= (ri.swVerDev & 0xFF);
+                iVersion = ri.swVerMajor & 0xFF;
+                iVersion <<= 8;
+                iVersion |= (ri.swVerMinor & 0xFF);
+                iVersion <<= 8;
+                iVersion |= (ri.swVerDev & 0xFF);
 
-			} catch (Exception ex) {
+            } catch (Exception ex) {
 
-			}
-		}
+            }
+        }
 
-		return iVersion;
-	}
+        return iVersion;
+    }
 
-	private String mDetectedFw = "";
+    private String mDetectedFw = "";
 
 	@Override
 	public void onCreateSubApps(SubAppList subAppList) {
@@ -301,180 +302,214 @@ public class Main extends AppTemplate {
 		}
 		
 		/* Tag trace application. */
-		subAppList.addSubApp(new TraceApp());
+        subAppList.addSubApp(new TraceApp());
 		
 		/* Tag write application. */
-		subAppList.addSubApp(new WriteApp());
+        subAppList.addSubApp(new WriteApp());
 
 		/* Barcode application. */
-		subAppList.addSubApp(new BarcodeApp());
+        subAppList.addSubApp(new BarcodeApp());
 
 		/* Authentication application. */
-		subAppList.addSubApp(new AuthenticationAppTabbed());
+        subAppList.addSubApp(new AuthenticationAppTabbed());
 
 		/* Test mode application. */
-		subAppList.addSubApp(new TestModeApp());
+        subAppList.addSubApp(new TestModeApp());
 
         /* Reader settings application. */
         subAppList.addSubApp(new SettingsAppTabbed());
 
-		theApi.setLogLevel(NurApi.LOG_ERROR);
-		
-		setAppListener(new NurApiListener() {
-			@Override
-			public void disconnectedEvent() {
+        theApi.setLogLevel(NurApi.LOG_ERROR);
 
-				if (exitingApplication())
-					return;
+        setAppListener(new NurApiListener() {
+            @Override
+            public void disconnectedEvent() {
 
-				updateStatus();
-				Toast.makeText(Main.this, getString(R.string.reader_disconnected), Toast.LENGTH_SHORT).show();
+                if (exitingApplication())
+                    return;
 
-				getSubAppList().getApp("Barcode").setIsVisibleInMenu(false);
-			}
-			@Override
-			public void connectedEvent() {
-				updateStatus();
-				Toast.makeText(Main.this, getString(R.string.reader_connected), Toast.LENGTH_SHORT).show();
+                updateStatus();
+                Toast.makeText(Main.this, getString(R.string.reader_disconnected), Toast.LENGTH_SHORT).show();
 
-				// Show barcode app only for accessory devices
-				NurAccessoryExtension ext = new NurAccessoryExtension(getNurApi());
-				getSubAppList().getApp("Barcode").setIsVisibleInMenu(ext.isSupported());
-			}
+                getSubAppList().getApp("Barcode").setIsVisibleInMenu(false);
+            }
 
-			@Override
-			public void triggeredReadEvent(NurEventTriggeredRead event) { }
-			@Override
-			public void traceTagEvent(NurEventTraceTag event) { }
-			@Override
-			public void programmingProgressEvent(NurEventProgrammingProgress event) { }
-			@Override
-			public void nxpEasAlarmEvent(NurEventNxpAlarm event) { }
-			@Override
-			public void logEvent(int level, String txt) { }
-			@Override
-			public void inventoryStreamEvent(NurEventInventory event) { }
-			@Override
-			public void inventoryExtendedStreamEvent(NurEventInventory event) { }
-			@Override
-			public void frequencyHopEvent(NurEventFrequencyHop event) { }
-			@Override
-			public void epcEnumEvent(NurEventEpcEnum event) { }
-			@Override
-			public void deviceSearchEvent(NurEventDeviceInfo event) { }
-			@Override
-			public void debugMessageEvent(String event) { }
-			@Override
-			public void clientDisconnectedEvent(NurEventClientInfo event) { }
-			@Override
-			public void clientConnectedEvent(NurEventClientInfo event) { }
-			@Override
-			public void bootEvent(String event) { }
-			@Override
-			public void autotuneEvent(NurEventAutotune event) { }
-			@Override
-			public void IOChangeEvent(NurEventIOChange event) { }
-			@Override
-			public void tagTrackingScanEvent(NurEventTagTrackingData event) { }
-			@Override
-			public void tagTrackingChangeEvent(NurEventTagTrackingChange event) { }
-		});
+            @Override
+            public void connectedEvent() {
+                updateStatus();
+                Toast.makeText(Main.this, getString(R.string.reader_connected), Toast.LENGTH_SHORT).show();
 
-		((TextView)findViewById(R.id.app_statustext)).setOnClickListener(mStatusBarOnClick);
-	}
+                // Show barcode app only for accessory devices
+                NurAccessoryExtension ext = new NurAccessoryExtension(getNurApi());
+                getSubAppList().getApp("Barcode").setIsVisibleInMenu(ext.isSupported());
+            }
 
-	int testmodeClickCount = 0;
-	long testmodeClickTime = 0;
+            @Override
+            public void triggeredReadEvent(NurEventTriggeredRead event) {
+            }
 
-	View.OnClickListener mStatusBarOnClick = new View.OnClickListener() {
-		@Override
-		public void onClick(View v) {
-			if (testmodeClickCount < 10) {
-				if (testmodeClickTime != 0 && System.currentTimeMillis() - testmodeClickTime > 5000) {
-					testmodeClickCount = 0;
-				}
-				testmodeClickTime = System.currentTimeMillis();
-				testmodeClickCount++;
+            @Override
+            public void traceTagEvent(NurEventTraceTag event) {
+            }
 
-				if (testmodeClickCount == 10) {
-					Toast.makeText(Main.this, "Test Mode enabled", Toast.LENGTH_SHORT).show();
-					getSubAppList().getApp("Test Mode").setIsVisibleInMenu(true);
-				}
-			}
-		}
-	};
+            @Override
+            public void programmingProgressEvent(NurEventProgrammingProgress event) {
+            }
 
-	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
-		super.onConfigurationChanged(newConfig);
-		((TextView)findViewById(R.id.app_statustext)).setOnClickListener(mStatusBarOnClick);
-		updateStatus();
-	}
+            @Override
+            public void nxpEasAlarmEvent(NurEventNxpAlarm event) {
+            }
 
-	@Override
-	public void onCreateDrawerItems(Drawer drawer) {
-		drawer.addTitle("Connection");
-		drawer.addTitle("Contact");
+            @Override
+            public void logEvent(int level, String txt) {
+            }
+
+            @Override
+            public void inventoryStreamEvent(NurEventInventory event) {
+            }
+
+            @Override
+            public void inventoryExtendedStreamEvent(NurEventInventory event) {
+            }
+
+            @Override
+            public void frequencyHopEvent(NurEventFrequencyHop event) {
+            }
+
+            @Override
+            public void epcEnumEvent(NurEventEpcEnum event) {
+            }
+
+            @Override
+            public void deviceSearchEvent(NurEventDeviceInfo event) {
+            }
+
+            @Override
+            public void debugMessageEvent(String event) {
+            }
+
+            @Override
+            public void clientDisconnectedEvent(NurEventClientInfo event) {
+            }
+
+            @Override
+            public void clientConnectedEvent(NurEventClientInfo event) {
+            }
+
+            @Override
+            public void bootEvent(String event) {
+            }
+
+            @Override
+            public void autotuneEvent(NurEventAutotune event) {
+            }
+
+            @Override
+            public void IOChangeEvent(NurEventIOChange event) {
+            }
+
+            @Override
+            public void tagTrackingScanEvent(NurEventTagTrackingData event) {
+            }
+
+            @Override
+            public void tagTrackingChangeEvent(NurEventTagTrackingChange event) {
+            }
+        });
+
+        ((TextView) findViewById(R.id.app_statustext)).setOnClickListener(mStatusBarOnClick);
+    }
+
+    int testmodeClickCount = 0;
+    long testmodeClickTime = 0;
+
+    View.OnClickListener mStatusBarOnClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (testmodeClickCount < 10) {
+                if (testmodeClickTime != 0 && System.currentTimeMillis() - testmodeClickTime > 5000) {
+                    testmodeClickCount = 0;
+                }
+                testmodeClickTime = System.currentTimeMillis();
+                testmodeClickCount++;
+
+                if (testmodeClickCount == 10) {
+                    Toast.makeText(Main.this, "Test Mode enabled", Toast.LENGTH_SHORT).show();
+                    getSubAppList().getApp("Test Mode").setIsVisibleInMenu(true);
+                }
+            }
+        }
+    };
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        ((TextView) findViewById(R.id.app_statustext)).setOnClickListener(mStatusBarOnClick);
+        updateStatus();
+    }
+
+    @Override
+    public void onCreateDrawerItems(Drawer drawer) {
+        drawer.addTitle("Connection");
+        drawer.addTitle("Contact");
         drawer.addTitle("About");
-	}
+    }
 
-	void handleAboutClick()
-	{
-		final View dialogLayout = getLayoutInflater().inflate(R.layout.dialog_about, null);
-		AlertDialog.Builder builder = new Builder(this);
-		builder.setView(dialogLayout);
-		
-		final TextView readerAttachedTextView = (TextView) dialogLayout.findViewById(R.id.reader_attached_is);
+    void handleAboutClick() {
+        final View dialogLayout = getLayoutInflater().inflate(R.layout.dialog_about, null);
+        AlertDialog.Builder builder = new Builder(this);
+        builder.setView(dialogLayout);
 
-		if (getNurApi().isConnected()) {
-			
-			readerAttachedTextView.setText(getString(R.string.attached_reader_info));
-			
-			try {
-				NurRespReaderInfo readerInfo = getNurApi().getReaderInfo();
-				
-				final TextView modelTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_model);
-				modelTextView.setText(getString(R.string.about_dialog_model) + " " + readerInfo.name);
-				modelTextView.setVisibility(View.VISIBLE);
-				
-				final TextView serialTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_serial);
-				serialTextView.setText(getString(R.string.about_dialog_serial) + " " + readerInfo.serial);
-				serialTextView.setVisibility(View.VISIBLE);
-				
-				final TextView firmwareTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_firmware);
-				firmwareTextView.setText(getString(R.string.about_dialog_firmware) + " " + readerInfo.swVersion);
-				firmwareTextView.setVisibility(View.VISIBLE);
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		else {
-			readerAttachedTextView.setText(getString(R.string.no_reader_attached));
-		}
+        final TextView readerAttachedTextView = (TextView) dialogLayout.findViewById(R.id.reader_attached_is);
 
-		builder.show();
-	}
+        if (getNurApi().isConnected()) {
 
-	// Parse the URI the get the actual file name.
-	private String getActualFileName(String strUri) {
-		String strFileName = null;
-		Uri uri;
-		String scheme;
+            readerAttachedTextView.setText(getString(R.string.attached_reader_info));
 
-		uri = Uri.parse(strUri);
-		scheme = uri.getScheme();
+            try {
+                NurRespReaderInfo readerInfo = getNurApi().getReaderInfo();
 
-		if (scheme.equalsIgnoreCase("content")) {
-			String primStr;
-			primStr = uri.getLastPathSegment().replace("primary:", "");
-			strFileName = Environment.getExternalStorageDirectory() + "/" + primStr;
-		}
+                final TextView modelTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_model);
+                modelTextView.setText(getString(R.string.about_dialog_model) + " " + readerInfo.name);
+                modelTextView.setVisibility(View.VISIBLE);
 
-		return strFileName;
-	}
-	
-	@Override
+                final TextView serialTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_serial);
+                serialTextView.setText(getString(R.string.about_dialog_serial) + " " + readerInfo.serial);
+                serialTextView.setVisibility(View.VISIBLE);
+
+                final TextView firmwareTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_firmware);
+                firmwareTextView.setText(getString(R.string.about_dialog_firmware) + " " + readerInfo.swVersion);
+                firmwareTextView.setVisibility(View.VISIBLE);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            readerAttachedTextView.setText(getString(R.string.no_reader_attached));
+        }
+
+        builder.show();
+    }
+
+    // Parse the URI the get the actual file name.
+    private String getActualFileName(String strUri) {
+        String strFileName = null;
+        Uri uri;
+        String scheme;
+
+        uri = Uri.parse(strUri);
+        scheme = uri.getScheme();
+
+        if (scheme.equalsIgnoreCase("content")) {
+            String primStr;
+            primStr = uri.getLastPathSegment().replace("primary:", "");
+            strFileName = Environment.getExternalStorageDirectory() + "/" + primStr;
+        }
+
+        return strFileName;
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
 
@@ -539,21 +574,20 @@ public class Main extends AppTemplate {
         builder.show();
     }
 
-	@Override
-	public void onDrawerItemClick(AdapterView<?> parent, View view, int position, long id) 
-	{
-		switch (position) {
+    @Override
+    public void onDrawerItemClick(AdapterView<?> parent, View view, int position, long id) {
+        switch (position) {
             case 0:
                 handleConnectionClick();
                 break;
             case 1:
                 handleContactClick();
                 break;
-			case 2:
-				handleAboutClick();
-				break;
+            case 2:
+                handleAboutClick();
+                break;
             default:
                 break;
-		}
-	}
+        }
+    }
 }

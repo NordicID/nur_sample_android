@@ -40,14 +40,37 @@
 				android:orientation="horizontal"
 				style="@style/ButtonBar" />
 
-			<TextView
-				android:id="@+id/app_statustext"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:background="@android:color/holo_orange_dark"
-				android:textColor="#FFFFFF"
-				android:ems="10"
-				android:focusable="false" />
+            <LinearLayout
+                android:id="@+id/bottom_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/holo_orange_dark"
+                android:orientation="horizontal"
+                android:gravity="bottom"
+                android:weightSum="2">
+
+                <TextView
+                    android:id="@+id/app_statustext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:focusable="false"
+                    android:textColor="#FFFFFF"
+                    android:layout_weight="1"/>
+
+                <TextView
+                    android:id="@+id/battery_level"
+                    android:layout_height="wrap_content"
+                    android:focusable="false"
+                    android:textColor="#FFFFFF"
+                    android:layout_width="20dp"
+                    android:maxLines="1"
+                    android:ems="10"
+                    android:layout_gravity="right"
+                    android:layout_weight="1"
+                    android:gravity="right"/>
+
+            </LinearLayout>
 
 		</LinearLayout>
 
