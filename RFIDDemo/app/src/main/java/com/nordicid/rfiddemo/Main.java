@@ -72,7 +72,7 @@ public class Main extends AppTemplate {
         initializeTimerTask();
 
         //schedule the timer, after the first 10000ms the TimerTask will run every 10000ms
-        timer.schedule(timerTask, 5000, 5000); //
+        timer.schedule(timerTask, 10000, 10000); //
     }
 
     public void stopTimer() {
@@ -188,17 +188,19 @@ public class Main extends AppTemplate {
         String str;
         if (mAcTr != null) {
             if (getNurApi().isConnected())
-                str = "CONNECTED TO ";
+                str = "CONNECTED ";
             else
-                str = "DISCONNECTED FROM ";
+                str = "DISCONNECTED ";
 
-            str += mAcTr.getType() + " DEVICE (" + mAcTr.getAddress() + ")";
+            str += mAcTr.getType();
 
-            // TODO removed duplicate ?
-            // "BLE CONNECTION + phy@"
-            /*String details = mAcTr.getDetails();
-            if (!details.equals(""))
-				str += "; " + details;*/
+            String addr = mAcTr.getAddress();
+            if (addr.length() > 0)
+                str += " (" + mAcTr.getAddress() + ")";
+
+            String details = mAcTr.getDetails();
+            if (details.length() > 0)
+				str += " " + details;
 
         } else {
             str = "No connection defined";
