@@ -60,6 +60,8 @@ public class AppTemplate extends FragmentActivity {
 	private Drawer mDrawer;
     private TextView mBatteryStatus = null;
     private NurAccessoryExtension mAccessoryApi = null;
+	private boolean mAccessorySupported = false;
+	private boolean mEnableBattUpdate = true;
 
 	private FragmentManager mFragmentManager;
 	private FragmentTransaction mFragmentTransaction;
@@ -107,7 +109,7 @@ public class AppTemplate extends FragmentActivity {
 		
 		@Override
 		public void logEvent(int level, String txt) {
-			String pref = "ERROR: ";
+			/*String pref = "ERROR: ";
 			if (level == NurApi.LOG_DATA || txt == null || txt == "")
 				return;	// Just to avoid spam.
 			
@@ -117,6 +119,7 @@ public class AppTemplate extends FragmentActivity {
 				pref = "VERB: ";
 			
 			System.out.println(pref + txt);
+			*/
 		}
 		
 		@Override
@@ -139,6 +142,7 @@ public class AppTemplate extends FragmentActivity {
 		
 		@Override
 		public void disconnectedEvent() {
+			mAccessorySupported = false;
 			if (mAppListener != null)
 				mAppListener.disconnectedEvent();
 			if (mCurrentListener != null)
@@ -153,6 +157,9 @@ public class AppTemplate extends FragmentActivity {
 		
 		@Override
 		public void connectedEvent() {
+
+			mAccessorySupported = getAccessoryApi().isSupported();
+
 			if (mAppListener != null)
 				mAppListener.connectedEvent();
 			if (mCurrentListener != null)
@@ -275,9 +282,11 @@ public class AppTemplate extends FragmentActivity {
 	{
 		TextView t = (TextView) findViewById(R.id.app_statustext);
 		t.setText(text.toUpperCase());
-        if(getNurApi().isConnected() && getExtensionApi().isSupported()) {
+
+        if(getNurApi().isConnected() && getAccessorySupported()) {
             try {
-                setBatteryStatus("BAT: " + getExtensionApi().getBatteryInfo().getPercentageString());
+				if (mEnableBattUpdate)
+	                setBatteryStatus("BAT: " + getAccessoryApi().getBatteryInfo().getPercentageString());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -539,7 +548,9 @@ public class AppTemplate extends FragmentActivity {
 		return mApi;
 	}
 
-    public NurAccessoryExtension getExtensionApi() { return mAccessoryApi; }
+	public NurAccessoryExtension getAccessoryApi() { return mAccessoryApi; }
+	public boolean getAccessorySupported() { return mAccessorySupported; }
+	public void setEnableBattUpdate(boolean val) { mEnableBattUpdate = val; }
 
 	/**
 	 *  Sets all the fragments
