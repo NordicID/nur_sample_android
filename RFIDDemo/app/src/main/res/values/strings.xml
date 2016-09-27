@@ -31,6 +31,7 @@
     <string name="about_dialog_serial">Serial:</string>
     <string name="about_dialog_firmware">Firmware:</string>
     <string name="about_dialog_bootloader">bootloader:</string>
+    <string name="about_dialog_nurapi">NUR API:</string>
     <string name="about_dialog_accessory">Accessory:</string>
     
     <string name="write_tag_hint">Select a tag to write</string>

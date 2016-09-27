@@ -469,6 +469,10 @@ public class Main extends AppTemplate {
             try {
                 NurRespReaderInfo readerInfo = getNurApi().getReaderInfo();
 
+                final TextView nurApiVersion = (TextView) dialogLayout.findViewById(R.id.nur_api_version);
+                nurApiVersion.setText(getString(R.string.about_dialog_nurapi) + " " + getNurApi().getFileVersion());
+                nurApiVersion.setVisibility(View.VISIBLE);
+
                 final TextView modelTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_model);
                 modelTextView.setText(getString(R.string.about_dialog_model) + " " + readerInfo.name);
                 modelTextView.setVisibility(View.VISIBLE);
@@ -480,7 +484,7 @@ public class Main extends AppTemplate {
                 final TextView firmwareTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_firmware);
                 firmwareTextView.setText(getString(R.string.about_dialog_firmware) + " " + readerInfo.swVersion);
                 firmwareTextView.setVisibility(View.VISIBLE);
-                
+
                 final TextView bootloaderTextView = (TextView) dialogLayout.findViewById(R.id.reader_bootloader_version);
                 bootloaderTextView.setText(getString(R.string.about_dialog_bootloader) + " " + getNurApi().getVersions().secondaryVersion);
                 bootloaderTextView.setVisibility(View.VISIBLE);
