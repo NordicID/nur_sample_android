@@ -227,7 +227,10 @@ public class NurDeviceListActivity extends Activity  {
     }
 
     public NurDeviceSpec getEthDeviceSpec(NurEthConfig ethCfg) {
-        return new NurDeviceSpec("type=TCP;addr="+ethCfg.ip+":"+ethCfg.serverPort+";port="+ethCfg.serverPort+";name="+ethCfg.title);
+        String tr = "LAN";
+        if (ethCfg.transport==2)
+            tr = "WLAN";
+        return new NurDeviceSpec("type=TCP;addr="+ethCfg.ip+":"+ethCfg.serverPort+";port="+ethCfg.serverPort+";name="+ethCfg.title+";transport="+tr);
     }
 
     public NurDeviceSpec getUsbDeviceSpec() {
@@ -313,7 +316,8 @@ public class NurDeviceListActivity extends Activity  {
         try {
             theDevices = mApi.queryEthDevices();
             for (NurEthConfig cfg : theDevices) {
-                postNewDevice(getEthDeviceSpec(cfg));
+                if (cfg.hostMode==0) // Only show server mode devices
+                    postNewDevice(getEthDeviceSpec(cfg));
             }
         }
         catch (Exception ex)
@@ -494,8 +498,6 @@ public class NurDeviceListActivity extends Activity  {
 
             tvrssi.setVisibility(View.VISIBLE);
 
-            Log.d(TAG, "deviceSpec.getType() = " + deviceSpec.getType());
-
             if (deviceSpec.getType().equals("TCP")) {
                 tvrssi.setText("Port: " + deviceSpec.getPort());
                 tvrssi.setVisibility(View.VISIBLE);
@@ -513,11 +515,15 @@ public class NurDeviceListActivity extends Activity  {
             }
 
             tvname.setText(deviceSpec.getName());
-            tvadd.setText(deviceSpec.getAddress());
             tvrssi.setVisibility(View.GONE);
 
+            if (deviceSpec.getType().equals("TCP")) {
+                tvadd.setText(deviceSpec.getAddress() + " ("+deviceSpec.getPart("transport", "LAN")+")");
+            } else {
+                tvadd.setText(deviceSpec.getAddress());
+            }
+
             if (deviceSpec.getBondState()) {
-                Log.i(TAG, "device::" + deviceSpec.getName());
                 tvname.setTextColor(Color.WHITE);
                 tvadd.setTextColor(Color.WHITE);
                 tvpaired.setTextColor(Color.GRAY);

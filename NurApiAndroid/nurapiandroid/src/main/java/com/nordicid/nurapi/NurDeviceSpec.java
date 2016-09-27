@@ -62,6 +62,16 @@ public class NurDeviceSpec {
         return mParams.containsKey(name);
     }
 
+    public String getPart(String name, String def) {
+        try {
+            return getPart(name);
+        }
+        catch (Exception ex)
+        {
+            return def;
+        }
+    }
+
     public String getPart(String name) throws Exception {
         String ret = mParams.get(name);
         if (ret == null)
