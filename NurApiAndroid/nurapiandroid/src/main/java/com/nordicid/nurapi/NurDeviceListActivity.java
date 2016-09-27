@@ -231,7 +231,7 @@ public class NurDeviceListActivity extends Activity  {
     }
 
     public NurDeviceSpec getUsbDeviceSpec() {
-        return new NurDeviceSpec("type=USB;addr=OTG;name=USB Device");
+        return new NurDeviceSpec("type=USB;addr=USB;name=USB Device");
     }
 
     private void populateList() {

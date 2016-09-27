@@ -300,7 +300,6 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	{
 		String strVersion;
 		try {
-			// getBattVoltage();
 			strVersion = getFwVersion();
 			Log.d(TAG, "isSupported: version = \"" + strVersion + "\".");
 		}

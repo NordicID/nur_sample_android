@@ -222,7 +222,7 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 	}
 
 	@Override
-	public String getAddress() { return "OTG"; }
+	public String getAddress() { return ""; }
 
 	@Override
 	public String getDetails() {
