@@ -47,7 +47,7 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 	public NurApiListener getNurApiListener()
 	{
 		if (mAuthController != null)
-			mAuthController.getNurApiListener();
+			return mAuthController.getNurApiListener();
 		return null;
 	}
 
