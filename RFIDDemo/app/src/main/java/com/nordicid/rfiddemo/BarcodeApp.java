@@ -51,11 +51,13 @@ public class BarcodeApp extends SubApp {
 	public BarcodeApp() {
 		super();
 
-		mAccessoryExt = new NurAccessoryExtension(getNurApi());
+		mAccessoryExt = getAppTemplate().getAccessoryApi();
 
 		mResultListener = new AccessoryBarcodeResultListener() {
 			@Override
 			public void onBarcodeResult(AccessoryBarcodeResult result) {
+
+				getAppTemplate().setEnableBattUpdate(true);
 
 				if (result.status == NurApiErrors.NO_TAG) {
 					mText = "No barcode found";
@@ -169,10 +171,14 @@ public class BarcodeApp extends SubApp {
 		if (val && getNurApi().isConnected()) {
 			testBleReader();
 		}
+		else if (!val)
+		{
+			getAppTemplate().setEnableBattUpdate(true);
+		}
 	}
 
 	private void testBleReader() {
-		mIsBle = mAccessoryExt.isSupported();
+		mIsBle = getAppTemplate().getAccessorySupported();
 		mBleCfg = null;
 		if (mIsBle) {
 			try {
@@ -227,6 +233,7 @@ public class BarcodeApp extends SubApp {
 		mText = "";
 
 		try {
+			getAppTemplate().setEnableBattUpdate(false);
 			mAccessoryExt.readBarcodeAsync(5000);
 			mIsActive = true;
 		} catch (Exception e) {

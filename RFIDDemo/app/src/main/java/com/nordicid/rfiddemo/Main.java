@@ -1,10 +1,5 @@
 package com.nordicid.rfiddemo;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -20,12 +15,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.SystemClock;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.TextView;
@@ -321,6 +313,7 @@ public class Main extends AppTemplate {
         /* Reader settings application. */
         subAppList.addSubApp(new SettingsAppTabbed());
 
+        //theApi.setLogLevel(NurApi.LOG_VERBOSE | NurApi.LOG_USER | NurApi.LOG_DATA| NurApi.LOG_ERROR);
         theApi.setLogLevel(NurApi.LOG_ERROR);
 
         setAppListener(new NurApiListener() {
@@ -342,8 +335,7 @@ public class Main extends AppTemplate {
                 Toast.makeText(Main.this, getString(R.string.reader_connected), Toast.LENGTH_SHORT).show();
 
                 // Show barcode app only for accessory devices
-                NurAccessoryExtension ext = new NurAccessoryExtension(getNurApi());
-                getSubAppList().getApp("Barcode").setIsVisibleInMenu(ext.isSupported());
+                getSubAppList().getApp("Barcode").setIsVisibleInMenu(getAccessorySupported());
             }
 
             @Override
@@ -491,9 +483,9 @@ public class Main extends AppTemplate {
                 bootloaderTextView.setText(getString(R.string.about_dialog_bootloader) + " " + getNurApi().getVersions().secondaryVersion);
                 bootloaderTextView.setVisibility(View.VISIBLE);
 
-                if(getExtensionApi().isSupported()) {
+                if (getAccessorySupported()) {
                     final TextView accessoryTextView = (TextView) dialogLayout.findViewById(R.id.accessory_version);
-                    accessoryTextView.setText(getString(R.string.about_dialog_accessory) + " " + getExtensionApi().getFwVersion());
+                    accessoryTextView.setText(getString(R.string.about_dialog_accessory) + " " + getAccessoryApi().getFwVersion());
                     accessoryTextView.setVisibility(View.VISIBLE);
                 }
 

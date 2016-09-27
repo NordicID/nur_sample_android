@@ -53,7 +53,7 @@ public class TestModeApp extends SubApp {
     public TestModeApp() {
         super();
 
-        mAccessoryExt = new NurAccessoryExtension(getNurApi());
+        mAccessoryExt = getAppTemplate().getAccessoryApi();
 
         mThisClassListener = new NurApiListener() {
             @Override
@@ -245,9 +245,7 @@ public class TestModeApp extends SubApp {
 
     private void enableControls() {
 
-        if (getNurApi().isConnected()) {
-            mIsBle = mAccessoryExt.isSupported();
-        }
+        mIsBle = getAppTemplate().getAccessorySupported();
 
         boolean enableBle = getNurApi().isConnected() && mIsBle;
 

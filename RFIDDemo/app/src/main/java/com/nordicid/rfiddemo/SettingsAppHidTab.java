@@ -1,5 +1,6 @@
 package com.nordicid.rfiddemo;
 
+import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.nuraccessory.NurAccessoryConfig;
 import com.nordicid.nuraccessory.NurAccessoryExtension;
 import com.nordicid.nurapi.NurApi;
@@ -46,7 +47,7 @@ public class SettingsAppHidTab extends Fragment {
 	public SettingsAppHidTab() {
 		mOwner = SettingsAppTabbed.getInstance();
 		mApi = mOwner.getNurApi();
-		mExt = new NurAccessoryExtension(mApi);
+		mExt = AppTemplate.getAppTemplate().getAccessoryApi();
 		
 		mThisClassListener = new NurApiListener() {
 			@Override
