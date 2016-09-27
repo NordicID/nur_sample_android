@@ -93,7 +93,7 @@ public class TraceApp extends SubApp {
 	
 	@Override
 	public int getTileIcon() {
-		return R.drawable.ic_inventory;
+		return R.drawable.ic_locate;
 	}
 	
 	@Override
