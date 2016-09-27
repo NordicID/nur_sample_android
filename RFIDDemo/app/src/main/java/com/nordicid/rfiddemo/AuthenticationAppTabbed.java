@@ -266,7 +266,6 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 		mView = view;
 
 		mAuthController.setListener(mAuthListener);
-		getNurApi().setListener(mAuthController.getNurApiListener());
 
 		mStartStopBtn = addButtonBarButton("Start", new OnClickListener() {
 			@Override
