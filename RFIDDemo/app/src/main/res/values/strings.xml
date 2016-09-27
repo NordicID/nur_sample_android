@@ -6,7 +6,6 @@
     <string name="average_speed_textview">AVG. SPEED</string>
     <string name="peak_textview">PEAK</string>
     <string name="tags_per_second_textview">TAGS/S</string>
-    <string name="text_current_demo_version">Nordic ID RFID Demo V1.0.21</string>
 
     <string name="start">START</string>
     <string name="stop">STOP</string>
@@ -31,9 +30,10 @@
     <string name="about_dialog_serial">Serial:</string>
     <string name="about_dialog_firmware">Firmware:</string>
     <string name="about_dialog_bootloader">bootloader:</string>
-    <string name="about_dialog_nurapi">NUR API:</string>
     <string name="about_dialog_accessory">Accessory:</string>
-    
+    <string name="about_dialog_nurapi">NurApi version:</string>
+    <string name="about_dialog_app">App version:</string>
+
     <string name="write_tag_hint">Select a tag to write</string>
     <string name="locatable_epc_hint">Locatable tags EPC..</string>
     <string name="new_epc_hint">New EPC..</string>

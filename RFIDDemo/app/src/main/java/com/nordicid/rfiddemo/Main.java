@@ -14,6 +14,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Environment;
@@ -456,16 +458,25 @@ public class Main extends AppTemplate {
 
         final TextView readerAttachedTextView = (TextView) dialogLayout.findViewById(R.id.reader_attached_is);
 
+        String appversion = "0.0";
+        try {
+            appversion = this.getPackageManager().getPackageInfo("com.nordicid.rfiddemo", 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        final TextView appVersion = (TextView) dialogLayout.findViewById(R.id.app_version);
+        appVersion.setText(getString(R.string.about_dialog_app) + " " + appversion);
+
+        final TextView nurApiVersion = (TextView) dialogLayout.findViewById(R.id.nur_api_version);
+        nurApiVersion.setText(getString(R.string.about_dialog_nurapi) + " " + getNurApi().getFileVersion());
+
         if (getNurApi().isConnected()) {
 
             readerAttachedTextView.setText(getString(R.string.attached_reader_info));
 
             try {
                 NurRespReaderInfo readerInfo = getNurApi().getReaderInfo();
-
-                final TextView nurApiVersion = (TextView) dialogLayout.findViewById(R.id.nur_api_version);
-                nurApiVersion.setText(getString(R.string.about_dialog_nurapi) + " " + getNurApi().getFileVersion());
-                nurApiVersion.setVisibility(View.VISIBLE);
 
                 final TextView modelTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_model);
                 modelTextView.setText(getString(R.string.about_dialog_model) + " " + readerInfo.name);
