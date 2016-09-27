@@ -37,6 +37,8 @@ public class Main extends AppTemplate {
     public static final int AUTH_REQUIRED_VERSION = 0x050500 + ('A' & 0xFF);
     public static final String AUTH_REQUIRED_VERSTRING = "5.5-A";
 
+    private static SharedPreferences mapplicationPrefences = null;
+
     /**
      * Requesting file for key reading.
      */
@@ -57,178 +59,168 @@ public class Main extends AppTemplate {
         setRequestedOrientation((enable) ? ActivityInfo.SCREEN_ORIENTATION_SENSOR : ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
     }
 
-	public void startTimer() {
+    public static SharedPreferences getApplicationPrefences() { return mapplicationPrefences; }
 
-		stopTimer();
+    public void startTimer() {
 
-		//set a new Timer
-		timer = new Timer();
+        stopTimer();
 
-		//initialize the TimerTask's job
-		initializeTimerTask();
+        //set a new Timer
+        timer = new Timer();
 
-		//schedule the timer, after the first 10000ms the TimerTask will run every 10000ms
-		timer.schedule(timerTask, 10000, 10000); //
-	}
+        //initialize the TimerTask's job
+        initializeTimerTask();
 
-	public void stopTimer() {
-		//stop the timer, if it's not already null
-		if (timer != null) {
-			timer.cancel();
-			timer = null;
-		}
-	}
+        //schedule the timer, after the first 10000ms the TimerTask will run every 10000ms
+        timer.schedule(timerTask, 5000, 5000); //
+    }
 
-	public void initializeTimerTask() {
+    public void stopTimer() {
+        //stop the timer, if it's not already null
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+    }
 
-		timerTask = new TimerTask() {
-			@Override
-			public void run() {
-				timerHandler.post(new Runnable() {
-					@Override
-					public void run() {
-						updateStatus();
-					}
-				});
-			}
-		};
-	}
+    public void initializeTimerTask() {
 
-	public static Main getInstance()
-	{
-		return gInstance;
-	}
+        timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                timerHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateStatus();
+                    }
+                });
+            }
+        };
+    }
 
-	public void handleKeyFile()
-	{
-		Intent intent;
-		Intent chooser;
+    public static Main getInstance() {
+        return gInstance;
+    }
 
-		intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-		intent.addCategory(Intent.CATEGORY_OPENABLE);
-		intent.setType("*/*");
+    public void handleKeyFile() {
+        Intent intent;
+        Intent chooser;
 
-		chooser = Intent.createChooser(intent, "Select file");
+        intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
 
-		try {
-			startActivityForResult(chooser, REQ_FILE_OPEN);
-		} catch (Exception ex) {
-			String strErr = ex.getMessage();
-			Toast.makeText(this, "Error:\n" + strErr, Toast.LENGTH_SHORT).show();
-		}
-	}
+        chooser = Intent.createChooser(intent, "Select file");
 
-	void saveSettings(NurDeviceSpec connSpec) {
-		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
-		SharedPreferences.Editor editor = pref.edit();
-		if (mAcTr == null) {
-			editor.putString("specStr", "");
-		} else {
-			editor.putString("specStr", connSpec.getSpec());
-		}
-		editor.commit();
+        try {
+            startActivityForResult(chooser, REQ_FILE_OPEN);
+        } catch (Exception ex) {
+            String strErr = ex.getMessage();
+            Toast.makeText(this, "Error:\n" + strErr, Toast.LENGTH_SHORT).show();
+        }
+    }
 
-		updateStatus();
-	}
+    void saveSettings(NurDeviceSpec connSpec) {
+        SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        if (mAcTr == null) {
+            editor.putString("specStr", "");
+        } else {
+            editor.putString("specStr", connSpec.getSpec());
+        }
+        editor.commit();
 
-	public void saveKeyFilename(String fileName)
-	{
-		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
-		SharedPreferences.Editor editor = pref.edit();
+        updateStatus();
+    }
 
-		editor.putString(KEYFILE_PREFNAME, fileName);
+    public void saveKeyFilename(String fileName) {
+        SharedPreferences.Editor editor = mapplicationPrefences.edit();
 
-		editor.commit();
-	}
+        editor.putString(KEYFILE_PREFNAME, fileName);
 
-	public String getKeyFileName()
-	{
-		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
-		String keyFileName = pref.getString(KEYFILE_PREFNAME, "");
+        editor.apply();
+    }
 
-		return keyFileName;
-	}
+    public String getKeyFileName() {
+        return mapplicationPrefences.getString(KEYFILE_PREFNAME, "");
+    }
 
-	public void saveUsedKeyNumber(int keyNumber)
-	{
-		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
-		SharedPreferences.Editor editor = pref.edit();
+    public void saveUsedKeyNumber(int keyNumber) {
+        SharedPreferences.Editor editor = mapplicationPrefences.edit();
 
-		editor.putInt(KEYNUMBER_PREFNAME, keyNumber);
+        editor.putInt(KEYNUMBER_PREFNAME, keyNumber);
 
-		editor.commit();
-	}
+        editor.apply();
+    }
 
-	public int getUsedKeyNumber()
-	{
-		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
-		int keyNumber = pref.getInt(KEYNUMBER_PREFNAME, -1);
+    public int getUsedKeyNumber() {
+        return mapplicationPrefences.getInt(KEYNUMBER_PREFNAME, -1);
+    }
 
-		return keyNumber;
-	}
-
-	void loadSettings() {
-		SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
+    void loadSettings() {
+        String type = mapplicationPrefences.getString("connType", "");
 
         /* Get rotation setting enable / disable rotation sensors */
-        toggleScreenRotation(pref.getBoolean("Rotation",false));
-        Beeper.setEnabled(pref.getBoolean("Sounds",true));
+        toggleScreenRotation(mapplicationPrefences.getBoolean("Srotation", false));
+        Beeper.setEnabled(mapplicationPrefences.getBoolean("Sounds", true));
 
-		String specStr = pref.getString("specStr", "");
-		if (specStr.length() > 0)
-		{
-			NurDeviceSpec spec = new NurDeviceSpec(specStr);
+        String specStr = mapplicationPrefences.getString("specStr", "");
+        if (specStr.length() > 0)
+        {
+            NurDeviceSpec spec = new NurDeviceSpec(specStr);
 
-			if (mAcTr != null) {
-				System.out.println("Dispose transport");
-				mAcTr.dispose();
-			}
+            if (mAcTr != null) {
+                System.out.println("Dispose transport");
+                mAcTr.dispose();
+            }
 
-			try {
-				mAcTr = NurDeviceSpec.createAutoConnectTransport(this, getNurApi(), spec);
-				mAcTr.setAddress(spec.getAddress());
-			} catch (NurApiException e) {
-				e.printStackTrace();
-			}
-		}
-		updateStatus();
-	}
+            try {
+                mAcTr = NurDeviceSpec.createAutoConnectTransport(this, getNurApi(), spec);
+                mAcTr.setAddress(spec.getAddress());
+            } catch (NurApiException e) {
+                e.printStackTrace();
+            }
+        }
+        updateStatus();
+    }
 
-	void updateStatus() {
-		String str;
-		if (mAcTr != null) {
+    void updateStatus() {
+        String str;
+        if (mAcTr != null) {
+            if (getNurApi().isConnected())
+                str = "CONNECTED TO ";
+            else
+                str = "DISCONNECTED FROM ";
 
-			str = mAcTr.getType() + " " + mAcTr.getAddress();
-			if (getNurApi().isConnected())
-				str += " CONNECTED";
-			else
-				str += " DISCONNECTED";
+            str += mAcTr.getType() + " DEVICE (" + mAcTr.getAddress() + ")";
 
-			String details = mAcTr.getDetails();
-			if (!details.equals(""))
-				str += "; " + details;
+            // TODO removed duplicate ?
+            // "BLE CONNECTION + phy@"
+            /*String details = mAcTr.getDetails();
+            if (!details.equals(""))
+				str += "; " + details;*/
 
-		} else {
-			str = "No connection defined";
-		}
-		setStatusText(str);
+        } else {
+            str = "No connection defined";
+        }
+        setStatusText(str);
 
-		// getWindow().getDecorView().invalidate();
-	}
+        // getWindow().getDecorView().invalidate();
+    }
 
-	@Override
-	protected void onPause() {
-		super.onPause();
+    @Override
+    protected void onPause() {
+        super.onPause();
 
-		stopTimer();
+        stopTimer();
 
-		if (mAcTr != null) {
-			mAcTr.onPause();
-		}
-	}
+        if (mAcTr != null) {
+            mAcTr.onPause();
+        }
+    }
 
-	@Override
-	protected void onResume() {
+    @Override
+    protected void onResume() {
         super.onResume();
 
         Beeper.init();
@@ -289,17 +281,25 @@ public class Main extends AppTemplate {
 
     private String mDetectedFw = "";
 
-	@Override
-	public void onCreateSubApps(SubAppList subAppList) {
-		gInstance = this;
-		NurApi theApi = getNurApi();
-		
-		if (AppTemplate.LARGE_SCREEN) 
-		{
-			subAppList.addSubApp(new InventoryApp());
-		} else {
-			subAppList.addSubApp(new InventoryAppTabbed());
-		}
+    // Visible app choices / not.
+    public void syncViewContents() {
+        super.onResume();
+    }
+
+    private boolean mAuthAppAdded = false;
+
+    @Override
+    public void onCreateSubApps(SubAppList subAppList) {
+        gInstance = this;
+        NurApi theApi = getNurApi();
+
+        mapplicationPrefences = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
+
+        if (AppTemplate.LARGE_SCREEN) {
+            subAppList.addSubApp(new InventoryApp());
+        } else {
+            subAppList.addSubApp(new InventoryAppTabbed());
+        }
 		
 		/* Tag trace application. */
         subAppList.addSubApp(new TraceApp());
@@ -480,6 +480,16 @@ public class Main extends AppTemplate {
                 final TextView firmwareTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_firmware);
                 firmwareTextView.setText(getString(R.string.about_dialog_firmware) + " " + readerInfo.swVersion);
                 firmwareTextView.setVisibility(View.VISIBLE);
+                
+                final TextView bootloaderTextView = (TextView) dialogLayout.findViewById(R.id.reader_bootloader_version);
+                bootloaderTextView.setText(getString(R.string.about_dialog_bootloader) + " " + getNurApi().getVersions().secondaryVersion);
+                bootloaderTextView.setVisibility(View.VISIBLE);
+
+                if(getExtensionApi().isSupported()) {
+                    final TextView accessoryTextView = (TextView) dialogLayout.findViewById(R.id.accessory_version);
+                    accessoryTextView.setText(getString(R.string.about_dialog_accessory) + " " + getExtensionApi().getFwVersion());
+                    accessoryTextView.setVisibility(View.VISIBLE);
+                }
 
             } catch (Exception e) {
                 e.printStackTrace();

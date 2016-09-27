@@ -47,7 +47,7 @@ public class SettingsAppTab extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        settings = SettingsAppTabbed.getInstance().getAppPreferences();
+        settings = Main.getApplicationPrefences();
         settingEditor = settings.edit();
         rotationEnabled = settings.getBoolean("Rotation",false);
         soundsEnabled = !settings.getBoolean("Sounds",true);

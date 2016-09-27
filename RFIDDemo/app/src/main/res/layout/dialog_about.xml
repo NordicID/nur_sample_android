@@ -18,6 +18,14 @@
         android:layout_gravity="center_horizontal"
         android:text="Released under MIT License"
         android:textSize="15sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="https://github.com/NordicID/nur_sample_android"
+        android:autoLink="web"
+        android:textSize="15sp" />
     
     <LinearLayout
         android:layout_width="match_parent"
@@ -55,6 +63,22 @@
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/reader_bootloader_version"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="15dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/accessory_version"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="15dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
         
     </LinearLayout>
     

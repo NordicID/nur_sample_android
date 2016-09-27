@@ -48,7 +48,7 @@
                 android:background="@android:color/holo_orange_dark"
                 android:orientation="horizontal"
                 android:gravity="bottom"
-                android:weightSum="2">
+                android:weightSum="6">
 
                 <TextView
                     android:id="@+id/app_statustext"
@@ -57,19 +57,20 @@
                     android:ems="10"
                     android:focusable="false"
                     android:textColor="#FFFFFF"
-                    android:layout_weight="1"/>
+                    android:layout_weight="5"
+                    android:gravity="start"/>
 
                 <TextView
                     android:id="@+id/battery_level"
                     android:layout_height="wrap_content"
                     android:focusable="false"
                     android:textColor="#FFFFFF"
-                    android:layout_width="10dp"
+                    android:layout_width="20dp"
                     android:maxLines="1"
                     android:ems="10"
                     android:layout_gravity="right"
                     android:layout_weight="1"
-                    android:gravity="right"/>
+                    android:gravity="end"/>
 
             </LinearLayout>
 

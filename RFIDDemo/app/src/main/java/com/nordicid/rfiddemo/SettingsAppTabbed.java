@@ -32,7 +32,6 @@ public class SettingsAppTabbed extends SubAppTabbed {
 	private SettingsAppHidTab mSettingsHidTab;
 	private SettingsAppAuthTab mSettingsAuthTab;
     private SettingsAppTab mSettingsAppTab;
-    private SharedPreferences appSettings = null;
 	private NurApiListener mThisClassListener = null;
 
 	private static SettingsAppTabbed gInstance = null;
@@ -41,12 +40,9 @@ public class SettingsAppTabbed extends SubAppTabbed {
 		return gInstance;
 	}
 
-    public SharedPreferences getAppPreferences(){return appSettings;}
-
     @Override
     public void onAttach(Activity context){
         super.onAttach(context);
-        appSettings = getActivity().getApplicationContext().getSharedPreferences("DemoApp",Context.MODE_PRIVATE);
     }
 
     @Override
