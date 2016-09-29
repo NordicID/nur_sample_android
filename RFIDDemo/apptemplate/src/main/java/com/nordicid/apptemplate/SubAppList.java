@@ -14,6 +14,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.TextView;
+
 /**
  * @author Nordic ID
  * 
@@ -24,7 +26,7 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	private ArrayList<SubApp> mSubApps = new ArrayList<SubApp>();
 	private GridView mGridView;
 	private AppTemplate appTemplate;
-	private int currentOpenSubApp = -1;
+	private String currentOpenSubApp = "";
 
 	private ArrayList<SubApp> mVisibleSubApps = new ArrayList<SubApp>();
 
@@ -88,8 +90,9 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	ImageAdapter mImageAdapter;
 
 	@Override
-	public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {	
-		appTemplate.setApp(i);
+	public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+		TextView name = (TextView) view.findViewById(R.id.item_name);
+		appTemplate.setApp(name.getText().toString());
 		view.setSelected(true);
 	}
 
@@ -145,63 +148,51 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 		return mVisibleSubApps.get(i);
 	}
 
-	public int getVisibleSubAppIndex(String name) {
+	public SubApp getVisibleSubApp(String name) {
 		for (int n=0; n<mVisibleSubApps.size(); n++){
 			if (mVisibleSubApps.get(n).getAppName().equals(name))
-				return n;
+				return mVisibleSubApps.get(n);
 		}
-		return -1;
+		return null;
 	}
 
-	public int getSubAppIndex(String name) {
+	public SubApp getSubApp(String name) {
 		for (int n=0; n<mSubApps.size(); n++){
 			String app = mSubApps.get(n).getAppName();
 			if (app == name) {
-				return n;
+				return mSubApps.get(n);
 			}
 		}
-		return -1;
+		return null;
 	}
 
-	/**
-	 * Gets the current open SubApps index.
-	 * Returns -1 if no SubApp open.
-	 * @return index of an current open SubApp
-	 */
-	public int getCurrentOpenSubAppIndex() {
-		return currentOpenSubApp;
-	}
-	
 	/**
 	 * Gets the current open SubApp.
 	 * Returns null if no SubApp open.
 	 * @return current open SubApp or null
 	 */
 	public SubApp getCurrentOpenSubApp() {
-		
-		int index = getCurrentOpenSubAppIndex();
-		
-		if (index != -1) {
-			SubApp currentApp = getVisibleApp(index);
-			return currentApp;
-		}
-		
-		return null;
+
+		return getVisibleSubApp(currentOpenSubApp);
 	}
 	
 	/**
 	 * Sets open SubApps index. Used Internally.
-	 * @param i SubApps index
 	 */
-	public void setCurrentOpenSubApp(int i) {
+	public void setCurrentOpenSubApp(SubApp app) {
 		SubApp cur = getCurrentOpenSubApp();
 		if (cur != null)
 			cur.onVisibility(false);
-		
-		currentOpenSubApp = i;
-		cur = getCurrentOpenSubApp();
-		if (cur != null)
-			cur.onVisibility(true);
+
+		if (app == null)
+		{
+			currentOpenSubApp = "";
+		} else {
+			currentOpenSubApp = app.getAppName();
+			cur = getCurrentOpenSubApp();
+			if (cur != null)
+				cur.onVisibility(true);
+		}
 	}
 
 	/**
@@ -210,12 +201,6 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	 * @return SubApp or null
 	 */
 	public SubApp getApp(String name) {
-		int index = getSubAppIndex(name);
-		
-		if (index != -1) {
-			return mSubApps.get(index);
-		}
-		
-		return null;
+		return getSubApp(name);
 	}
 }

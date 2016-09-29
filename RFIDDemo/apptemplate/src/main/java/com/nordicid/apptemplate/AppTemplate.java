@@ -23,15 +23,18 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ActionProvider;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -58,7 +61,8 @@ public class AppTemplate extends FragmentActivity {
 	private Menu mMenu;
 	private MenuItem mCloseButton;
 	private Drawer mDrawer;
-    private TextView mBatteryStatus = null;
+	private TextView mBatteryStatus = null;
+	private ImageView mBatteryIcon = null;
     private NurAccessoryExtension mAccessoryApi = null;
 	private boolean mAccessorySupported = false;
 	private boolean mEnableBattUpdate = true;
@@ -108,19 +112,7 @@ public class AppTemplate extends FragmentActivity {
 		public void nxpEasAlarmEvent(NurEventNxpAlarm event) { }
 		
 		@Override
-		public void logEvent(int level, String txt) {
-			/*String pref = "ERROR: ";
-			if (level == NurApi.LOG_DATA || txt == null || txt == "")
-				return;	// Just to avoid spam.
-			
-			if (level == NurApi.LOG_USER)
-				pref = "USER: ";
-			else if (level == NurApi.LOG_VERBOSE)
-				pref = "VERB: ";
-			
-			System.out.println(pref + txt);
-			*/
-		}
+		public void logEvent(int level, String txt) { }
 		
 		@Override
 		public void inventoryStreamEvent(NurEventInventory event) {
@@ -249,6 +241,7 @@ public class AppTemplate extends FragmentActivity {
 		setDrawer(true);
 
         mBatteryStatus = (TextView) findViewById(R.id.battery_level);
+		mBatteryIcon = (ImageView) findViewById(R.id.battery_icon);
 
 		//setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		LARGE_SCREEN = ((getResources().getConfiguration().screenLayout &
@@ -286,7 +279,7 @@ public class AppTemplate extends FragmentActivity {
         if(getNurApi().isConnected() && getAccessorySupported()) {
             try {
 				if (mEnableBattUpdate)
-	                setBatteryStatus("BAT: " + getAccessoryApi().getBatteryInfo().getPercentageString());
+	                setBatteryStatus(getAccessoryApi().getBatteryInfo().getPercentageString());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -296,8 +289,22 @@ public class AppTemplate extends FragmentActivity {
         }
 	}
 
-    public void setBatteryStatus(String text){
-        mBatteryStatus.setText(text);
+    public void setBatteryStatus(String text) {
+		if (text.length() == 0)
+		{
+			if (mBatteryStatus.getVisibility() != View.GONE) {
+				mBatteryStatus.setVisibility(View.GONE);
+				mBatteryIcon.setVisibility(View.GONE);
+			}
+		}
+        else
+		{
+			if (mBatteryStatus.getVisibility() != View.VISIBLE) {
+				mBatteryStatus.setVisibility(View.VISIBLE);
+				mBatteryIcon.setVisibility(View.VISIBLE);
+			}
+			mBatteryStatus.setText(text);
+		}
     }
 	
 	@Override
@@ -320,7 +327,7 @@ public class AppTemplate extends FragmentActivity {
 		
 		mMenu = menu;
 		mCloseButton = mMenu.findItem(R.id.actionbar_close_button);
-		if(mSubAppList.getCurrentOpenSubAppIndex()!= -1 && getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE)
+		if(mSubAppList.getCurrentOpenSubApp() != null && getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE)
             mCloseButton.setVisible(true);
 		return super.onCreateOptionsMenu(menu);
 	}
@@ -356,33 +363,38 @@ public class AppTemplate extends FragmentActivity {
 	 * has at the moment. Used internally.
 	 */
 	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
+	public void onConfigurationChanged(Configuration newConfig)
+	{
 		super.onConfigurationChanged(newConfig);
-		changeSubAppListener();
+
 		if (mNoConfigChangeCheck == false)
 			mConfigurationChanged = true;
 		else 
 			mNoConfigChangeCheck = false;
+
 		setContentView(R.layout.main);
-		if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+
+		if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE)
+		{
 			mMenuContainer = (FrameLayout) findViewById(R.id.menu_container);
-			if (mMenu != null) {
+			if (mCloseButton != null)
 				mCloseButton.setVisible(false);
-			}
 		} else {
 			mMenuContainer = null;
-			if (mSubAppList.getCurrentOpenSubAppIndex() != -1) {
-				mCloseButton.setVisible(true);
+			if (mSubAppList.getCurrentOpenSubApp() != null) {
+				if (mCloseButton != null)
+					mCloseButton.setVisible(true);
 			}
 		}
 		if (!applicationPaused) {
 			setFragments(true);
 		}
-		if (mSubAppList.getCurrentOpenSubAppIndex() == -1) {
-			mSubAppList.setCurrentOpenSubApp(0);
+		if (mSubAppList.getCurrentOpenSubApp() == null) {
+			mSubAppList.setCurrentOpenSubApp(mSubAppList.getVisibleApp(0));
 		}
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         mBatteryStatus = (TextView) findViewById(R.id.battery_level);
+		mBatteryIcon = (ImageView) findViewById(R.id.battery_icon);
 		setDrawer(false);
         mDrawerToggle.onConfigurationChanged(newConfig);
 	}
@@ -398,39 +410,24 @@ public class AppTemplate extends FragmentActivity {
 	@Override
 	public void onBackPressed() {
 		
-		int currentAppIndex = mSubAppList.getCurrentOpenSubAppIndex();
+		SubApp currentSubApp = mSubAppList.getCurrentOpenSubApp();
 		
-		changeSubAppListener();
-	
-		if (currentAppIndex != -1) {
-			
-			SubApp app = mSubAppList.getVisibleApp(mSubAppList.getCurrentOpenSubAppIndex());
-			
-			if (app.onFragmentBackPressed()) {
+		if (currentSubApp != null) {
+			// See if SubApp handled back button press
+			if (currentSubApp.onFragmentBackPressed()) {
 				return;
 			}
 		}
-		
 
 		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
 		{
-			
-			if (mSubAppList.getCurrentOpenSubAppIndex() == -1) {
+			if (currentSubApp == null) {
 				doubleOnBackPressExit();
 			}
 			else {
-				
-				mFragmentTransaction = getSupportFragmentManager().beginTransaction();
-				mFragmentTransaction.remove(mSubAppList).commit();
-				getSupportFragmentManager().executePendingTransactions();
-				
-				mFragmentTransaction = getSupportFragmentManager().beginTransaction();
-				mFragmentTransaction.replace(R.id.content, mSubAppList).commit();
-				
-				getActionBar().setTitle(R.string.app_name);
-				mCloseButton.setVisible(false);
-				mSubAppList.setCurrentOpenSubApp(-1);
-				changeSubAppListener();
+				// Go back to main menu
+				mSubAppList.setCurrentOpenSubApp(null);
+				setFragments(false);
 			}
 		}
 		else {
@@ -452,19 +449,18 @@ public class AppTemplate extends FragmentActivity {
 	 */
 	private void doubleOnBackPressExit() {
 		if (backPressedOnce) {
+			// Back pressed twice within 2sec -> shutdown everything
 
 			// Stop generating NurApi events
 			mApi.setListener(null);
 
 			mExitingApplication = true;
 			super.onBackPressed();
-			//this.finish();
-	        return;
+			return;
 	    }
 
 	    backPressedOnce = true;
 	    Toast.makeText(this, "Press back again to exit", Toast.LENGTH_SHORT).show();
-
 	    new Handler().postDelayed(new Runnable() {
 	        @Override
 	        public void run() {
@@ -475,69 +471,34 @@ public class AppTemplate extends FragmentActivity {
 	}
 
 	/**
-	 * Method to open SubApp with index (apps index).
-	 * If SubApp with index given not found, a Toast will be shown.
-	 * @param index Index of the app in ArrayList of SubApps
-	 */
-	public void setApp(int index) {
-		openSubApp(index);
-		changeSubAppListener();
-	}
-	
-	/**
 	 * Method to open another SubApp with its name.
 	 * If SubApp with given name not found, a Toast will be shown.
 	 *
 	 *  @param name of the SubApp
-	 *
-	 *  @see SubAppList#getAppName(int)
 	 */
 	public void setApp(String name) {
 
-		int index = mSubAppList.getVisibleSubAppIndex(name);
+		SubApp app = mSubAppList.getVisibleSubApp(name);
 		
-		if (index == -1) {
+		if (app == null) {
 			Toast.makeText(this, "App with name \""+name+"\" not found", Toast.LENGTH_SHORT).show();
 		}
 		else {
-			openSubApp(index);
+			openSubApp(app);
 		}
 		
 		changeSubAppListener();
 	}
 	
 	/**
-	 *  If SubApp to be open with the index not found, method shows a Toast. 
-	 *  Used internally to open SubApps.
-	 * @param i Index of an SubApp
-	 * @param bundle Parameters.
+	 *  Used internally to open some SubApp
 	 */
-	private void openSubApp(int i) {
+	private void openSubApp(SubApp app) {
  
-		if (i != mSubAppList.getCurrentOpenSubAppIndex() && !mSubAppList.getVisibleApp(i).isVisible()) {
-			
-			if (i < mSubAppList.getVisibleApps().size()) {
-				SubApp app = getSubAppList().getVisibleApp(i);
-
-				//int[] animations = app.getAnimations();
-			
-				mFragmentManager = getSupportFragmentManager();
-				mFragmentTransaction = mFragmentManager.beginTransaction();
-				//mFragmentTransaction.setCustomAnimations(animations[0], animations[1]);
-				mFragmentTransaction.replace(R.id.content, app).commit();
-	
-				mSubAppList.setCurrentOpenSubApp(i);
-				changeSubAppListener();
-				
-				if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-					mCloseButton.setVisible(true);
-				}
-			}
-			else {
-				Toast.makeText(this, "No subapp with index "+i+" found", Toast.LENGTH_SHORT).show();
-			}
+		if (app != mSubAppList.getCurrentOpenSubApp() && !app.isVisible()) {
+			mSubAppList.setCurrentOpenSubApp(app);
+			setFragments(false);
 		}
-		
 	}
 	
 	/**
@@ -552,77 +513,105 @@ public class AppTemplate extends FragmentActivity {
 	public boolean getAccessorySupported() { return mAccessorySupported; }
 	public void setEnableBattUpdate(boolean val) { mEnableBattUpdate = val; }
 
+	private Fragment lastSetFragment = null;
+
 	/**
 	 *  Sets all the fragments
 	 */
-	private void setFragments(boolean configChange) {
-		SubApp app;
-		int currentOpen = mSubAppList.getCurrentOpenSubAppIndex();
+	private void setFragments(boolean configChange)
+	{
+		SubApp currentOpenSubApp = mSubAppList.getCurrentOpenSubApp();
 		int orientation = getResources().getConfiguration().orientation;
 
 		mFragmentManager = getSupportFragmentManager();
 
-		if (mSubAppList.isAdded()) {
+		// Always remove subapplist on config change
+		if (configChange && mSubAppList.isAdded())
+		{
 			mFragmentTransaction = mFragmentManager.beginTransaction();
 			mFragmentTransaction.remove(mSubAppList);
 			mFragmentTransaction.commit();
-			
 			mFragmentManager.executePendingTransactions();
 		}
-		
-		if (currentOpen != -1) {
-			app = mSubAppList.getVisibleApp(currentOpen);
-		}
-		else {
-			app = mSubAppList.getVisibleApp(0);
-		}
-		
-		if (app.isAdded()) {
+
+		// Remove last set subapp
+		if (lastSetFragment != null && lastSetFragment.isAdded()) {
 			mFragmentTransaction = mFragmentManager.beginTransaction();
-			mFragmentTransaction.remove(app);
+			mFragmentTransaction.remove(lastSetFragment);
 			mFragmentTransaction.commit();
 			mFragmentManager.executePendingTransactions();
 		}
 
 		if (orientation == Configuration.ORIENTATION_PORTRAIT)
 		{
-			if (currentOpen == -1) {
-				mFragmentTransaction = mFragmentManager.beginTransaction();
-
-				if (showMenuAnimation) {
-					mFragmentTransaction.setCustomAnimations(R.anim.default_enter_menu, R.anim.default_exit_menu);
-					showMenuAnimation = false;
+			if (currentOpenSubApp == null)
+			{
+				// No subapp selected, show subapplist
+				if (!mSubAppList.isAdded()) {
+					mFragmentTransaction = mFragmentManager.beginTransaction();
+					/*if (showMenuAnimation) {
+						mFragmentTransaction.setCustomAnimations(R.anim.default_enter_menu, R.anim.default_exit_menu);
+						showMenuAnimation = false;
+					}*/
+					mFragmentTransaction.add(R.id.content, mSubAppList);
+					mFragmentTransaction.commit();
 				}
 
-				mFragmentTransaction.add(R.id.content, mSubAppList);
-				mFragmentTransaction.commit();
+				if (mCloseButton != null)
+					mCloseButton.setVisible(false);
 			}
-			else {
+			else
+			{
+				// Subapp selected, remove subapplist if needed first
+				if (mSubAppList.isAdded()) {
+					mFragmentTransaction = mFragmentManager.beginTransaction();
+					mFragmentTransaction.remove(mSubAppList);
+					mFragmentTransaction.commit();
+					mFragmentManager.executePendingTransactions();
+				}
+
+				// Add subapp
 				mFragmentTransaction = mFragmentManager.beginTransaction();
-				mFragmentTransaction.add(R.id.content, app);
+				mFragmentTransaction.add(R.id.content, currentOpenSubApp);
 				mFragmentTransaction.commit();
-				
+				lastSetFragment = currentOpenSubApp;
+
 				getActionBar().setTitle(R.string.app_name);
+
+				if (mCloseButton != null)
+					mCloseButton.setVisible(true);
 			}
 		}
-		else {
+		else
+		{
+			// Landscape
 
+			if (mCloseButton != null)
+				mCloseButton.setVisible(false);
+
+			// Always show some subapp
+			if (currentOpenSubApp == null) {
+				currentOpenSubApp = mSubAppList.getVisibleApp(0);
+			}
+
+			// Add subapp
 			mFragmentTransaction = mFragmentManager.beginTransaction();
-			mFragmentTransaction.add(R.id.content, app);
+			mFragmentTransaction.add(R.id.content, currentOpenSubApp);
 			mFragmentTransaction.commit();
+			lastSetFragment = currentOpenSubApp;
 
-			setTitle(app.getAppName());
+			setTitle(currentOpenSubApp.getAppName());
 
-			mFragmentManager = getSupportFragmentManager();
-			mFragmentTransaction = mFragmentManager.beginTransaction();
-
-			/*if (showMenuAnimation) {
-				mFragmentTransaction.setCustomAnimations(R.anim.default_enter_menu, R.anim.default_exit_menu);
-				showMenuAnimation = false;
-			}*/
-
-			mFragmentTransaction.add(R.id.menu_container, mSubAppList);
-			mFragmentTransaction.commit();
+			// If subapp not added, add it to sidebar
+			if (!mSubAppList.isAdded()) {
+				mFragmentTransaction = mFragmentManager.beginTransaction();
+				/*if (showMenuAnimation) {
+					mFragmentTransaction.setCustomAnimations(R.anim.default_enter_menu, R.anim.default_exit_menu);
+					showMenuAnimation = false;
+				}*/
+				mFragmentTransaction.add(R.id.menu_container, mSubAppList);
+				mFragmentTransaction.commit();
+			}
 		}
 
 		changeSubAppListener();

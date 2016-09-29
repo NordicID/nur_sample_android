@@ -69,7 +69,7 @@ public class SettingsAppTab extends Fragment {
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             settingEditor.putBoolean("Rotation",mScreenOrientationCheckBox.isChecked());
             settingEditor.apply();
-            ((Main)getActivity()).toggleScreenRotation(isChecked);
+            ((Main)getActivity()).toggleScreenRotation(mScreenOrientationCheckBox.isChecked());
         }
     };
 

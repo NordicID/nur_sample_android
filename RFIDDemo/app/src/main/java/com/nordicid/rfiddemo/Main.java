@@ -5,7 +5,6 @@ import java.util.TimerTask;
 
 import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.apptemplate.SubAppList;
-import com.nordicid.nuraccessory.NurAccessoryExtension;
 import com.nordicid.nurapi.*;
 
 import android.app.AlertDialog;
@@ -14,7 +13,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
@@ -31,7 +29,7 @@ public class Main extends AppTemplate {
     public static final int AUTH_REQUIRED_VERSION = 0x050500 + ('A' & 0xFF);
     public static final String AUTH_REQUIRED_VERSTRING = "5.5-A";
 
-    private static SharedPreferences mapplicationPrefences = null;
+    private static SharedPreferences mApplicationPrefences = null;
 
     /**
      * Requesting file for key reading.
@@ -53,7 +51,7 @@ public class Main extends AppTemplate {
         setRequestedOrientation((enable) ? ActivityInfo.SCREEN_ORIENTATION_SENSOR : ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
     }
 
-    public static SharedPreferences getApplicationPrefences() { return mapplicationPrefences; }
+    public static SharedPreferences getApplicationPrefences() { return mApplicationPrefences; }
 
     public void startTimer() {
 
@@ -128,7 +126,7 @@ public class Main extends AppTemplate {
     }
 
     public void saveKeyFilename(String fileName) {
-        SharedPreferences.Editor editor = mapplicationPrefences.edit();
+        SharedPreferences.Editor editor = mApplicationPrefences.edit();
 
         editor.putString(KEYFILE_PREFNAME, fileName);
 
@@ -136,11 +134,11 @@ public class Main extends AppTemplate {
     }
 
     public String getKeyFileName() {
-        return mapplicationPrefences.getString(KEYFILE_PREFNAME, "");
+        return mApplicationPrefences.getString(KEYFILE_PREFNAME, "");
     }
 
     public void saveUsedKeyNumber(int keyNumber) {
-        SharedPreferences.Editor editor = mapplicationPrefences.edit();
+        SharedPreferences.Editor editor = mApplicationPrefences.edit();
 
         editor.putInt(KEYNUMBER_PREFNAME, keyNumber);
 
@@ -148,17 +146,17 @@ public class Main extends AppTemplate {
     }
 
     public int getUsedKeyNumber() {
-        return mapplicationPrefences.getInt(KEYNUMBER_PREFNAME, -1);
+        return mApplicationPrefences.getInt(KEYNUMBER_PREFNAME, -1);
     }
 
     void loadSettings() {
-        String type = mapplicationPrefences.getString("connType", "");
+        String type = mApplicationPrefences.getString("connType", "");
 
         /* Get rotation setting enable / disable rotation sensors */
-        toggleScreenRotation(mapplicationPrefences.getBoolean("Srotation", false));
-        Beeper.setEnabled(mapplicationPrefences.getBoolean("Sounds", true));
+        toggleScreenRotation(mApplicationPrefences.getBoolean("Rotation", false));
+        Beeper.setEnabled(mApplicationPrefences.getBoolean("Sounds", true));
 
-        String specStr = mapplicationPrefences.getString("specStr", "");
+        String specStr = mApplicationPrefences.getString("specStr", "");
         if (specStr.length() > 0)
         {
             NurDeviceSpec spec = new NurDeviceSpec(specStr);
@@ -289,7 +287,7 @@ public class Main extends AppTemplate {
         gInstance = this;
         NurApi theApi = getNurApi();
 
-        mapplicationPrefences = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
+        mApplicationPrefences = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
 
         if (AppTemplate.LARGE_SCREEN) {
             subAppList.addSubApp(new InventoryApp());
