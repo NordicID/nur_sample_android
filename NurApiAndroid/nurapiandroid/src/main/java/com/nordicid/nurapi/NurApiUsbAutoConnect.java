@@ -35,12 +35,47 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 	private Context mContext = null;
 	private UsbManager mUsbManager = null;
 	private UsbDevice mUsbDevice = null;
-	private IntentFilter mIntentFilter = null;
 	private static final String ACTION_USB_PERMISSION = "com.nordicid.nurapi.USB_PERMISSION";
-	private boolean mEnabled = false;
 	private boolean mReceiverRegistered = false;
 	private PendingIntent mPermissionIntent;
 	private boolean mRequestingPermission = false;
+
+	private String mReceiverRegisteredAction = "";
+
+	void registerReceiver(String action)
+	{
+		if (action.length() == 0)
+		{
+			if (mReceiverRegistered)
+			{
+				mReceiverRegistered = false;
+				mReceiverRegisteredAction = "";
+				mContext.unregisterReceiver(mUsbReceiver);
+				Log.d(TAG, "registerReceiver unregistered");
+			} else {
+				Log.d(TAG, "registerReceiver ALREADY unregistered");
+			}
+		}
+		else {
+
+			if (mReceiverRegisteredAction.equals(action))
+			{
+				Log.d(TAG, "registerReceiver "+action+" ALREADY registered");
+				return;
+			}
+
+			if (mReceiverRegistered)
+				mContext.unregisterReceiver(mUsbReceiver);
+
+			IntentFilter intentFilter = new IntentFilter();
+			intentFilter.addAction(ACTION_USB_PERMISSION);
+			intentFilter.addAction(action);
+			Log.d(TAG, "registerReceiver "+action+" registered");
+			mContext.registerReceiver(mUsbReceiver, intentFilter);
+			mReceiverRegistered = true;
+			mReceiverRegisteredAction = action;
+		}
+	}
 
 	public NurApiUsbAutoConnect(Context c, NurApi na) 
 	{
@@ -90,9 +125,6 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 
 	private void connect()
 	{
-		if (!mEnabled)
-			return;
-
 		if (mUsbDevice != null && mUsbManager.hasPermission(mUsbDevice)) 
 		{
 			try {
@@ -104,12 +136,8 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 			try {
 				mApi.setTransport(tr);
 				mApi.connect();
-				if (mReceiverRegistered)
-					mContext.unregisterReceiver(mUsbReceiver);
-				mIntentFilter = new IntentFilter();
-				mIntentFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-				mContext.registerReceiver(mUsbReceiver, mIntentFilter);
-				mReceiverRegistered = true;
+
+				registerReceiver(UsbManager.ACTION_USB_DEVICE_DETACHED);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
@@ -125,14 +153,8 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 	{
 		if (mApi.isConnected()) {
 			try {
-				if (mReceiverRegistered)
-					mContext.unregisterReceiver(mUsbReceiver);
-				mIntentFilter = new IntentFilter();
-				mIntentFilter.addAction(ACTION_USB_PERMISSION);
-				mIntentFilter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-				mContext.registerReceiver(mUsbReceiver, mIntentFilter);
-				mReceiverRegistered = true;
-				mApi.disconnect(); 
+				registerReceiver(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+				mApi.disconnect();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -142,14 +164,11 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 	@Override
 	public void onResume() 
 	{
-		if (mEnabled)
-		{
-			if (mApi.isConnected())
-				return;
+		if (mApi.isConnected())
+			return;
 
-			if (!mRequestingPermission)
-				this.setAddress(getAddress());
-		}
+		if (!mRequestingPermission)
+			this.setAddress(getAddress());
 	}
 	
 	@Override
@@ -163,31 +182,22 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 	{
 		Log.d(TAG, "setAddress " + addr);
 
-		this.mEnabled = !addr.toLowerCase().equals("disabled");
-		if (mEnabled) 
-		{
-			this.mUsbDevice = null;
-			for (UsbDevice device : mUsbManager.getDeviceList().values()) {
-				if(device.getVendorId() == 1254 || device.getVendorId() == 3589) {
-					this.mUsbDevice = device;
-					break;
-				}
-			} 
-			mIntentFilter = new IntentFilter();
-			mIntentFilter.addAction(ACTION_USB_PERMISSION);
-			if (mUsbDevice == null) {
-				mIntentFilter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-			} else {
-				mIntentFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+		this.mUsbDevice = null;
+		for (UsbDevice device : mUsbManager.getDeviceList().values()) {
+			if(device.getVendorId() == 1254 || device.getVendorId() == 3589) {
+				this.mUsbDevice = device;
+				break;
 			}
-			mContext.registerReceiver(mUsbReceiver, mIntentFilter);
-			mReceiverRegistered = true;
+		}
 
-			if (mUsbDevice != null) {
-				connect();
-			}			
+		if (mUsbDevice == null) {
+			registerReceiver(UsbManager.ACTION_USB_DEVICE_ATTACHED);
 		} else {
-			disconnect();
+			registerReceiver(UsbManager.ACTION_USB_DEVICE_DETACHED);
+		}
+
+		if (mUsbDevice != null) {
+			connect();
 		}
 	}
 
@@ -204,11 +214,7 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 				e.printStackTrace();
 			}
 		}
-		if (mReceiverRegistered)
-		{
-			mReceiverRegistered = false;
-			mContext.unregisterReceiver(mUsbReceiver);
-		}
+		registerReceiver("");
 	}
 
 	@Override
@@ -225,9 +231,5 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 	public String getAddress() { return ""; }
 
 	@Override
-	public String getDetails() {
-		if (!mEnabled)
-			return "Disabled";
-		return "";
-	}
+	public String getDetails() { return "";	}
 }
