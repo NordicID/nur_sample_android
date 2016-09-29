@@ -20,6 +20,7 @@ package com.nordicid.nurfwupdate;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -47,12 +48,6 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
 
     /** Device seach timeout in ms. */
     public static final int DEVICE_SEARCH_TIMEOUT_MS = 4000;
-
-    /** Action was canceled. */
-    public static final int RESULT_CANCELED = 100;
-
-    /** String defining the selected BLE device's name. */
-    public static final String BLE_SELECTED_NAME = "DEVICE_NAME";
 
     /** Something to use with the direct call to the boot event. */
     private static final String BOOT_STRING = "LOADER";
@@ -110,18 +105,14 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         mModeView = (TextView) findViewById(R.id.text_current_mode);
-
         mConnectBtn = (Button) findViewById(R.id.btn_device);
-
         mFileBtn = (Button) findViewById(R.id.btn_file_select);
-
         mUploadBtn = (Button) findViewById(R.id.btn_file_program);
-        mUploadBtn.setEnabled(false);
-
         mFileView = (TextView) findViewById(R.id.text_filename);
         mProgressViev = (TextView) findViewById(R.id.text_progress);
-
         mUploadProgress = (ProgressBar) findViewById(R.id.progress_upload);
+
+        mUploadBtn.setEnabled(false);
         mUploadProgress.setProgress(0);
 
         mApi = new NurApi();
@@ -135,7 +126,14 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
 
         mApi.setListener(this);
 
-        shortToast(this, "API version: " + mApi.getFileVersion());
+        String appversion = "0.0";
+        try {
+            appversion = this.getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        shortToast(this, this.getString(R.string.app_name) + " v"+appversion+"\nNurApi v" + mApi.getFileVersion());
     }
 
     @Override
@@ -144,9 +142,15 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
 
         Log.e(TAG, "RESUME");
 
+        if (mAcTr != null) {
+            mAcTr.onResume();
+        }
+
+        if (mStartProgramOnBoot)
+            return;
+
         if (mAcTr != null && !mSelectingFile) {
             showConnecting();
-            mAcTr.onResume();
             // mConnectBtn.setEnabled(mDeviceAddress == null);
         } else if (mSelectingFile) {
             if (mApi.isConnected()) {
@@ -163,6 +167,9 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
 
         Log.e(TAG, "PAUSE");
 
+        if (mStartProgramOnBoot)
+            return;
+
         if (mAcTr != null && mDeviceAddress != null && !mSelectingFile) {
             disableAll();
             showConnecting();
@@ -173,8 +180,8 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
     protected void onStop() {
         super.onStop();
 
-
         Log.e(TAG, "STOP");
+
         if (mSelectingFile)
             return;
 
@@ -199,6 +206,35 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
             case R.id.btn_file_program:
                 prepareUpload();
                 break;
+        }
+    }
+
+    private void handleBootEvent()
+    {
+        tryVersion();
+
+        if (mUpdateComplete || mStartProgramOnBoot)
+        {
+            setModeTextByMode();
+
+            if (mStartProgramOnBoot) {
+                mStartProgramOnBoot = false;
+                beginUpload();
+            }
+
+            if (mUpdateComplete) {
+                if (!mUpdateCompleteWasOK) {
+                    mProgressViev.setText(mStrCompletionError);
+                }
+                else
+                    mProgressViev.setText(R.string.text_upload_complete_ok);
+                mUploadProgress.setProgress(0);
+            }
+
+            mUpdateComplete = false;
+        }
+        else {
+            setModeTextByMode();
         }
     }
 
@@ -236,9 +272,15 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
     }
 
     private void enableButtons(boolean en) {
-        mConnectBtn.setEnabled(en);
-        mFileBtn.setEnabled(en);
-        mUploadBtn.setEnabled(en && mFullFilePath != null && mApi.isConnected());
+        if (mApi.isConnected()) {
+            mConnectBtn.setEnabled(en);
+            mFileBtn.setEnabled(en);
+            mUploadBtn.setEnabled(en && mFullFilePath != null);
+        } else {
+            mConnectBtn.setEnabled(true);
+            mFileBtn.setEnabled(true);
+            mUploadBtn.setEnabled(false);
+        }
     }
 
     // Gets error message for failed upload.
@@ -314,7 +356,7 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
 
     // Starts the device scan activity.
     private void scanForDevice() {
-        NurDeviceListActivity.startDeviceRequest(MainActivity.this, NurDeviceListActivity.REQ_BLE_DEVICES, DEVICE_SEARCH_TIMEOUT_MS, false);
+        NurDeviceListActivity.startDeviceRequest(MainActivity.this);//, NurDeviceListActivity.REQ_BLE_DEVICES, DEVICE_SEARCH_TIMEOUT_MS, false);
     }
 
     // Tries to get the FW version.
@@ -343,14 +385,25 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == NurDeviceListActivity.REQUEST_SELECT_DEVICE && resultCode != NurDeviceListActivity.RESULT_CANCELED) {
-            if (data != null)
-            {
-                mDeviceAddress = data.getStringExtra(NurDeviceListActivity.DEVICE_ADDRESS);
-                disableAll();
-                mAcTr = new NurApiBLEAutoConnect(MainActivity.this, mApi);
-                mAcTr.setAddress(mDeviceAddress);
+        if (requestCode == NurDeviceListActivity.REQUEST_SELECT_DEVICE && resultCode == NurDeviceListActivity.RESULT_OK && data != null) {
+
+            disableAll();
+            mDeviceAddress = null;
+
+            try {
+                NurDeviceSpec spec = new NurDeviceSpec(data.getStringExtra(NurDeviceListActivity.SPECSTR));
+                mDeviceAddress = spec.getAddress();
+
+                if (mAcTr != null) {
+                    System.out.println("Dispose transport");
+                    mAcTr.dispose();
+                }
+
+                mAcTr = NurDeviceSpec.createAutoConnectTransport(this, mApi, spec);
+                mAcTr.setAddress(spec.getAddress());
                 showConnecting();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -401,7 +454,6 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
         return strFileName;
     }
 
-
     private void handleConnectDisconnect() {
         mFileBtn.setEnabled(false);
         mUploadBtn.setEnabled(false);
@@ -409,9 +461,10 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
         if (mApi.isConnected()) {
 
             mDeviceAddress = null;
-            mAcTr.setAddress("");
-            mAcTr.dispose();
-            mAcTr = null;
+            if (mAcTr != null) {
+                mAcTr.dispose();
+                mAcTr = null;
+            }
 
             mConnectBtn.setText(R.string.text_search_devices);
             mConnectBtn.setEnabled(true);
@@ -475,31 +528,7 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
     @Override
     public void bootEvent(String bootString) {
         // "APP", "LOADER"
-        tryVersion();
-
-        if (mUpdateComplete || mStartProgramOnBoot)
-        {
-            setModeTextByMode();
-
-            if (mStartProgramOnBoot) {
-                mStartProgramOnBoot = false;
-                beginUpload();
-            }
-
-            if (mUpdateComplete) {
-                if (!mUpdateCompleteWasOK) {
-                    mProgressViev.setText(mStrCompletionError);
-                }
-                else
-                    mProgressViev.setText(R.string.text_upload_complete_ok);
-                mUploadProgress.setProgress(0);
-            }
-
-            mUpdateComplete = false;
-        }
-        else {
-            setModeTextByMode();
-        }
+        handleBootEvent();
     }
 
     @Override
@@ -514,6 +543,10 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
 
     @Override
     public void connectedEvent() {
+        if (mStartProgramOnBoot) {
+            handleBootEvent();
+            return;
+        }
         // Generic connected event
         Log.e(TAG, "CONNECT");
         tryVersion();
@@ -537,16 +570,18 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
 
     @Override
     public void disconnectedEvent() {
+        if (mStartProgramOnBoot)
+            return;
+
         // General disconnection notification.
         Log.e(TAG, "DISCONNECT");
         mVersionStr = null;
         mFileBtn.setEnabled(false);
         mUploadBtn.setEnabled(false);
         mModeView.setText(R.string.text_not_connected);
+        mConnectBtn.setText(R.string.text_search_devices);
         if (!mProgramFailed)
             mProgressViev.setText(R.string.text_idle);
-        else
-            mConnectBtn.setText(R.string.text_search_devices);
         mProgramFailed = false;
     }
 
@@ -628,9 +663,10 @@ public class MainActivity extends AppCompatActivity implements NurApiListener {
             mUploadProgress.setProgress(0);
             mProgramFailed = true;
             done = true;
-            mAcTr.setAddress("");
-            mAcTr.dispose();
-            mAcTr = null;
+            if (mAcTr != null) {
+                mAcTr.dispose();
+                mAcTr = null;
+            }
         }
 
         if (done)

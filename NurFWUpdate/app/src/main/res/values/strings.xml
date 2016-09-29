@@ -5,7 +5,7 @@
     <string name="text_curmode_app">Application</string>
     <string name="text_curmode_loader">Bootloader</string>
 
-    <string name="text_search_devices">Search devices</string>
+    <string name="text_search_devices">Select connection</string>
     <string name="text_disconnect">Disconnect</string>
 
     <string name="text_mode_change">Change mode</string>

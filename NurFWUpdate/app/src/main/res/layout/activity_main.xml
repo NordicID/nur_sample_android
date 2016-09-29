@@ -18,11 +18,13 @@
         android:textSize="20sp"
         android:gravity="center"
         android:background="@drawable/rectangle"
-        android:text="@string/text_not_connected" />
+        android:text="@string/text_not_connected"
+        android:layout_marginBottom="5dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
         android:padding="2dp"
         android:background="@drawable/rectangle"
         android:orientation="vertical">
@@ -63,6 +65,7 @@
         android:id="@+id/text_filename"
         android:layout_width="match_parent"
         android:layout_height="70dp"
+        android:layout_marginBottom="5dp"
         android:textStyle="bold"
         android:textSize="20sp"
         android:gravity="center"

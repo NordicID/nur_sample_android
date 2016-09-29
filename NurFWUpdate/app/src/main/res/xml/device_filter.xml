@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Vendor ID and product ID for Nordic ID NUR -->
+    <usb-device vendor-id="3589" product-id="274" />
+    <!-- Vendor ID and product ID for Nordic ID NUR (w/ old vid) -->
+    <usb-device vendor-id="1254" product-id="274" />
+</resources>
