@@ -168,8 +168,7 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
                 @Override
                 public void run(){
                     try {
-                        Thread.sleep(2000);
-                        Log.w(TAG, "set transport null");
+                        Thread.sleep(1000);
                         mApi.setTransport(null);
 
                         if (mService.getConnState() == UartService.STATE_CONNECTED) {
@@ -209,7 +208,6 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		bleVersion = "";
 		mTr.setService(null);
 	}
 
@@ -314,8 +312,6 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 			mService.close();
 			mService = null;
 		}
-		
-		bleVersion = "";
 	}
 
 	@Override
@@ -359,23 +355,5 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 			return "BT not enabled";
 		}
 		return "";
-/*
-		if (mApi != null && mApi.isConnected()) {
-			try {
-				if (bleVersion.length() == 0)
-				{
-					NurAccessoryExtension ext = new NurAccessoryExtension(mApi);
-					bleVersion = "v" + ext.getFwVersion();
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				bleVersion = "v0.0.1";
-			}
-		}
-
-		return bleVersion;
-*/
 	}
-	
-	String bleVersion = "";
 }
