@@ -412,15 +412,10 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
         Log.d(TAG, "activityResult: known devices = " + knownDevCount);
 
         if (requestCode == NurDeviceListActivity.REQUEST_SELECT_DEVICE) {
-            if (resultCode == NurDeviceListActivity.RESULT_BLE)
+            if (resultCode == NurDeviceListActivity.RESULT_OK)
             {
-                String name, address;
-
-                address = data.getStringExtra(ApplicationConstants.BLE_SELECTED_ADDRESS);
-                name = data.getStringExtra(ApplicationConstants.BLE_SELECTED_NAME);
-
-                mAutoConnectDevice = new NurDeviceSpec(address, name, NurDeviceSpec.BLE_TYPESTR, 0);
-                mDataBroker.setAutoconnectDevice(address, name);
+                mAutoConnectDevice = new NurDeviceSpec(data.getStringExtra(NurDeviceListActivity.SPECSTR));
+                mDataBroker.setAutoconnectDevice(mAutoConnectDevice);
             }
 
             if (mAutoConnectDevice != null) {
@@ -434,11 +429,10 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
         {
             if (resultCode == ApplicationConstants.RESULT_OK_BLE_RESTART)
             {
-                String name, address;
-
                 try
                 {
-                    name = data.getStringExtra(ApplicationConstants.BLE_DEVICE_NEW_NAME);
+                    String name = data.getStringExtra(ApplicationConstants.BLE_DEVICE_NEW_NAME);
+                    mAutoConnectDevice.setPart("name", name);
                 }
                 catch (Exception ex)
                 {
@@ -446,11 +440,7 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
                     return;
                 }
 
-                address = mAutoConnectDevice.getAddress();
-
-                mAutoConnectDevice = new NurDeviceSpec(address, name, NurDeviceSpec.BLE_TYPESTR, 0);
-                mDataBroker.setAutoconnectDevice(address, name);
-
+                mDataBroker.setAutoconnectDevice(mAutoConnectDevice);
                 startReaderAccessoryRestart();
             }
         }

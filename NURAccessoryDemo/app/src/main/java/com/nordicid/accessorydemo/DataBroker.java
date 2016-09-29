@@ -46,8 +46,7 @@ public class DataBroker {
 
     private static Context _preferenceContext = null;
     private static final String PREF_STORE_DEVICE = "AUTO_STORE";
-    private static final String PREF_AUTO_ADDRESS = "AUTO_ADDRESS";
-    private static final String PREF_AUTO_NAME = "AUTO_NAME";
+    private static final String PREF_CONNSPECSTR = "CONNSPECSTR";
 
     private static final String PREF_SEARCH_TIMEOUT = "SEARCH_TIMEOUT";
     private static final String PREF_BARCODE_SCAN_TIMEOUT = "BARCODE_SCAN_TIMEOUT";
@@ -179,15 +178,12 @@ public class DataBroker {
             return savePreferences();
         }
 
-        String strAutoAddr = "";
-        String strAutoName = "";
-
-        strAutoAddr = prefs.getString (PREF_AUTO_ADDRESS, "");
-        strAutoName = prefs.getString(PREF_AUTO_NAME, "");
+        String connSpecStr = prefs.getString(PREF_CONNSPECSTR, "");
+        NurDeviceSpec devSpec = new NurDeviceSpec(connSpecStr);
 
         // public NurDeviceSpec(String connectionAddress, String name, String connectionType, int port)
-        if (!strAutoAddr.isEmpty() && !strAutoName.isEmpty() && checkForOkMac(strAutoAddr))
-            _autoconnectDevice = new NurDeviceSpec(strAutoAddr, strAutoName, NurDeviceSpec.BLE_TYPESTR, 0);
+        if (!devSpec.getAddress().isEmpty() && !devSpec.getName().isEmpty() && checkForOkMac(devSpec.getAddress()))
+            _autoconnectDevice = new NurDeviceSpec(connSpecStr);
         else
             _autoconnectDevice = null;
 
@@ -208,17 +204,14 @@ public class DataBroker {
         _preferenceContext = ctx;
     }
 
-    public boolean setAutoconnectDevice(String strAddress, String strName)
+    public boolean setAutoconnectDevice(NurDeviceSpec connSpec)
     {
-        if (!strAddress.isEmpty() && !strName.isEmpty() && _preferenceContext != null)
+        if (!connSpec.getAddress().isEmpty() && !connSpec.getName().isEmpty() && _preferenceContext != null)
         {
             SharedPreferences prefs = _preferenceContext.getSharedPreferences(ApplicationConstants.APP_PREFERENCES_NAME, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
 
-            _autoconnectDevice = new NurDeviceSpec(strAddress, strName, NurDeviceSpec.BLE_TYPESTR, 0);
-            editor.putString(PREF_AUTO_ADDRESS, strAddress);
-            editor.putString(PREF_AUTO_NAME, strName);
-
+            editor.putString(PREF_CONNSPECSTR, connSpec.getSpec());
             editor.apply();
             return true;
         }
@@ -234,9 +227,7 @@ public class DataBroker {
             SharedPreferences prefs = _preferenceContext.getSharedPreferences(ApplicationConstants.APP_PREFERENCES_NAME, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
 
-            editor.putString(PREF_AUTO_ADDRESS, "");
-            editor.putString(PREF_AUTO_NAME, "");
-
+            editor.putString(PREF_CONNSPECSTR, "");
             editor.apply();
         }
     }
@@ -253,25 +244,14 @@ public class DataBroker {
 
         SharedPreferences prefs = _preferenceContext.getSharedPreferences(ApplicationConstants.APP_PREFERENCES_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        String strAutoAddr = "";
-        String strAutoName = "";
-        
+        String strConnSpec = "";
+
         if (_autoconnectDevice != null)
         {
-            strAutoAddr = _autoconnectDevice.getAddress();
-            strAutoName = _autoconnectDevice.getName();
+            strConnSpec = _autoconnectDevice.getSpec();
         }
 
-        if (!strAutoAddr.isEmpty() && !strAutoName.isEmpty() && checkForOkMac(strAutoAddr))
-        {
-            editor.putString(PREF_AUTO_ADDRESS, strAutoAddr);
-            editor.putString(PREF_AUTO_NAME, strAutoName);
-        }
-        else
-        {
-            editor.putString(PREF_AUTO_ADDRESS, "");
-            editor.putString(PREF_AUTO_NAME, "");
-        }
+        editor.putString(PREF_CONNSPECSTR, strConnSpec);
 
         editor.putInt(PREF_SEARCH_TIMEOUT, _bleScanTimeout);
         editor.putInt(PREF_BARCODE_SCAN_TIMEOUT, _barcodeScanTimeout);
