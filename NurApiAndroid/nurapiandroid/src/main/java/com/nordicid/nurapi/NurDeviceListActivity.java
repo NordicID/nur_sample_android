@@ -147,7 +147,8 @@ public class NurDeviceListActivity extends Activity  {
             return;
         }
 
-        if (requestingBLEDevices() && !checkForBluetooth())
+        // If requesting only BT devices, check for BT on
+        if (mRequestedDevices == REQ_BLE_DEVICES && !checkForBluetooth())
         {
             Toast.makeText(this, R.string.text_bt_not_on, Toast.LENGTH_SHORT).show();
             finish();
