@@ -113,12 +113,10 @@ public class SubApp extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		
-		View view;
+		View view = inflater.inflate(getLayout(), container, false);
+		mButtonBar = (LinearLayout) getActivity().getWindow().getDecorView().findViewById(R.id.app_button_bar);
 		mButtonBarButtonCount = 0;
 		
-			view = inflater.inflate(getLayout(), container, false);
-			mButtonBar = (LinearLayout) getActivity().getWindow().getDecorView().findViewById(R.id.app_button_bar);
-
 		getActivity().getActionBar().setTitle(getAppName());
 		
 		return view;
