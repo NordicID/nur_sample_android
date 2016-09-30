@@ -35,7 +35,7 @@
     <string name="about_dialog_app">App version:</string>
 
     <string name="write_tag_hint">Select a tag to write</string>
-    <string name="locatable_epc_hint">Locatable tags EPC..</string>
+    <string name="locatable_epc_hint">Select EPC to locate from list</string>
     <string name="new_epc_hint">New EPC..</string>
     
     <string name="location_stopped">Trace stopped</string>

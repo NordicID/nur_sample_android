@@ -9,7 +9,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/holo_orange_light"
-        android:orientation="vertical" >
+        android:orientation="vertical"
+        android:padding="5dp">
         
         <ProgressBar 
 	        android:layout_height="wrap_content"
@@ -45,15 +46,16 @@
 
     </RelativeLayout>
     
-    <EditText
+    <TextView
             android:id="@+id/locate_epc_edittext"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="1dp"
             android:layout_marginTop="20dp"
-            android:ems="10"
+            android:gravity="center"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:hint="@string/locatable_epc_hint"
-            android:inputType="text" />
+            android:inputType="none"/>
     
     <include 
         layout="@layout/taglist"
