@@ -105,4 +105,9 @@
     <string name="text_tags_auth_ok">Tags authenticated OK</string>
     <string name="text_tags_auth_failed">Failed authentications</string>
 
+    <string name="text_auth_keys_missing">Missing keys</string>
+    <string name="text_auth_key_setup_query">The authentication keys are not loaded.\nWould you like to go to setup and select the key file?</string>
+
+    <string name="text_key_set_loaded">Loaded %1$d keys, using set %2$d</string>
+
 </resources>

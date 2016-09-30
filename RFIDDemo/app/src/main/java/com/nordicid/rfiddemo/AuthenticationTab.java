@@ -13,7 +13,7 @@ import android.widget.TextView;
 import com.nordicid.tagauth.ISO29167_10;
 
 public class AuthenticationTab extends Fragment {
-	private AuthenticationAppTabbed mOwner;
+	// private AuthenticationAppTabbed mOwner;
 	
 	private TextView mTagsProcessed;
 	private TextView mTagsOk;
@@ -22,7 +22,7 @@ public class AuthenticationTab extends Fragment {
 	private Handler mHandler;
 
 	public AuthenticationTab() {
-		mOwner = AuthenticationAppTabbed.getInstance();
+		// mOwner = AuthenticationAppTabbed.getInstance();
 		mHandler = new Handler(Looper.getMainLooper());
 	}
 

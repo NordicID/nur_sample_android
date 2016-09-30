@@ -280,8 +280,6 @@ public class Main extends AppTemplate {
         super.onResume();
     }
 
-    private boolean mAuthAppAdded = false;
-
     @Override
     public void onCreateSubApps(SubAppList subAppList) {
         gInstance = this;
@@ -306,6 +304,7 @@ public class Main extends AppTemplate {
 
 		/* Authentication application. */
         subAppList.addSubApp(new AuthenticationAppTabbed());
+        getSubAppList().getApp("Authentication").setIsVisibleInMenu(false);
 
 		/* Test mode application. */
         subAppList.addSubApp(new TestModeApp());
@@ -327,15 +326,17 @@ public class Main extends AppTemplate {
                 Toast.makeText(Main.this, getString(R.string.reader_disconnected), Toast.LENGTH_SHORT).show();
 
                 getSubAppList().getApp("Barcode").setIsVisibleInMenu(false);
+                getSubAppList().getApp("Authentication").setIsVisibleInMenu(false);
             }
 
             @Override
             public void connectedEvent() {
                 updateStatus();
+                int fwVer = getFwIntVersion(getNurApi());
                 Toast.makeText(Main.this, getString(R.string.reader_connected), Toast.LENGTH_SHORT).show();
-
                 // Show barcode app only for accessory devices
                 getSubAppList().getApp("Barcode").setIsVisibleInMenu(getAccessorySupported());
+                getSubAppList().getApp("Authentication").setIsVisibleInMenu(fwVer >= AUTH_REQUIRED_VERSION);
             }
 
             @Override

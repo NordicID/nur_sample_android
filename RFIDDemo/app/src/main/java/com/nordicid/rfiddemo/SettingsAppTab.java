@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.Toast;
 
 import com.nordicid.nurapi.NurApiListener;
 
@@ -51,6 +52,7 @@ public class SettingsAppTab extends Fragment {
         settingEditor = settings.edit();
         rotationEnabled = settings.getBoolean("Rotation",false);
         soundsEnabled = !settings.getBoolean("Sounds",true);
+
         return inflater.inflate(R.layout.tab_settings_app, container, false);
     }
 
@@ -83,6 +85,5 @@ public class SettingsAppTab extends Fragment {
         mAppSoundsCheckBox.setOnCheckedChangeListener(mOnCheckedChangeListenerSounds);
         mScreenOrientationCheckBox.setChecked(rotationEnabled);
         mAppSoundsCheckBox.setChecked(soundsEnabled);
-
     }
 }

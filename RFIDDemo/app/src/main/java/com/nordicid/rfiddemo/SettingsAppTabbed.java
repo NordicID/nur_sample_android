@@ -23,10 +23,15 @@ import com.nordicid.nurapi.NurEventTriggeredRead;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.PagerTitleStrip;
+import android.support.v4.view.ViewPager;
+import android.widget.Toast;
 
 public class SettingsAppTabbed extends SubAppTabbed { 
-	
+	private static String mPreferredTab = "";
+
 	private SettingsAppSettingsTab mSettingsTab;
 	private SettingsAppTuneTab mSettingsTuneTab;
 	private SettingsAppHidTab mSettingsHidTab;
@@ -40,7 +45,21 @@ public class SettingsAppTabbed extends SubAppTabbed {
 		return gInstance;
 	}
 
-    @Override
+	public static void setPreferredTab(String preferredTab)
+	{
+		mPreferredTab = preferredTab;
+	}
+
+	@Override
+	protected String onGetPreferredTab()
+	{
+		String preferredTab = mPreferredTab;
+		mPreferredTab = "";
+
+		return preferredTab;
+	}
+
+	@Override
     public void onAttach(Activity context){
         super.onAttach(context);
     }
@@ -126,10 +145,10 @@ public class SettingsAppTabbed extends SubAppTabbed {
 
 		fragmentNames.add("Authentication");
 		fragments.add(mSettingsAuthTab);
-		
+
 		return R.id.pager;
 	}
-	
+
 	@Override
 	public void onVisibility(boolean val)
 	{

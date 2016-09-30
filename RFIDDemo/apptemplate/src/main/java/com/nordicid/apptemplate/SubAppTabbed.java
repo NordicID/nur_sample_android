@@ -17,14 +17,14 @@ import android.view.View;
 public class SubAppTabbed extends SubApp {
 
 	protected static final Field sChildFragmentManagerField; //For a workaround if nested fragments used.
-	
+
 	private SubAppTabbedPagerAdapter mPagerAdapter;
 	protected ViewPager mPager;
 	
 	protected int mPagerID = -1;
 	protected ArrayList<Fragment> mFragments = new ArrayList<Fragment>();
 	protected ArrayList<String> mFragmentNames = new ArrayList<String>();
-	
+
 	public SubAppTabbed() {
 		super();
 	}
@@ -32,6 +32,11 @@ public class SubAppTabbed extends SubApp {
 	protected int onGetFragments(ArrayList<Fragment> fragments, ArrayList<String> fragmentNames) throws Exception
 	{
 		throw new Exception("Not implemented");
+	}
+
+	protected String onGetPreferredTab()
+	{
+		return "";
 	}
 	
 	@Override
@@ -44,6 +49,18 @@ public class SubAppTabbed extends SubApp {
 			mPagerAdapter = new SubAppTabbedPagerAdapter(getChildFragmentManager());
 			mPager = (ViewPager) view.findViewById(mPagerID);
 			mPager.setAdapter(mPagerAdapter);
+
+			String preferredTab;
+			preferredTab = onGetPreferredTab();
+			if(!preferredTab.isEmpty())
+			{
+				int tabIndex;
+				tabIndex = mFragmentNames.indexOf(preferredTab);
+
+				if (tabIndex >= 0) {
+					mPager.setCurrentItem(tabIndex);
+				}
+			}
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

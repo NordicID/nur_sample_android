@@ -5,6 +5,8 @@ import com.nordicid.controllers.AuthenticationController;
 import com.nordicid.nurapi.NurApiListener;
 import com.nordicid.nurapi.NurTag;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -19,7 +21,10 @@ import java.util.HashMap;
 
 public class AuthenticationAppTabbed extends SubAppTabbed {
 
+	private static boolean mSetupQueryPosted = false;
+
 	private Button mStartStopBtn;
+	private Button mSetupBtn;
 	private Handler mHandler;
 
 	// Main view: processed , OK and failed tags; key set to use text.
@@ -77,6 +82,7 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 				tagFound(newTag, mFailedTagHash, false);
 				mAuthTab.updateFailCount(mFailedTagHash.size());
 				mFailedTagsTab.updateAll();
+
 			}
 
 			@Override
@@ -128,6 +134,9 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 	{
 		if (!isVisible())
 			return;
+
+		boolean keysWereOk = false;
+
 		mStartStopBtn.setEnabled(false);
 		mStartStopBtn.setText("Start");
 
@@ -137,9 +146,13 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 				mAuthController.getAuthKeyNumber();
 				// ...if not, then enable the start/stop button.
 				mStartStopBtn.setEnabled(true);
+				keysWereOk = true;
 			}
 		}
 		catch (Exception ex) { }
+
+		if (!keysWereOk)
+			postSetupQuery();
 	}
 
 	private void handleReaderDisconnect()
@@ -149,6 +162,8 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 
 		mStartStopBtn.setEnabled(false);
 		mStartStopBtn.setText("Start");
+		// Ask again next time.
+		mSetupQueryPosted = false;
 	}
 
 	/**
@@ -199,8 +214,10 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 	}
 
 	private void handleStartStop() {
-		if (mAuthController.isAuthenticationRunning())
+		if (mAuthController.isAuthenticationRunning()) {
 			mAuthController.stopAuthentication();
+			mSetupBtn.setEnabled(true);
+		}
 		else {
 			if (!getNurApi().isConnected())
 			{
@@ -219,6 +236,8 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 
 			if (!mAuthController.startTAM1Authentication())
 				Toast.makeText(getActivity(), "Authentication start error", Toast.LENGTH_SHORT).show();
+			else
+				mSetupBtn.setEnabled(false);
 		}
 	}
 
@@ -280,6 +299,13 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 			}
 		});
 
+		mSetupBtn = addButtonBarButton("Setup", new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				goToSetup();
+			}
+		});
+
 		mStartStopBtn.setEnabled(getNurApi().isConnected());
 		super.onViewCreated(view, savedInstanceState);
 	}
@@ -312,19 +338,62 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 				mAuthController.setAuthKeyNumber(keyNumber);
 				ok = true;
 			}
-			else {
-				Toast.makeText(getActivity(), "Key read error:\n" + AuthenticationController.keyErrorToString(result), Toast.LENGTH_SHORT).show();
-			}
 		}
 		catch (Exception ex) { }
 
 		if (!ok)
-			Toast.makeText(getActivity(), "Authentication key setup error.", Toast.LENGTH_SHORT).show();
+			postSetupQuery();
 		else {
-			Toast.makeText(getActivity(), "Loaded " + keyCount + " keys, using set " + keyNumber, Toast.LENGTH_SHORT).show();
+			// getString(R.string.text_key_set_loaded, keyCount, keyNumber);
+			// Toast.makeText(getActivity(), "Loaded " + keyCount + " keys, using set " + keyNumber, Toast.LENGTH_SHORT).show();
+			Toast.makeText(getActivity(), String.format(getString(R.string.text_key_set_loaded), keyCount, keyNumber), Toast.LENGTH_SHORT).show();
 		}
 
 		mStartStopBtn.setEnabled(ok);
+	}
+
+	void postSetupQuery()
+	{
+		if (mSetupQueryPosted)
+			return;
+
+		mHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				querySetupStart();
+			}
+		});
+	}
+
+	private void querySetupStart()
+	{
+		AlertDialog.Builder builder;
+		builder = new AlertDialog.Builder(getActivity())
+				.setTitle(R.string.text_auth_keys_missing)
+				.setMessage(R.string.text_auth_key_setup_query)
+				.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						mSetupQueryPosted = true;
+						goToSetup();
+					}
+				})
+				.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						mSetupQueryPosted = true;
+					}
+				})
+				.setIcon(android.R.drawable.ic_dialog_alert);
+
+		builder.show();
+	}
+
+	private void goToSetup()
+	{
+		if (mAuthController.isAuthenticationRunning())
+			return;
+
+		SettingsAppTabbed.setPreferredTab("Authentication");
+		getAppTemplate().setApp("Settings");
 	}
 
 	@Override
