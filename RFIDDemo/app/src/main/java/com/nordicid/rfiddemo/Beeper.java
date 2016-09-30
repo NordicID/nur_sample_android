@@ -10,10 +10,11 @@ import com.nordicid.apptemplate.AppTemplate;
  */
 public class Beeper {
 
-    public static final int SHORT = 0;
-    public static final int LONG = 1;
-    public static final int FAIL = 2;
-    private static final int LAST = 3;
+    public static final int BEEP_40MS = 0;
+    public static final int BEEP_100MS = 1;
+    public static final int BEEP_300MS = 2;
+    public static final int FAIL = 3;
+    private static final int LAST = 4;
 
     static SoundPool mSoundPool = null;
     static boolean mEnabled = true;
@@ -52,8 +53,9 @@ public class Beeper {
         if (mSoundPool == null)
         {
             mSoundPool = new SoundPool(LAST, AudioManager.STREAM_MUSIC, 0);
-            mSoundIDs[SHORT] = mSoundPool.load(AppTemplate.getAppTemplate(), R.raw.blep, 1);
-            mSoundIDs[LONG] = mSoundPool.load(AppTemplate.getAppTemplate(), R.raw.bleep, 1);
+            mSoundIDs[BEEP_40MS] = mSoundPool.load(AppTemplate.getAppTemplate(), R.raw.blep_40ms, 1);
+            mSoundIDs[BEEP_100MS] = mSoundPool.load(AppTemplate.getAppTemplate(), R.raw.blep_100ms, 1);
+            mSoundIDs[BEEP_300MS] = mSoundPool.load(AppTemplate.getAppTemplate(), R.raw.blep_300ms, 1);
             mSoundIDs[FAIL] = mSoundPool.load(AppTemplate.getAppTemplate(), R.raw.blipblipblip, 1);
         }
     }

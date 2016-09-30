@@ -331,6 +331,7 @@ public class InventoryController {
 
 		// Start beeper thread
 		mBeeperThread = new Thread(mBeeperThreadRunnable);
+		mBeeperThread.setPriority(Thread.MIN_PRIORITY);
 		mBeeperThread.start();
 
 		// Notify state change
@@ -392,10 +393,10 @@ public class InventoryController {
 			{
 				if (mAddedUnique > 0) {
 					int sleepTime = 100 - mAddedUnique;
-					int beepDuration = Beeper.SHORT;
+					int beepDuration = Beeper.BEEP_40MS;
 
-					if (sleepTime < 10)
-						sleepTime = 10;
+					if (sleepTime < 40)
+						sleepTime = 40;
 
 					Beeper.beep(beepDuration);
 

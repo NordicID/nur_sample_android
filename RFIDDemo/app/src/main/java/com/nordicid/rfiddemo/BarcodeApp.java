@@ -1,12 +1,10 @@
 package com.nordicid.rfiddemo;
 
-import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.apptemplate.SubApp;
 import com.nordicid.nuraccessory.AccessoryBarcodeResult;
 import com.nordicid.nuraccessory.AccessoryBarcodeResultListener;
 import com.nordicid.nuraccessory.NurAccessoryConfig;
 import com.nordicid.nuraccessory.NurAccessoryExtension;
-import com.nordicid.nurapi.NurApi;
 import com.nordicid.nurapi.NurApiErrors;
 import com.nordicid.nurapi.NurApiListener;
 import com.nordicid.nurapi.NurEventAutotune;
@@ -25,7 +23,6 @@ import com.nordicid.nurapi.NurEventTriggeredRead;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -84,7 +81,7 @@ public class BarcodeApp extends SubApp {
                     clipboard.setPrimaryClip(clip);
                     //Toast.makeText(getActivity(), "Barcode copied to clipboard", Toast.LENGTH_SHORT).show();
 
-					Beeper.beep(Beeper.SHORT);
+					Beeper.beep(Beeper.BEEP_100MS);
 					/*try {
 						// Beep on success
 						//mAccessoryExt.beepAsync(200);
