@@ -29,7 +29,7 @@
     <string name="about_dialog_model">Model:</string>
     <string name="about_dialog_serial">Serial:</string>
     <string name="about_dialog_firmware">Firmware:</string>
-    <string name="about_dialog_bootloader">bootloader:</string>
+    <string name="about_dialog_bootloader">Bootloader:</string>
     <string name="about_dialog_accessory">Accessory:</string>
     <string name="about_dialog_nurapi">NurApi version:</string>
     <string name="about_dialog_app">App version:</string>
