@@ -173,7 +173,10 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	 */
 	public SubApp getCurrentOpenSubApp() {
 
-		return getVisibleSubApp(currentOpenSubApp);
+		SubApp ret = getVisibleSubApp(currentOpenSubApp);
+		if (ret == null)
+			currentOpenSubApp = "";
+		return ret;
 	}
 	
 	/**
