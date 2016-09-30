@@ -2,6 +2,7 @@ package com.nordicid.rfiddemo;
 
 import java.util.ArrayList;
 
+import com.nordicid.nurapi.AntennaMapping;
 import com.nordicid.nurapi.NurApi;
 import com.nordicid.nurapi.NurTuneResponse;
 
@@ -70,7 +71,8 @@ public class SettingsAppTuneTab extends Fragment
 	String text;
 	ProgressDialog barProgressDialog;
 	int mCurAnt = 0;
-	
+	AntennaMapping[] mAntMapping = null;
+
 	void doTune()
 	{
 		//if (barProgressDialog == null)
@@ -90,7 +92,13 @@ public class SettingsAppTuneTab extends Fragment
 	            	if (inputMessage.what == 0)
 	            	{
 	            		int ant = (Integer)inputMessage.obj;
-	            		barProgressDialog.setMessage("Tuning antenna #" + (ant+1));
+	            		String text;
+						if (ant >= mAntMapping.length)
+							text = "Tuning antenna #" + (ant+1);
+						else
+							text = "Tuning " + mAntMapping[ant].name;
+
+						barProgressDialog.setMessage(text);
 	            	}
 	            	else if (inputMessage.what == 1)
 	            	{
@@ -98,7 +106,11 @@ public class SettingsAppTuneTab extends Fragment
 	            		barProgressDialog.setProgress(mCurAnt);
 	            		
 	            		NurTuneResponse[] r = (NurTuneResponse[])inputMessage.obj;
-	            		text += "Antenna " + (r[0].antenna+1) + ":\n";
+						if (r[0].antenna >= mAntMapping.length)
+	            			text += "Antenna #" + (r[0].antenna+1) + ":\n";
+						else
+							text += mAntMapping[r[0].antenna].name + ":\n";
+
 	            		for (int n=0; n<r.length; n++)
 	            		{
 	            			if (n > 0)
@@ -123,6 +135,10 @@ public class SettingsAppTuneTab extends Fragment
 				
 				mEditText.setText("Please wait..");
 				text = "Tune Results\n\n";
+
+				try {
+					mAntMapping = mApi.getAntennaMapping();
+				} catch (Exception e) { }
 				
 				int antennaMask = mApi.getSetupAntennaMaskEx();
 				final ArrayList <Integer> selInd = new ArrayList<Integer>();
@@ -183,6 +199,10 @@ public class SettingsAppTuneTab extends Fragment
 			try {
 				mEditText.setText("Please wait..");
 				text = "Reflected power\n\n";
+
+				try {
+					mAntMapping = mApi.getAntennaMapping();
+				} catch (Exception e) { }
 				
 				int antennaMask = mApi.getSetupAntennaMaskEx();
 				final ArrayList <Integer> selInd = new ArrayList<Integer>();
@@ -200,7 +220,14 @@ public class SettingsAppTuneTab extends Fragment
 					{
 						mApi.setSetupSelectedAntenna(selInd.get(n));
 						float val = mApi.getReflectedPowerF();		
-						text += "Antenna " + (selInd.get(n)+1) + ": "+val+"\n";
+						//text += "Antenna " + (selInd.get(n)+1) + ": "+val+"\n";
+
+						if (selInd.get(n) >= mAntMapping.length)
+							text += "Antenna #"+(selInd.get(n)+1);
+						else
+							text += mAntMapping[selInd.get(n)].name;
+
+						text += ": "+val+"\n";
 					}
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
