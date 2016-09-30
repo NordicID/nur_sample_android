@@ -207,6 +207,11 @@ public class AppTemplate extends FragmentActivity {
 	private boolean backPressedOnce;
 	private boolean applicationPaused = true;
 	private boolean showMenuAnimation;
+
+	public boolean isApplicationPaused()
+	{
+		return applicationPaused;
+	}
 	
 	/**
 	 * Indicates if the current device has a large screen
@@ -434,8 +439,7 @@ public class AppTemplate extends FragmentActivity {
 			}
 			else {
 				// Go back to main menu
-				mSubAppList.setCurrentOpenSubApp(null);
-				setFragments(false);
+				openSubApp(null);
 			}
 		}
 		else {
@@ -486,24 +490,31 @@ public class AppTemplate extends FragmentActivity {
 	 */
 	public void setApp(String name) {
 
-		SubApp app = mSubAppList.getVisibleSubApp(name);
-		
-		if (app == null) {
-			Toast.makeText(this, "App with name \""+name+"\" not found", Toast.LENGTH_SHORT).show();
+		if (name == null) {
+			openSubApp(null);
 		}
 		else {
-			openSubApp(app);
+			SubApp app = mSubAppList.getVisibleSubApp(name);
+
+			if (app == null) {
+				Toast.makeText(this, "App with name \"" + name + "\" not found", Toast.LENGTH_SHORT).show();
+			} else {
+				openSubApp(app);
+			}
 		}
-		
-		changeSubAppListener();
 	}
 	
 	/**
 	 *  Used internally to open some SubApp
 	 */
 	private void openSubApp(SubApp app) {
- 
-		if (app != mSubAppList.getCurrentOpenSubApp() && !app.isVisible()) {
+		if (app == null)
+		{
+			// Go back to main menu
+			mSubAppList.setCurrentOpenSubApp(null);
+			setFragments(false);
+		}
+		else if (app != mSubAppList.getCurrentOpenSubApp() && !app.isVisible()) {
 			mSubAppList.setCurrentOpenSubApp(app);
 			setFragments(false);
 		}
