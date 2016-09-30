@@ -9,6 +9,8 @@ import android.widget.TextView;
 
 import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.nurapi.NurApi;
+import com.nordicid.nurapi.NurApiErrors;
+import com.nordicid.nurapi.NurApiException;
 import com.nordicid.nurapi.NurApiListener;
 import com.nordicid.nurapi.NurEventAutotune;
 import com.nordicid.nurapi.NurEventClientInfo;
@@ -291,9 +293,19 @@ public class InventoryController {
 		// Clear old readings
 		clearInventoryReadings();
 		// Perform inventory
-		mApi.inventory();
-		// Fetch tags from NUR
-		mApi.fetchTags();
+		try {
+			mApi.inventory();
+			// Fetch tags from NUR
+			mApi.fetchTags();
+		}
+		catch (NurApiException ex)
+		{
+			// Did not get any tags
+			if (ex.error == NurApiErrors.NO_TAG)
+				return true;
+
+			throw ex;
+		}
 		// Handle inventoried tags
 		handleInventoryResult();
 
