@@ -327,6 +327,10 @@ public class Main extends AppTemplate {
 
                 getSubAppList().getApp("Barcode").setIsVisibleInMenu(false);
                 getSubAppList().getApp("Authentication").setIsVisibleInMenu(false);
+
+                // If current app not available anymore, return to main menu
+                if (!isApplicationPaused() && getSubAppList().getCurrentOpenSubApp() == null)
+                    setApp(null);
             }
 
             @Override
