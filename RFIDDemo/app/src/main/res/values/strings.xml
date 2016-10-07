@@ -29,13 +29,13 @@
     <string name="about_dialog_model">Model:</string>
     <string name="about_dialog_serial">Serial:</string>
     <string name="about_dialog_firmware">Firmware:</string>
-    <string name="about_dialog_bootloader">bootloader:</string>
+    <string name="about_dialog_bootloader">Bootloader:</string>
     <string name="about_dialog_accessory">Accessory:</string>
     <string name="about_dialog_nurapi">NurApi version:</string>
     <string name="about_dialog_app">App version:</string>
 
     <string name="write_tag_hint">Select a tag to write</string>
-    <string name="locatable_epc_hint">Locatable tags EPC..</string>
+    <string name="locatable_epc_hint">Select EPC to locate from list</string>
     <string name="new_epc_hint">New EPC..</string>
     
     <string name="location_stopped">Trace stopped</string>

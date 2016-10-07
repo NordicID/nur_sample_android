@@ -19,6 +19,8 @@ import com.nordicid.nurapi.NurRespReadData;
 import com.nordicid.rfiddemo.Beeper;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
+import android.util.Log;
 
 public class TraceTagController {
 
@@ -27,7 +29,6 @@ public class TraceTagController {
 	private TraceTagListener mTraceListener;
 	private TraceAntennaSelector mTraceAntSelector = new TraceAntennaSelector();
 
-	private long mLastUpdateTime = 0;
 	private long mUpdateInterVal = 100;
 
 	private Handler mHandler;
@@ -38,8 +39,11 @@ public class TraceTagController {
 			handleTraceTag(event);
 		}
 
-		@Override
-		public void IOChangeEvent(NurEventIOChange arg0) { }
+		@Override public void IOChangeEvent(NurEventIOChange event) {
+			if (mTraceListener != null) {
+				mTraceListener.IOChangeEvent(event);
+			}
+		}
 
 		@Override
 		public void bootEvent(String arg0) { }
@@ -121,19 +125,13 @@ public class TraceTagController {
 
 		mTracedTagInfo.scaledRssi = signalStrength;
 
-		final long currentTime = System.currentTimeMillis();
-
-		if (currentTime - mLastUpdateTime > mUpdateInterVal) 
-		{
-			mHandler.removeCallbacksAndMessages(null);
-			mHandler.post(new Runnable() {
-				@Override
-				public void run() {
-					mTraceListener.traceTagEvent(mTracedTagInfo);
-					mLastUpdateTime = currentTime;
-				}
-			});
-		}
+		mHandler.removeCallbacksAndMessages(null);
+		mHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				mTraceListener.traceTagEvent(mTracedTagInfo);
+			}
+		});
 	}
 
 	private NurEventTraceTag doTracePass()
@@ -174,14 +172,19 @@ public class TraceTagController {
 			{
 				int avgStrength = mTraceAntSelector.getSignalStrength();
 				int sleepTime = 1000;
-				int beepDuration = Beeper.LONG;
+				int beepDuration = Beeper.BEEP_300MS;
 
-				if (avgStrength > 0)
-                {
-                    sleepTime = 190 - avgStrength;
-                    beepDuration = Beeper.SHORT;
-                }
-				
+				if (avgStrength > 70)
+				{
+					sleepTime = 150 - avgStrength;
+					beepDuration = Beeper.BEEP_40MS;
+				}
+				else if (avgStrength > 0)
+				{
+					sleepTime = 200 - avgStrength;
+					beepDuration = Beeper.BEEP_100MS;
+				}
+
 				Beeper.beep(beepDuration);
 
 				try {
@@ -207,9 +210,21 @@ public class TraceTagController {
 			
 			while (mTraceRunning)
 			{
+				long t1 = System.currentTimeMillis();
 				NurEventTraceTag ev = doTracePass();
-				if (mTraceRunning)
+				long t2 = System.currentTimeMillis();
+				if (mTraceRunning) {
 					handleTraceTag(ev);
+
+					try {
+						int sleepTime = (int)(mUpdateInterVal - (t2-t1));
+						if (sleepTime < 10)
+							sleepTime = 10;
+						Thread.sleep(sleepTime);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 			
 			try {
@@ -246,6 +261,7 @@ public class TraceTagController {
 				mTraceThread.start();
 				
 				mBeeperThread = new Thread(mBeeperThreadRunnable);
+				mBeeperThread.setPriority(Thread.MIN_PRIORITY);
 				mBeeperThread.start();
 			} catch (Exception err) {
 				err.printStackTrace();
@@ -299,6 +315,7 @@ public class TraceTagController {
 		public void traceTagEvent(TracedTagInfo data);
 		public void readerDisconnected();
 		public void readerConnected();
+		public void IOChangeEvent(NurEventIOChange event);
 	}
 
 	public class TracedTagInfo {		

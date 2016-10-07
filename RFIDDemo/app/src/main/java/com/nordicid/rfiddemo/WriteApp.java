@@ -186,7 +186,7 @@ public class WriteApp extends SubApp {
 							if (succeeded) {
 								Toast.makeText(getActivity(), "Tag write succeeded", Toast.LENGTH_SHORT).show();
 								dialog.dismiss();
-								Beeper.beep(Beeper.SHORT);
+								Beeper.beep(Beeper.BEEP_100MS);
 							} else {
 								Toast.makeText(getActivity(), "Tag write failed miserably!\n"+mTagWriteController.getLastWriteError(), Toast.LENGTH_SHORT).show();
 								Beeper.beep(Beeper.FAIL);

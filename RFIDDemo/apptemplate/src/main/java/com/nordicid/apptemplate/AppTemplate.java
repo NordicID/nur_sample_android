@@ -29,6 +29,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ActionProvider;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -51,7 +52,9 @@ import android.widget.Toast;
  */
 
 public class AppTemplate extends FragmentActivity {
-	
+
+	static final String TAG = "AppTemplate";
+
 	private SubAppList mSubAppList;
 	
 	private DrawerLayout mDrawerLayout;
@@ -134,6 +137,9 @@ public class AppTemplate extends FragmentActivity {
 		
 		@Override
 		public void disconnectedEvent() {
+			if (exitingApplication())
+				return;
+
 			mAccessorySupported = false;
 			if (mAppListener != null)
 				mAppListener.disconnectedEvent();
@@ -201,6 +207,11 @@ public class AppTemplate extends FragmentActivity {
 	private boolean backPressedOnce;
 	private boolean applicationPaused = true;
 	private boolean showMenuAnimation;
+
+	public boolean isApplicationPaused()
+	{
+		return applicationPaused;
+	}
 	
 	/**
 	 * Indicates if the current device has a large screen
@@ -365,6 +376,7 @@ public class AppTemplate extends FragmentActivity {
 	@Override
 	public void onConfigurationChanged(Configuration newConfig)
 	{
+		Log.d(TAG, "onConfigurationChanged() newConfig.orientation " + newConfig.orientation);
 		super.onConfigurationChanged(newConfig);
 
 		if (mNoConfigChangeCheck == false)
@@ -386,6 +398,7 @@ public class AppTemplate extends FragmentActivity {
 					mCloseButton.setVisible(true);
 			}
 		}
+
 		if (!applicationPaused) {
 			setFragments(true);
 		}
@@ -426,8 +439,7 @@ public class AppTemplate extends FragmentActivity {
 			}
 			else {
 				// Go back to main menu
-				mSubAppList.setCurrentOpenSubApp(null);
-				setFragments(false);
+				openSubApp(null);
 			}
 		}
 		else {
@@ -478,24 +490,31 @@ public class AppTemplate extends FragmentActivity {
 	 */
 	public void setApp(String name) {
 
-		SubApp app = mSubAppList.getVisibleSubApp(name);
-		
-		if (app == null) {
-			Toast.makeText(this, "App with name \""+name+"\" not found", Toast.LENGTH_SHORT).show();
+		if (name == null) {
+			openSubApp(null);
 		}
 		else {
-			openSubApp(app);
+			SubApp app = mSubAppList.getVisibleSubApp(name);
+
+			if (app == null) {
+				Toast.makeText(this, "App with name \"" + name + "\" not found", Toast.LENGTH_SHORT).show();
+			} else {
+				openSubApp(app);
+			}
 		}
-		
-		changeSubAppListener();
 	}
 	
 	/**
 	 *  Used internally to open some SubApp
 	 */
 	private void openSubApp(SubApp app) {
- 
-		if (app != mSubAppList.getCurrentOpenSubApp() && !app.isVisible()) {
+		if (app == null)
+		{
+			// Go back to main menu
+			mSubAppList.setCurrentOpenSubApp(null);
+			setFragments(false);
+		}
+		else if (app != mSubAppList.getCurrentOpenSubApp() && !app.isVisible()) {
 			mSubAppList.setCurrentOpenSubApp(app);
 			setFragments(false);
 		}
@@ -553,12 +572,14 @@ public class AppTemplate extends FragmentActivity {
 						mFragmentTransaction.setCustomAnimations(R.anim.default_enter_menu, R.anim.default_exit_menu);
 						showMenuAnimation = false;
 					}*/
-					mFragmentTransaction.add(R.id.content, mSubAppList);
+					mFragmentTransaction.replace(R.id.content, mSubAppList);
 					mFragmentTransaction.commit();
 				}
 
 				if (mCloseButton != null)
 					mCloseButton.setVisible(false);
+
+				getActionBar().setTitle(R.string.app_name);
 			}
 			else
 			{
@@ -572,11 +593,11 @@ public class AppTemplate extends FragmentActivity {
 
 				// Add subapp
 				mFragmentTransaction = mFragmentManager.beginTransaction();
-				mFragmentTransaction.add(R.id.content, currentOpenSubApp);
+				mFragmentTransaction.replace(R.id.content, currentOpenSubApp);
 				mFragmentTransaction.commit();
 				lastSetFragment = currentOpenSubApp;
 
-				getActionBar().setTitle(R.string.app_name);
+				getActionBar().setTitle(currentOpenSubApp.getAppName());
 
 				if (mCloseButton != null)
 					mCloseButton.setVisible(true);
@@ -596,7 +617,7 @@ public class AppTemplate extends FragmentActivity {
 
 			// Add subapp
 			mFragmentTransaction = mFragmentManager.beginTransaction();
-			mFragmentTransaction.add(R.id.content, currentOpenSubApp);
+			mFragmentTransaction.replace(R.id.content, currentOpenSubApp);
 			mFragmentTransaction.commit();
 			lastSetFragment = currentOpenSubApp;
 
@@ -609,7 +630,7 @@ public class AppTemplate extends FragmentActivity {
 					mFragmentTransaction.setCustomAnimations(R.anim.default_enter_menu, R.anim.default_exit_menu);
 					showMenuAnimation = false;
 				}*/
-				mFragmentTransaction.add(R.id.menu_container, mSubAppList);
+				mFragmentTransaction.replace(R.id.menu_container, mSubAppList);
 				mFragmentTransaction.commit();
 			}
 		}
@@ -683,25 +704,31 @@ public class AppTemplate extends FragmentActivity {
 
 	@Override
 	protected void onResumeFragments() {
+
+		Log.d(TAG, "onResumeFragments() applicationPaused " + applicationPaused);
+
 		super.onResumeFragments();
-		setFragments(false);
+		setFragments(true);
 		
 		applicationPaused = false;
 	}
 	
 	@Override
 	protected void onPause() {
+		Log.d(TAG, "onPause() applicationPaused " + applicationPaused);
 		super.onPause();
 		applicationPaused = true;
 	}
 	
 	@Override
 	protected void onResume() {
-		super.onResume();		
+		Log.d(TAG, "onResume() applicationPaused " + applicationPaused);
+		super.onResume();
 	}
 	
 	@Override
 	protected void onStop() {
+		Log.d(TAG, "onStop() applicationPaused " + applicationPaused);
 		super.onStop();
 		
 		if (mApi != null) 
@@ -716,23 +743,16 @@ public class AppTemplate extends FragmentActivity {
 		}
 	}
 	
-	
 	@Override
 	protected void onDestroy() {
+		Log.d(TAG, "onDestroy() applicationPaused " + applicationPaused);
 		super.onDestroy();
-		
-		if (mApi != null) 
-		{
-			if (mApi.isConnected()) {
-				try {
-					mApi.stopAllContinuousCommands();
-				} catch (Exception err) {
-					err.printStackTrace();
-				}
-			}
+
+		mExitingApplication = true;
+
+		if (mApi != null) {
+			mApi.dispose();
 		}
-		
-		mApi.dispose();
 	}
 
 	public void onDrawerItemClick(AdapterView<?> parent, View view, int position, long id) {}

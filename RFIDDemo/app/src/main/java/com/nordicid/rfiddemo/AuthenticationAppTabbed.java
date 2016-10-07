@@ -307,6 +307,9 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 		});
 
 		mStartStopBtn.setEnabled(getNurApi().isConnected());
+
+		tryKeySetup();
+
 		super.onViewCreated(view, savedInstanceState);
 	}
 
@@ -399,9 +402,6 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 	@Override
 	public void onResume() {
 		super.onResume();
-
-		if (mAuthController != null && !mAuthController.isAuthenticationRunning())
-			tryKeySetup();
 	}
 
 	@Override
