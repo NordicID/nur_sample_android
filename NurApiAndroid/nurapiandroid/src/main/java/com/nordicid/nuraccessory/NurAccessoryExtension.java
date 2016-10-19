@@ -75,7 +75,13 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	public static final int ACC_EXT_SET_LED_OP = 7;
 	/** Asynchronous beep operation. */
 	public static final int ACC_EXT_BEEP_ASYNC = 8;
-	
+
+	/** Get HW status (imager, NUR module etc.). */
+	public static final int ACC_EXT_GET_HEALTHSTATE = 11;
+
+	/** Set/ get wireless charging. */
+	public static final int ACC_EXT_WIRELESS_CHARGE = 12;
+
 	/** Constant indicating battery level being "good". */
 	public static final int BATT_GOOD_mA = 3900;
 	/** Constant indicating battery level being "moderate". */
@@ -336,6 +342,102 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 		payload[0] = (byte)ACC_EXT_BEEP_ASYNC;
 		NurPacket.PacketWord(payload, 1, timeout);
 		mApi.customCmd(NUR_CMD_ACC_EXT, payload);		
+	}
+
+	public String [][]getHwHealth() throws NurApiException
+	{
+		byte []reply;
+
+		try {
+			String []pairs;
+			int i;
+			String[][]result;
+
+			reply = mApi.customCmd(NUR_CMD_ACC_EXT, new byte[] { (byte) ACC_EXT_GET_HEALTHSTATE});
+			if (reply != null && reply.length > 0) {
+				pairs = (new String(reply, 0, reply.length, StandardCharsets.US_ASCII)).split(";");
+				result = new String [pairs.length] [];
+				for (i=0;i<result.length;i++)
+					result[i] = pairs[i].split("=");
+
+				return result;
+			}
+		}
+		catch (Exception ex) {
+			// Bad.
+		}
+
+		throw new NurApiException("Accessory, hwHealth: cannot interpret reply or reply missing", NurApiErrors.NOT_READY);
+	}
+
+	/**
+	 * Get wireless charging status.
+	 *
+	 * @return Returns true if thecharging is on, false otherwise.
+	 *
+	 * @throws Exception In case of any error in communication an exception is thrown.
+     */
+	public boolean isWirelessChargingOn() throws Exception
+	{
+		byte []reply;
+		reply = mApi.customCmd(NUR_CMD_ACC_EXT, new byte [] { (byte)ACC_EXT_WIRELESS_CHARGE });
+
+		return reply[0] != 0;
+	}
+
+	/** The accessory stated that wireless charging is currently off. */
+	public static final int WIRELESS_CHARGING_OFF = 0;
+	/** The accessory stated that wireless charging is currently on. */
+	public static final int WIRELESS_CHARGING_ON = 1;
+	/** The accessory stated that wireless charging is currently not available. */
+	public static final int WIRELESS_CHARGING_REFUSED = -1;
+	/** There was an unexpected error in the communications (no reply, timeout etc.). */
+	public static final int WIRELESS_CHARGING_FAIL = -2;
+
+	/**
+	 * Set the wireless charging on or off.
+	 * @param on Set to true to turn on the wireless charging.
+	 *
+	 * @return Returns the status of the operation, does not throw exception.
+	 *
+	 * @see #WIRELESS_CHARGING_ON
+	 * @see #WIRELESS_CHARGING_OFF
+	 * @see #WIRELESS_CHARGING_REFUSED
+	 * @see #WIRELESS_CHARGING_FAIL
+	 *
+     */
+	public int setWirelessChargingOn(boolean on)
+	{
+		int rc = WIRELESS_CHARGING_OFF;
+		byte []payload = new byte[2];
+		byte []reply;
+
+		payload[0] = (byte)ACC_EXT_WIRELESS_CHARGE;
+		payload[1] = (byte)(on ? 1 : 0);
+
+		try {
+			reply = mApi.customCmd(NUR_CMD_ACC_EXT, payload);
+			if (reply != null && reply.length > 0)
+			{
+				if (reply[0] == 0)
+					rc = WIRELESS_CHARGING_OFF;
+				else
+					rc = WIRELESS_CHARGING_ON;
+			}
+			else
+				rc = WIRELESS_CHARGING_FAIL;
+		}
+		catch (NurApiException ne){
+			if (ne.error == NurApiErrors.NOT_READY)
+				rc = WIRELESS_CHARGING_REFUSED;
+			else
+				rc = ne.error;
+		}
+		catch (Exception ex) {
+			rc = WIRELESS_CHARGING_FAIL;
+		}
+
+		return rc;
 	}
 
 	/**
