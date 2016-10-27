@@ -67,8 +67,16 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 
 	/** BLE FW version. */
 	public static final int ACC_EXT_GET_FWVERSION = 0;
+
 	/** System restart command. */
 	public static final int ACC_EXT_RESTART = 5;
+
+	/** Instruct the restart command to enter the DFU mode. */
+	public static final byte RESET_BOOTLOADER_DFU_START = (byte)0xB1;
+
+	/** Instruct the restart command to actually power off the device. */
+	public static final byte RESET_POWEROFF = (byte)0xF1;
+
 	/** Asynchronous barcode scan (non-blocking). */
 	public static final int ACC_EXT_READ_BARCODE_ASYNC = 6;
 	/** Set external LED. */
@@ -154,6 +162,25 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	public void restartBLEModule() throws Exception
 	{		
 		doCustomCommand(new byte [] { ACC_EXT_RESTART });	
+	}
+
+	/**
+	 * Restart the BLE module to DFU (Device Firmware Upgrade) mode.
+	 * After the call, another application or built-in updater can upgrade the BLE module's FW.
+	 * @throws Exception Can throw I/O, timeout or API related exception based on the occurred error.
+     */
+	public void restartBLEModuleToDFU() throws Exception
+	{
+		doCustomCommand(new byte [] { ACC_EXT_RESTART,  RESET_BOOTLOADER_DFU_START });
+	}
+
+	/**
+	 * The device will power off when successful.
+	 * @throws Exception Can throw I/O, timeout or API related exception based on the occurred error.
+	 */
+	public void powerDown() throws Exception
+	{
+		doCustomCommand(new byte [] { ACC_EXT_RESTART,  RESET_POWEROFF});
 	}
 
 	/**
