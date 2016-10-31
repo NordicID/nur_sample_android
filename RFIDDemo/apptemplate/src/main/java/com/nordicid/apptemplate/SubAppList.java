@@ -94,7 +94,7 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 		TextView name = (TextView) view.findViewById(R.id.item_name);
 		appTemplate.setApp(name.getText().toString());
 		view.setSelected(true);
-	}
+ 	}
 
 	/**
 	 * Gets the current GridView (menu)
@@ -173,7 +173,9 @@ public class SubAppList extends Fragment implements AdapterView.OnItemClickListe
 	 */
 	public SubApp getCurrentOpenSubApp() {
 
-		SubApp ret = getVisibleSubApp(currentOpenSubApp);
+        // TODO gets any open subapp not only visible ones
+		//SubApp ret = getVisibleSubApp(currentOpenSubApp);
+		SubApp ret = getSubApp(currentOpenSubApp);
 		if (ret == null)
 			currentOpenSubApp = "";
 		return ret;

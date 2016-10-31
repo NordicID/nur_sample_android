@@ -79,15 +79,7 @@ public class BarcodeApp extends SubApp {
                     ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(getActivity().CLIPBOARD_SERVICE);
                     ClipData clip = ClipData.newPlainText("Barcode", result.strBarcode);
                     clipboard.setPrimaryClip(clip);
-                    //Toast.makeText(getActivity(), "Barcode copied to clipboard", Toast.LENGTH_SHORT).show();
-
 					Beeper.beep(Beeper.BEEP_100MS);
-					/*try {
-						// Beep on success
-						//mAccessoryExt.beepAsync(200);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}*/
 				}
 				updateText();
 				mIsActive = false;

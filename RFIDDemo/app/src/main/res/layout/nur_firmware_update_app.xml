@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:layout_centerHorizontal="true"
+              android:layout_centerInParent="true"
+              android:layout_centerVertical="true"
+              android:gravity="center"
+              android:orientation="vertical"
+              android:weightSum="1">
+
+    <Button
+        android:id="@+id/btn_file_picker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="25dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="25dp"
+        android:text="@string/file_picker"/>
+
+    <Button
+        android:id="@+id/btn_upload_fw"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="25dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:text="@string/upload_firmware"/>
+
+    <TextView
+        android:id="@+id/text_view_filename"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="@string/file_name"
+        android:textSize="20sp"
+        android:textStyle="normal|bold"/>
+
+    <TextView
+        android:id="@+id/txt_file_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/not_available"/>
+
+    <TextView
+        android:id="@+id/text_view_progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="@string/progress"
+        android:textSize="20sp"
+        android:textStyle="normal|bold"/>
+
+    <TextView
+        android:id="@+id/text_view_progress_value"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="30dp"
+        android:gravity="center"
+        android:text="@string/idle_status"/>
+
+    <ProgressBar
+        android:id="@+id/fw_upload_progressbar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"/>
+
+    <ProgressBar
+        android:id="@+id/progress_spinner"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.20"/>
+
+</LinearLayout>

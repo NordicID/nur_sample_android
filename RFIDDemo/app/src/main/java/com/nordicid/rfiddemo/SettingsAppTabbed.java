@@ -37,6 +37,8 @@ public class SettingsAppTabbed extends SubAppTabbed {
 	private SettingsAppHidTab mSettingsHidTab;
 	private SettingsAppAuthTab mSettingsAuthTab;
     private SettingsAppTab mSettingsAppTab;
+    private SettingsUpdateTab mSettingsUpdateTab;
+
 	private NurApiListener mThisClassListener = null;
 
 	private static SettingsAppTabbed gInstance = null;
@@ -79,6 +81,7 @@ public class SettingsAppTabbed extends SubAppTabbed {
 		mSettingsHidTab = new SettingsAppHidTab();
 		mSettingsAuthTab = new SettingsAppAuthTab();
         mSettingsAppTab = new SettingsAppTab();
+        mSettingsUpdateTab = new SettingsUpdateTab();
 		
 		mThisClassListener =  new NurApiListener() {
 			@Override
@@ -145,6 +148,9 @@ public class SettingsAppTabbed extends SubAppTabbed {
 
 		fragmentNames.add("Authentication");
 		fragments.add(mSettingsAuthTab);
+
+        fragmentNames.add("Updates");
+        fragments.add(mSettingsUpdateTab);
 
 		return R.id.pager;
 	}

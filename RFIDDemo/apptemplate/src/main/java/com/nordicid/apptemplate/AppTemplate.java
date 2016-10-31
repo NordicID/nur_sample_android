@@ -69,11 +69,12 @@ public class AppTemplate extends FragmentActivity {
     private NurAccessoryExtension mAccessoryApi = null;
 	private boolean mAccessorySupported = false;
 	private boolean mEnableBattUpdate = true;
+    protected boolean mProgrammingMode = false;
 
 	private FragmentManager mFragmentManager;
 	private FragmentTransaction mFragmentTransaction;
 	
-	private NurApi mApi;
+	protected NurApi mApi;
 	
 	private boolean mConfigurationChanged = false;
 	private boolean mNoConfigChangeCheck = false;
@@ -95,6 +96,10 @@ public class AppTemplate extends FragmentActivity {
 	{
 		mAppListener = l;
 	}
+
+    public void setProgrammingFlag(boolean programming){
+        mProgrammingMode = programming;
+    }
 	
 	/* Which sub-application is listening. */
 	private NurApiListener mAppListener = null;	
@@ -110,7 +115,10 @@ public class AppTemplate extends FragmentActivity {
 		}
 		
 		@Override
-		public void programmingProgressEvent(NurEventProgrammingProgress event) { }
+		public void programmingProgressEvent(NurEventProgrammingProgress event) {
+            if (mCurrentListener != null)
+                mCurrentListener.programmingProgressEvent(event);
+        }
 		@Override
 		public void nxpEasAlarmEvent(NurEventNxpAlarm event) { }
 		
@@ -139,9 +147,9 @@ public class AppTemplate extends FragmentActivity {
 		public void disconnectedEvent() {
 			if (exitingApplication())
 				return;
-
 			mAccessorySupported = false;
-			if (mAppListener != null)
+            // only do these things when reader in application mode
+			if (!mProgrammingMode && mAppListener != null)
 				mAppListener.disconnectedEvent();
 			if (mCurrentListener != null)
 				mCurrentListener.disconnectedEvent();		
@@ -155,10 +163,8 @@ public class AppTemplate extends FragmentActivity {
 		
 		@Override
 		public void connectedEvent() {
-
 			mAccessorySupported = getAccessoryApi().isSupported();
-
-			if (mAppListener != null)
+			if (!mProgrammingMode && mAppListener != null)
 				mAppListener.connectedEvent();
 			if (mCurrentListener != null)
 				mCurrentListener.connectedEvent();
@@ -490,19 +496,39 @@ public class AppTemplate extends FragmentActivity {
 	 */
 	public void setApp(String name) {
 
-		if (name == null) {
-			openSubApp(null);
-		}
-		else {
-			SubApp app = mSubAppList.getVisibleSubApp(name);
+        if (name == null) {
+            openSubApp(null);
+        }
+        else {
+            SubApp app = mSubAppList.getVisibleSubApp(name);
 
-			if (app == null) {
-				Toast.makeText(this, "App with name \"" + name + "\" not found", Toast.LENGTH_SHORT).show();
-			} else {
-				openSubApp(app);
-			}
-		}
-	}
+            if (app == null) {
+                Toast.makeText(this, "App with name \"" + name + "\" not found", Toast.LENGTH_SHORT).show();
+            } else {
+                openSubApp(app);
+            }
+        }
+    }
+
+    //TODO gets visible / hidden apps
+    public void setApp(String name,boolean visible) {
+
+        if (name == null) {
+            openSubApp(null);
+        }
+        else {
+            SubApp app;
+            if(visible)
+                app = mSubAppList.getVisibleSubApp(name);
+            else
+                app = mSubAppList.getApp(name);
+            if (app == null) {
+                Toast.makeText(this, "App with name \"" + name + "\" not found", Toast.LENGTH_SHORT).show();
+            } else {
+                openSubApp(app);
+            }
+        }
+    }
 	
 	/**
 	 *  Used internally to open some SubApp
@@ -568,10 +594,6 @@ public class AppTemplate extends FragmentActivity {
 				// No subapp selected, show subapplist
 				if (!mSubAppList.isAdded()) {
 					mFragmentTransaction = mFragmentManager.beginTransaction();
-					/*if (showMenuAnimation) {
-						mFragmentTransaction.setCustomAnimations(R.anim.default_enter_menu, R.anim.default_exit_menu);
-						showMenuAnimation = false;
-					}*/
 					mFragmentTransaction.replace(R.id.content, mSubAppList);
 					mFragmentTransaction.commit();
 				}
@@ -626,10 +648,6 @@ public class AppTemplate extends FragmentActivity {
 			// If subapp not added, add it to sidebar
 			if (!mSubAppList.isAdded()) {
 				mFragmentTransaction = mFragmentManager.beginTransaction();
-				/*if (showMenuAnimation) {
-					mFragmentTransaction.setCustomAnimations(R.anim.default_enter_menu, R.anim.default_exit_menu);
-					showMenuAnimation = false;
-				}*/
 				mFragmentTransaction.replace(R.id.menu_container, mSubAppList);
 				mFragmentTransaction.commit();
 			}

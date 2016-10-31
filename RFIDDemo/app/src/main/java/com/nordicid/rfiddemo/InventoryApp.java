@@ -184,10 +184,10 @@ public class InventoryApp extends SubApp {
 		
 		// statistics UI
         mInventoryCountTextView = (TextView) mView.findViewById(R.id.num_of_tags_textview);
-        mInventoryAvgTagPerSecond = (TextView) view.findViewById(R.id.average_tags_per_second_textview);
-        mInventoryTagsInTime = (TextView) view.findViewById(R.id.tags_in_time_textview);
-        mInventoryMaxTagsPerSecond = (TextView) view.findViewById(R.id.max_tags_per_second);
-        mInventoryTagsPerSecond = (TextView) view.findViewById(R.id.tags_per_second_textview);
+        mInventoryAvgTagPerSecond = (TextView) mView.findViewById(R.id.average_tags_per_second_textview);
+        mInventoryTagsInTime = (TextView) mView.findViewById(R.id.tags_in_time_textview);
+        mInventoryMaxTagsPerSecond = (TextView) mView.findViewById(R.id.max_tags_per_second);
+        mInventoryTagsPerSecond = (TextView) mView.findViewById(R.id.tags_per_second_textview);
 
 		mFoundTagsListView = (ListView) mView.findViewById(R.id.tags_listview);
 
@@ -200,7 +200,7 @@ public class InventoryApp extends SubApp {
 											new int[] { R.id.tagText });
 		
 		//empty view when no tags in list
-		mFoundTagsListView.setEmptyView(view.findViewById(R.id.no_tags));
+		mFoundTagsListView.setEmptyView(mView.findViewById(R.id.no_tags));
 		mFoundTagsListView.setAdapter(mFoundTagsListViewAdapter);
 		mFoundTagsListView.setCacheColorHint(0);
 		mFoundTagsListView.setOnItemClickListener(new OnItemClickListener() {

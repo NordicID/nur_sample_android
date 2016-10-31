@@ -36,6 +36,17 @@
             android:name="com.nordicid.nurapi.UartService"
             android:enabled="true"
             android:exported="true" />
+
+        <service android:name="com.nordicid.rfiddemo.DfuService"
+                 android:exported="true"
+                 android:label="DFU">
+        <intent-filter>
+            <action android:name="no.nordicsemi.android.action.DFU_UPLOAD" />
+
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+        </service>
+
     </application>
 
 </manifest>

@@ -1,5 +1,10 @@
 package com.nordicid.rfiddemo;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -10,6 +15,7 @@ import com.nordicid.nurapi.*;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -18,12 +24,21 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class Main extends AppTemplate {
+
+    // Check whether this string is found in the given filename.
+    private final String NUR_AUTH_IDENT_STR = "nur_auth_keyset";
+
+    final private String TAG = "MAIN";
 
     // Authentication app requirements.
     public static final int AUTH_REQUIRED_VERSION = 0x050500 + ('A' & 0xFF);
@@ -52,6 +67,8 @@ public class Main extends AppTemplate {
     }
 
     public static SharedPreferences getApplicationPrefences() { return mApplicationPrefences; }
+
+    public NurApiAutoConnectTransport getNurAutoConnect() { return mAcTr;}
 
     public void startTimer() {
 
@@ -120,7 +137,7 @@ public class Main extends AppTemplate {
         } else {
             editor.putString("specStr", connSpec.getSpec());
         }
-        editor.commit();
+        editor.apply();
 
         updateStatus();
     }
@@ -287,6 +304,8 @@ public class Main extends AppTemplate {
 
         mApplicationPrefences = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
 
+        copyAuthenticationFilesToDevice();
+
         if (AppTemplate.LARGE_SCREEN) {
             subAppList.addSubApp(new InventoryApp());
         } else {
@@ -312,22 +331,32 @@ public class Main extends AppTemplate {
         /* Reader settings application. */
         subAppList.addSubApp(new SettingsAppTabbed());
 
+        /** NUR FW Update application
+         *  Never displayed in Main menu
+         *  Accesible from setting subapp
+         **/
+        subAppList.addSubApp(new NurFwUpdateApp());
+        getSubAppList().getApp("NUR Firmware Update").setIsVisibleInMenu(false);
+
+        /** BLE FW Update application
+         *  Never displayed in Main menu
+         *  Accesible from setting subapp
+         **/
+        subAppList.addSubApp(new BthFwUpdateApp());
+        getSubAppList().getApp("BLE Firmware Update").setIsVisibleInMenu(false);
+
         //theApi.setLogLevel(NurApi.LOG_VERBOSE | NurApi.LOG_USER | NurApi.LOG_DATA| NurApi.LOG_ERROR);
         theApi.setLogLevel(NurApi.LOG_ERROR);
 
         setAppListener(new NurApiListener() {
             @Override
             public void disconnectedEvent() {
-
                 if (exitingApplication())
                     return;
-
                 updateStatus();
                 Toast.makeText(Main.this, getString(R.string.reader_disconnected), Toast.LENGTH_SHORT).show();
-
                 getSubAppList().getApp("Barcode").setIsVisibleInMenu(false);
                 getSubAppList().getApp("Authentication").setIsVisibleInMenu(false);
-
                 // If current app not available anymore, return to main menu
                 if (!isApplicationPaused() && getSubAppList().getCurrentOpenSubApp() == null)
                     setApp(null);
@@ -338,6 +367,12 @@ public class Main extends AppTemplate {
                 updateStatus();
                 int fwVer = getFwIntVersion(getNurApi());
                 Toast.makeText(Main.this, getString(R.string.reader_connected), Toast.LENGTH_SHORT).show();
+                try {
+                    if(!mApi.getMode().equalsIgnoreCase("A"))
+                        Toast.makeText(Main.this, getString(R.string.device_boot_mode), Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 // Show barcode app only for accessory devices
                 getSubAppList().getApp("Barcode").setIsVisibleInMenu(getAccessorySupported());
                 getSubAppList().getApp("Authentication").setIsVisibleInMenu(fwVer >= AUTH_REQUIRED_VERSION);
@@ -352,7 +387,7 @@ public class Main extends AppTemplate {
             }
 
             @Override
-            public void programmingProgressEvent(NurEventProgrammingProgress event) {
+            public void programmingProgressEvent(NurEventProgrammingProgress eventProgramming) {
             }
 
             @Override
@@ -416,7 +451,7 @@ public class Main extends AppTemplate {
             }
         });
 
-        ((TextView) findViewById(R.id.app_statustext)).setOnClickListener(mStatusBarOnClick);
+        (findViewById(R.id.app_statustext)).setOnClickListener(mStatusBarOnClick);
     }
 
     int testmodeClickCount = 0;
@@ -451,11 +486,43 @@ public class Main extends AppTemplate {
     public void onCreateDrawerItems(Drawer drawer) {
         drawer.addTitle("Connection");
         drawer.addTitle("Contact");
+        drawer.addTitle("Quick guide");
         drawer.addTitle("About");
+    }
+
+    void handleQuickGuide() {
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        // looks ugly
+        //alert.setTitle("Quick guide");
+        WebView wv = new WebView(this);
+        wv.loadUrl("file:///android_res/raw/guide.html");
+        wv.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+
+                return true;
+            }
+        });
+
+        alert.setView(wv);
+        alert.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+        alert.show();
     }
 
     void handleAboutClick() {
         final View dialogLayout = getLayoutInflater().inflate(R.layout.dialog_about, null);
+        boolean isApplicationMode = true;
+        try {
+            isApplicationMode = mApi.getMode().equalsIgnoreCase("A");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         AlertDialog.Builder builder = new Builder(this);
         builder.setView(dialogLayout);
 
@@ -490,11 +557,11 @@ public class Main extends AppTemplate {
                 serialTextView.setVisibility(View.VISIBLE);
 
                 final TextView firmwareTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_firmware);
-                firmwareTextView.setText(getString(R.string.about_dialog_firmware) + " " + readerInfo.swVersion);
+                firmwareTextView.setText(getString(R.string.about_dialog_firmware) + " " + ((isApplicationMode) ? getNurApi().getVersions().primaryVersion : mApi.getVersions().secondaryVersion));
                 firmwareTextView.setVisibility(View.VISIBLE);
 
                 final TextView bootloaderTextView = (TextView) dialogLayout.findViewById(R.id.reader_bootloader_version);
-                bootloaderTextView.setText(getString(R.string.about_dialog_bootloader) + " " + getNurApi().getVersions().secondaryVersion);
+                bootloaderTextView.setText(getString(R.string.about_dialog_bootloader) + " " + ((isApplicationMode) ? getNurApi().getVersions().secondaryVersion : mApi.getVersions().primaryVersion));
                 bootloaderTextView.setVisibility(View.VISIBLE);
 
                 if (getAccessorySupported()) {
@@ -578,14 +645,11 @@ public class Main extends AppTemplate {
 			}
 			break;
 		}
-	}
+        super.onActivityResult(requestCode,resultCode,data);
+    }
 
 	void handleConnectionClick()
 	{
-		//if (mAcTr != null)
-		//	mAcTr.dispose();
-
-		// Request for "all devices", not filtering "nordicid_*".
 		NurDeviceListActivity.startDeviceRequest(this);
 	}
 
@@ -606,10 +670,176 @@ public class Main extends AppTemplate {
                 handleContactClick();
                 break;
             case 2:
+                handleQuickGuide();
+                break;
+            case 3:
                 handleAboutClick();
                 break;
             default:
                 break;
         }
+    }
+
+
+    // Get "raw" filename from given resource ID.
+    String getRawFileName(int resourceID)
+    {
+        TypedValue tv = new TypedValue();
+        String fullRawName;
+        String []split;
+        int i;
+
+        getResources().getValue(resourceID, tv, true);
+
+        fullRawName = tv.string.toString();
+
+        if (fullRawName.isEmpty())
+            return "";
+
+        split = fullRawName.split("/");
+
+        // Last entry is expected to be the file's name without an extension.
+        return split[split.length-1];
+    }
+
+    // Checks if the given file already exists.
+    private boolean fileAlreadyExists(String fullPath)
+    {
+        File f = new File(fullPath);
+
+        if (f.exists() && f.isFile() && !f.isDirectory())
+            return true;
+
+        return false;
+    }
+
+    // Makes a target file name in the external storage.
+    private String makeTargetName(String fileName)
+    {
+        return Environment.getExternalStorageDirectory() + "/" + fileName;
+    }
+
+    // List the file is the raw resources that may present an authentication key file.
+    private ArrayList<ResourceIdTargetName> listAuthenticationKeyfileCandidates()
+    {
+        int i, resourceID;
+        String rawName, targetName;
+        ArrayList<ResourceIdTargetName> result = new ArrayList<>();
+
+        Log.d(TAG, "Raw file list:");
+
+        Field[]fields;
+
+        fields = R.raw.class.getFields();
+
+        for(i=0; i < fields.length; i++){
+            Log.d(TAG, "Checking: " + fields[i].getName() + " / " + fields[i].getGenericType().toString());
+            if (!fields[i].getName().toLowerCase().contains(NUR_AUTH_IDENT_STR))
+                continue;
+
+            Log.e(TAG, " -> OK, continue check.");
+
+            if (fields[i].getGenericType().toString().equalsIgnoreCase("int")) {
+                try {
+                    resourceID = fields[i].getInt(R.raw.class);
+                    rawName = getRawFileName(resourceID);
+                    targetName =  makeTargetName(rawName);
+                    Log.d(TAG, "Add pair: " + resourceID + " -> " + targetName);
+                    result.add(new ResourceIdTargetName(resourceID, targetName));
+                }
+                catch (Exception ex) {
+                    Log.e(TAG, "Exception: "+ ex.getMessage());
+                }
+            }
+            else
+                Log.e(TAG, "No match");
+
+        }
+
+        return result;
+    }
+
+    // Copies a file from raw resource to device root directory so can be browsed to.
+    void copyToDeviceRoot(ResourceIdTargetName rawRes)
+    {
+        InputStream inputStream = null;
+        FileOutputStream outputFile = null;
+        boolean ok;
+
+        if (fileAlreadyExists(rawRes.getTargetName())) {
+            Log.d(TAG, "Copy to device: file \"" + rawRes.getTargetName() + "\" already exists.");
+            return;
+        }
+
+        try {
+            inputStream = getResources().openRawResource(rawRes.getID());
+        }
+        catch (Exception ex) {
+            Log.e(TAG, "Copy to device SOURCE file error");
+            Log.e(TAG, ex.getMessage());
+            return;
+        }
+
+        try {
+            File f = new File(rawRes.getTargetName());
+            f.setWritable(true);
+            outputFile = new FileOutputStream(f);
+
+            ok = true;
+        }
+        catch (Exception ex) {
+            Log.e(TAG, "Copy to device TARGET file error");
+            Log.e(TAG, ex.getMessage());
+            ok = false;
+        }
+
+        if (!ok ) {
+            try { inputStream.close(); } catch (Exception ex) { }
+            return;
+        }
+
+        Log.d(TAG, "Copy from resources to " + rawRes.getTargetName());
+
+        try {
+            int read;
+            int total = 0;
+            byte []buf = new byte[1024];
+            while ((read = inputStream.read(buf)) > 0) {
+                outputFile.write(buf, 0, read);
+                total += read;
+            }
+
+            Log.d(TAG, "Wrote " + total + " + bytes.");
+        }
+        catch (Exception ex) {
+            Log.e(TAG, "Error during copy: " + ex.getMessage());
+        }
+
+        try {
+            inputStream.close();
+        }
+        catch (Exception ex) { }
+
+        try {
+            outputFile.close();
+        }
+        catch (Exception ex) { }
+
+    }
+
+    // Go through the list of files and copy them into the device's external storage directory.
+    void tryCopyAuthFilesFromResources(ArrayList<ResourceIdTargetName> resourceDefinitions)
+    {
+        int i;
+
+        for (i=0;i<resourceDefinitions.size();i++)
+            copyToDeviceRoot(resourceDefinitions.get(i));
+    }
+
+    // The main method that copies the (possibly) present authentication key files from the raw resource.
+    private void copyAuthenticationFilesToDevice()
+    {
+        ArrayList<ResourceIdTargetName> tamFileSourceTargets = listAuthenticationKeyfileCandidates();
+        tryCopyAuthFilesFromResources(tamFileSourceTargets);
     }
 }

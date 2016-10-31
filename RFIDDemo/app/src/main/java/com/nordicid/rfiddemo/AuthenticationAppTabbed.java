@@ -137,7 +137,7 @@ public class AuthenticationAppTabbed extends SubAppTabbed {
 
 		boolean keysWereOk = false;
 
-		mStartStopBtn.setEnabled(false);
+		mStartStopBtn.setEnabled(true);
 		mStartStopBtn.setText("Start");
 
 		try {
