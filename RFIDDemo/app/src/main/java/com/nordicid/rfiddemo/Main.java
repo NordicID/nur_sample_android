@@ -14,6 +14,7 @@ import com.nordicid.nurapi.*;
 
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -27,9 +28,11 @@ import android.os.Handler;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.Window;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,6 +64,8 @@ public class Main extends AppTemplate {
     public static final String KEYNUMBER_PREFNAME = "TAM1_KEYNUMBER";
 
     private static Main gInstance;
+
+    private boolean mShowSwipeHint = false;
 
     public void toggleScreenRotation(boolean enable) {
         setRequestedOrientation((enable) ? ActivityInfo.SCREEN_ORIENTATION_SENSOR : ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
@@ -142,6 +147,20 @@ public class Main extends AppTemplate {
         updateStatus();
     }
 
+    void saveHintStatus() {
+        SharedPreferences pref = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+
+        editor.putBoolean("SwipeHint", mShowSwipeHint);
+        editor.apply();
+        updateStatus();
+    }
+
+    void loadHintStatus()
+    {
+        mShowSwipeHint = mApplicationPrefences.getBoolean("SwipeHint", true);
+    }
+
     public void saveKeyFilename(String fileName) {
         SharedPreferences.Editor editor = mApplicationPrefences.edit();
 
@@ -184,8 +203,11 @@ public class Main extends AppTemplate {
             }
 
             try {
+                String strAddress;
                 mAcTr = NurDeviceSpec.createAutoConnectTransport(this, getNurApi(), spec);
-                mAcTr.setAddress(spec.getAddress());
+                strAddress = spec.getAddress();
+
+                mAcTr.setAddress(strAddress);
             } catch (NurApiException e) {
                 e.printStackTrace();
             }
@@ -297,12 +319,55 @@ public class Main extends AppTemplate {
         super.onResume();
     }
 
+    void beginHint()
+    {
+        if (!mShowSwipeHint)
+            return;
+
+        (new Handler(getMainLooper())).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                doHint();
+            }
+        }, 250);
+    }
+
+    void doHint()
+    {
+        final Dialog dlg = new Dialog(this);
+        final Button okBtn;
+        final Button gotItBtn;
+
+        dlg.setTitle(R.string.hint_title);
+        dlg.setContentView(R.layout.layout_swipe_note);
+
+        okBtn = (Button) dlg.findViewById(R.id.btn_hint_ok);
+        gotItBtn = (Button) dlg.findViewById(R.id.btn_hint_dont_show);
+
+        View.OnClickListener onClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (v.getId() == R.id.btn_hint_dont_show) {
+                    mShowSwipeHint = false;
+                    saveHintStatus();
+                }
+                dlg.dismiss();
+            }
+        };
+
+        okBtn.setOnClickListener(onClickListener);
+        gotItBtn.setOnClickListener(onClickListener);
+
+        dlg.show();
+    }
+
     @Override
     public void onCreateSubApps(SubAppList subAppList) {
         gInstance = this;
         NurApi theApi = getNurApi();
 
         mApplicationPrefences = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
+        loadHintStatus();
 
         copyAuthenticationFilesToDevice();
 
@@ -452,6 +517,8 @@ public class Main extends AppTemplate {
         });
 
         (findViewById(R.id.app_statustext)).setOnClickListener(mStatusBarOnClick);
+
+        beginHint();
     }
 
     int testmodeClickCount = 0;
@@ -635,8 +702,10 @@ public class Main extends AppTemplate {
 						mAcTr.dispose();
 					}
 
-					mAcTr = NurDeviceSpec.createAutoConnectTransport(this, getNurApi(), spec);
-					mAcTr.setAddress(spec.getAddress());
+					String strAddress;
+                    mAcTr = NurDeviceSpec.createAutoConnectTransport(this, getNurApi(), spec);
+                    strAddress = spec.getAddress();
+                    mAcTr.setAddress(strAddress);
 					saveSettings(spec);
 				} catch (Exception e) {
 					e.printStackTrace();

@@ -90,6 +90,12 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	/** Set/ get wireless charging. */
 	public static final int ACC_EXT_WIRELESS_CHARGE = 12;
 
+	/** Use device's vibra. */
+	public static final int ACC_EXT_VIBRATE = 14;
+
+	/** Clear device pairing information. */
+	public static final int ACC_EXT_CLEAR_PAIRS = 15;
+
 	/** Constant indicating battery level being "good". */
 	public static final int BATT_GOOD_mA = 3900;
 	/** Constant indicating battery level being "moderate". */
@@ -609,6 +615,51 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 		mApi.getTransport().writeData(payload, 1);
 
 		// mBarcodeCanceled = true;
+	}
+
+	/**
+	 * Use device's vibra.
+	 * @param length_ms Vibration on  time in ms; pause in between will be the same.
+	 * @param nTimes Number of times to repeat. Total time must not exceed 2000ms.
+	 *
+	 * @throws Exception Can throw exception if an error occurred int APi's transport.
+	 *
+	 * @see #vibrate(int)
+     */
+	public void vibrate(int length_ms, int nTimes) throws Exception
+	{
+		byte []payload = new byte [4];
+		// ACC_EXT_VIBRATE
+		payload[0] = (byte)ACC_EXT_VIBRATE;
+		payload[1] = (byte)nTimes;
+		payload[2] = (byte)(nTimes & 0xFF);
+		payload[3] = (byte)((nTimes >> 8) & 0xFF);
+
+		doCustomCommand(payload);
+	}
+
+	/**
+	 * Use device's vibra.
+	 *
+	 * @param length_ms One pulse's length in milliseconds. Range is
+	 *
+	 * @throws Exception Can throw exception if an error occurred int APi's transport.
+	 *
+	 * @see #vibrate(int, int)
+     */
+	public void vibrate(int length_ms) throws Exception
+	{
+		vibrate(length_ms, 1);
+	}
+
+	/**
+	 * Clear remote device's pairing information.
+	 *
+	 * @throws Exception Can throw exception if an error occurred int APi's transport.
+     */
+	public void clearPairingData() throws Exception
+	{
+		doCustomCommand(new byte [] { (byte) ACC_EXT_CLEAR_PAIRS} );
 	}
 
 	/**

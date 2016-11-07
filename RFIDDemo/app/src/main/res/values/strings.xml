@@ -135,5 +135,9 @@
     <string name="btn_ready">Ready</string>
     <string name="no_bluetooth_device">"No device connected please connect a bluetooth device first"</string>
 
+    <string name="hint_title">Swipe left and right</string>
+    <string name="text_about_tabs">Hint:\nWithin each view, check whether it is possible to see more tabs and features by swiping left or right.</string>
+    <string name="dont_show_again">Don\'t show again</string>
+    <string name="text_ok">OK</string>
 
 </resources>
