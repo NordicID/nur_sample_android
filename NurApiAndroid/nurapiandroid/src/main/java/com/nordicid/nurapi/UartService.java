@@ -109,7 +109,8 @@ public class UartService extends Service
                     @Override
                     public void run() {
 	                    Log.w(TAG, "start discoverServices");
-	                    mBluetoothGatt.discoverServices();
+                        if(mBluetoothGatt != null)
+	                        mBluetoothGatt.discoverServices();
                     }
                 }, 100);
                 
@@ -136,7 +137,8 @@ public class UartService extends Service
         	@Override
             public void run() {
                 Log.w(TAG, "discoverServices jammed, restart");
-                mBluetoothGatt.discoverServices();
+                if(mBluetoothGatt != null)
+                    mBluetoothGatt.discoverServices();
             }
         };
 
