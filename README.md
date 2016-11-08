@@ -2,6 +2,7 @@
 
 ## About project opening
 When downloading the Android samples note that the project(s) need to be opened separately from the Android Studio; Android Studio's direct Git open won't work.
+Note that the used Android Studio's version in this package is 2.2.2.
 
 ## Re-building NurApiAndroid: 
 
@@ -21,9 +22,9 @@ Create a project that fits your needs. To add the NurApiAndroid to the project i
 6. Right-click the created module and select "Open Module Settings"
 7. Add the module dependency to "app"
 8. Change the project view to "Android" and open the app-module's Gradle script
-9. Change the minimum SDK version (minSdkVersion) to 19 if it isn't already
+9. Change the minimum SDK version (minSdkVersion) to 21 if it isn't already
 10. Target SDK version (targetSdkVersion) is good to be 21 - higher, e.g. 24 will cause trouble when using Bluetooth. This must be worked around in the application code thus the version 21 recommendation.
-10. Where you want to use the Android API, use
+11. Where you want to use the Android API, use
 
 import com.nordicid.nurapi.*;
 

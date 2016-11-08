@@ -6,8 +6,8 @@ android {
 
     defaultConfig {
         applicationId "com.nordicid.accessorydemo"
-        minSdkVersion 19
-        targetSdkVersion 19
+        minSdkVersion 21
+        targetSdkVersion 21
         versionCode 1
         versionName "1.0"
     }
