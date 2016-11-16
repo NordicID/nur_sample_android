@@ -16,24 +16,24 @@
         android:gravity="center"
         android:text="@string/update_state_idle"
         android:textColor="#c0392b"
-        android:textSize="20sp"
+        android:textSize="14sp"
         android:textStyle="normal|bold"/>
 
     <Button
         android:id="@+id/btn_file_picker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="25dp"
+        android:layout_marginBottom="5dp"
         android:layout_marginEnd="10dp"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="25dp"
+        android:layout_marginTop="5dp"
         android:text="@string/file_picker"/>
 
     <Button
         android:id="@+id/btn_upload_fw"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="25dp"
+        android:layout_marginBottom="5dp"
         android:layout_marginEnd="10dp"
         android:layout_marginStart="10dp"
         android:text="@string/update_bth"/>
@@ -45,7 +45,7 @@
         android:layout_gravity="start"
         android:layout_marginStart="10dp"
         android:text="@string/file_name"
-        android:textSize="20sp"
+        android:textSize="14sp"
         android:textStyle="normal|bold"/>
 
     <TextView
@@ -53,7 +53,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="@string/not_available"/>
+        android:text="@string/not_available"
+        android:textSize="12sp"/>
 
     <TextView
         android:id="@+id/text_view_progress"
@@ -63,14 +64,15 @@
         android:layout_marginStart="10dp"
         android:text="@string/progress"
         android:textAllCaps="true"
-        android:textSize="20sp"
+        android:textSize="14sp"
         android:textStyle="normal|bold"/>
 
     <TextView
         android:id="@+id/text_view_progress_value"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="10dp"
+        android:textSize="12sp"
         android:gravity="center"
         android:text="@string/idle_status"/>
 

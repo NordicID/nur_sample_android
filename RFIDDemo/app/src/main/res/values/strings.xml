@@ -6,7 +6,7 @@
     <string name="average_speed_textview">AVG. SPEED</string>
     <string name="peak_textview">PEAK</string>
     <string name="tags_per_second_textview">TAGS/S</string>
-    <string name="state_disconnected">Disconnected</string>
+    <string name="update_state_idle">Update Service idle</string>
 
     <string name="start">START</string>
     <string name="stop">STOP</string>

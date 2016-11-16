@@ -109,19 +109,19 @@ public class BthFwUpdateApp extends SubApp implements View.OnClickListener {
             @Override
             public void onDeviceConnected(String address) {
                 mStatusTV.setTextColor(Color.parseColor("#27ae60"));
-                mStatusTV.setText("Connected to: " + address);
+                mStatusTV.setText("Connected to device");
             }
 
             @Override
             public void onDeviceConnecting(String address) {
                 mStatusTV.setTextColor(Color.parseColor("#e67e22"));
-                mStatusTV.setText("Connecting to: " + address);
+                mStatusTV.setText("Connecting to device " );
             }
 
             @Override
             public void onDeviceDisconnected(String address) {
                 mStatusTV.setTextColor(Color.parseColor("#c0392b"));
-                mStatusTV.setText("Disconnected");
+                mStatusTV.setText("Disconnected from device");
             }
 
             @Override
@@ -172,7 +172,7 @@ public class BthFwUpdateApp extends SubApp implements View.OnClickListener {
             @Override
             public void onDeviceDisconnecting(String deviceAddress) {
                 mStatusTV.setTextColor(Color.parseColor("#c0392b"));
-                mStatusTV.setText("Disconnecting from: " + deviceAddress);
+                mStatusTV.setText("Disconnecting from device");
             }
 
             @Override
@@ -342,6 +342,7 @@ public class BthFwUpdateApp extends SubApp implements View.OnClickListener {
 
     private void handleUpdateFinish(){
         mUpdateRunning = false;
+        mStatusTV.setText(R.string.update_state_idle);
         mProgressBar.setProgress(0);
         mSpinner.setVisibility(View.GONE);
         mainRef.getNurAutoConnect().setAddress(mApplicationModeAddress);
@@ -379,7 +380,7 @@ public class BthFwUpdateApp extends SubApp implements View.OnClickListener {
             mStatusTV.setText("Connected to: " + mFWController.getTargerAddress());
         } else {
             mStatusTV.setTextColor(Color.parseColor("#c0392b"));
-            mStatusTV.setText(R.string.state_disconnected);
+            mStatusTV.setText(R.string.update_state_idle);
         }
     }
 
