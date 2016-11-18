@@ -97,11 +97,11 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	public static final int ACC_EXT_CLEAR_PAIRS = 15;
 
 	/** Constant indicating battery level being "good". */
-	public static final int BATT_GOOD_mA = 3900;
+	public static final int BATT_GOOD_mV = 3900;
 	/** Constant indicating battery level being "moderate". */
-	public static final int BATT_MODERATE_mA = 3700;
+	public static final int BATT_MODERATE_mV = 3700;
 	/** Constant indicating battery level being "low". Under this value the level is "critical". */
-	public static final int BATT_LOW_mA = 3500;
+	public static final int BATT_LOW_mV = 3500;
 
 	/** Character set used to interpret the barcode. */
 	private String mBarcodeCharSet = "UTF-8";
@@ -274,15 +274,15 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	{
 		int volt = getBattVoltage();
 		// > 3900
-		if (volt > BATT_GOOD_mA) {
+		if (volt > BATT_GOOD_mV) {
 			return "Good";
 		}
 		// 3900 - 3700
-		else if (volt > BATT_MODERATE_mA) {
+		else if (volt > BATT_MODERATE_mV) {
 			return "Moderate";
 		}
 		// 3700 - 3500
-		else if (volt > BATT_LOW_mA) {
+		else if (volt > BATT_LOW_mV) {
 			return "Low";
 		}
 		// < 3500
@@ -426,6 +426,8 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	public static final int WIRELESS_CHARGING_REFUSED = -1;
 	/** There was an unexpected error in the communications (no reply, timeout etc.). */
 	public static final int WIRELESS_CHARGING_FAIL = -2;
+	/** The accessory device replied with HW mismatch error. */
+	public static final int WIRELESS_CHARGING_NOT_SUPPORTED = -3;
 
 	/**
 	 * Set the wireless charging on or off.
@@ -437,6 +439,7 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	 * @see #WIRELESS_CHARGING_OFF
 	 * @see #WIRELESS_CHARGING_REFUSED
 	 * @see #WIRELESS_CHARGING_FAIL
+	 * @see #WIRELESS_CHARGING_NOT_SUPPORTED
 	 *
      */
 	public int setWirelessChargingOn(boolean on)
@@ -463,6 +466,8 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 		catch (NurApiException ne){
 			if (ne.error == NurApiErrors.NOT_READY)
 				rc = WIRELESS_CHARGING_REFUSED;
+			else if (ne.error == NurApiErrors.HW_MISMATCH)
+				rc = WIRELESS_CHARGING_NOT_SUPPORTED;
 			else
 				rc = ne.error;
 		}
@@ -629,11 +634,11 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	public void vibrate(int length_ms, int nTimes) throws Exception
 	{
 		byte []payload = new byte [4];
-		// ACC_EXT_VIBRATE
+
 		payload[0] = (byte)ACC_EXT_VIBRATE;
 		payload[1] = (byte)nTimes;
-		payload[2] = (byte)(nTimes & 0xFF);
-		payload[3] = (byte)((nTimes >> 8) & 0xFF);
+		payload[2] = (byte)(length_ms & 0xFF);
+		payload[3] = (byte)((length_ms >> 8) & 0xFF);
 
 		doCustomCommand(payload);
 	}

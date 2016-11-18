@@ -48,6 +48,18 @@ public class NurAccessoryConfig
 	/** HID-bit for the RFID scan / inventory. */
 	public static final int APP_FL_HID_RFID = (1<<1);
 
+	/** Device is configured as ACD reader. */
+	public static final int CONFIG_FLAG_ACD = (1<<0);
+
+	/** Device has 1D/2D imager. */
+	public static final int DEV_FEATURE_IMAGER = (1<<2);
+
+	/** Device has built-in wireless charging device. */
+	public static final int DEV_FEATURE_WIRELESS_CHG = (1<<3);
+
+	/** Device has built-in vibrator. */
+	public static final int DEV_FEATURE_VIBRATOR = (1<<4);
+
 	/** For recognition. See #APP_PERM_SIG. */
 	public int signature = NurAccessoryExtension.INTVALUE_NOT_VALID;
 	/** */
@@ -244,4 +256,45 @@ public class NurAccessoryConfig
 		newConfig.signature = APP_PERM_SIG;
 		return newConfig;		
 	}
+
+	/**
+	 * Get whether the device is configured as ACD reader.
+	 * @return Returns true if the reader is ACD.
+     */
+	public boolean isConfigACD()
+	{
+		return ((configValue & CONFIG_FLAG_ACD) != 0);
+	}
+
+	// public static final int DEV_FEATURE_IMAGER = (1<<2);
+	/**
+	 * Get whether the accessory has 1D/2D imager present.
+	 *
+	 * @return Returns true if there is a 1D/2D imager in the accessory device.
+	 */
+	public boolean hasImagerScanner()
+	{
+		return ((configValue & DEV_FEATURE_IMAGER) != 0);
+	}
+
+	/**
+	 * Get whether the accessory has wireless charging device.
+	 *
+	 * @return Returns true if there is wireless charging option available.
+     */
+	public boolean hasWirelessCharging()
+	{
+		return ((configValue & DEV_FEATURE_WIRELESS_CHG) != 0);
+	}
+
+	/**
+	 * Get whether the accessory has built-in vibrator.
+	 *
+	 * @return Returns true if there is built-in vibrator in the device.
+	 */
+	public boolean hasVibrator()
+	{
+		return ((configValue & DEV_FEATURE_VIBRATOR) != 0);
+	}
 };
+

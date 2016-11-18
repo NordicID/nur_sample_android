@@ -61,7 +61,7 @@ public class NurAccessoryBattery {
 	public static NurAccessoryBattery deserializeBatteryReply(byte []source) throws Exception
 	{
 		if (source == null || source.length < SZ_BATTERY_REPLY)
-			throw new NurApiException("Accessroy, battery: invalud reply");
+			throw new NurApiException("Accessroy, battery:iinvalud reply");
 		
 		NurAccessoryBattery batteryInfo = new NurAccessoryBattery();
 		int sourcePtr = 0;
@@ -95,7 +95,7 @@ public class NurAccessoryBattery {
 
 	public String getPercentageString()
 	{
-		if (percentage < 0)
+		if (percentage < 0 || percentage > 100)
 			return "N/A";
 		return percentage + "%";
 	}
@@ -119,7 +119,7 @@ public class NurAccessoryBattery {
      */
 	public String getCurrentString()
 	{
-        return current + "mA";
+		return current + "mA";
 	}
 
 	/**
