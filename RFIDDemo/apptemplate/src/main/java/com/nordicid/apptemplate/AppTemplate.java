@@ -1,9 +1,11 @@
 package com.nordicid.apptemplate;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import com.nordicid.nuraccessory.NurAccessoryExtension;
 import com.nordicid.nurapi.NurApi;
+import com.nordicid.nurapi.NurApiException;
 import com.nordicid.nurapi.NurApiListener;
 import com.nordicid.nurapi.NurApiUiThreadRunner;
 import com.nordicid.nurapi.NurEventAutotune;
@@ -19,15 +21,19 @@ import com.nordicid.nurapi.NurEventTagTrackingChange;
 import com.nordicid.nurapi.NurEventTagTrackingData;
 import com.nordicid.nurapi.NurEventTraceTag;
 import com.nordicid.nurapi.NurEventTriggeredRead;
+
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ActionProvider;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
@@ -56,7 +62,12 @@ public class AppTemplate extends FragmentActivity {
 	static final String TAG = "AppTemplate";
 
 	private SubAppList mSubAppList;
-	
+
+    private final int FINE_LOCATION_REQ_CODE = 40;
+	private final int COARSE_LOCATION_REQ_CODE = 41;
+    private final int READ_EXTERNAL_STORAGE_REQ_CODE = 44;
+    private final int WRITE_EXTERNAL_STORAGE_REQ_CODE = 45;
+
 	private DrawerLayout mDrawerLayout;
 	private FrameLayout mMenuContainer;
 	private ActionBarDrawerToggle mDrawerToggle;
@@ -85,8 +96,7 @@ public class AppTemplate extends FragmentActivity {
 		return gInstance;
 	}
 
-	public boolean isRecentConfigurationChange()
-	{
+	public boolean isRecentConfigurationChange() {
 		boolean rc = mConfigurationChanged;
 		mConfigurationChanged = false;
 		return rc;
@@ -107,13 +117,11 @@ public class AppTemplate extends FragmentActivity {
 	private NurApiListener mNurApiListener = new NurApiListener() {		
 		@Override
 		public void triggeredReadEvent(NurEventTriggeredRead event) { }
-		
 		@Override
 		public void traceTagEvent(NurEventTraceTag event) {
 			if (mCurrentListener != null)
 				mCurrentListener.traceTagEvent(event);					
 		}
-		
 		@Override
 		public void programmingProgressEvent(NurEventProgrammingProgress event) {
             if (mCurrentListener != null)
@@ -121,28 +129,22 @@ public class AppTemplate extends FragmentActivity {
         }
 		@Override
 		public void nxpEasAlarmEvent(NurEventNxpAlarm event) { }
-		
 		@Override
 		public void logEvent(int level, String txt) { }
-		
 		@Override
 		public void inventoryStreamEvent(NurEventInventory event) {
 			if (mCurrentListener != null)
 				mCurrentListener.inventoryStreamEvent(event);
 		}
-		
 		@Override
 		public void inventoryExtendedStreamEvent(NurEventInventory event) {
 			if (mCurrentListener != null)
 				mCurrentListener.inventoryExtendedStreamEvent(event);
 		}
-		
 		@Override
 		public void frequencyHopEvent(NurEventFrequencyHop event) { }
-		
 		@Override
 		public void epcEnumEvent(NurEventEpcEnum event) { }
-		
 		@Override
 		public void disconnectedEvent() {
 			if (exitingApplication())
@@ -154,41 +156,39 @@ public class AppTemplate extends FragmentActivity {
 			if (mCurrentListener != null)
 				mCurrentListener.disconnectedEvent();		
 		}
-		
 		@Override
 		public void deviceSearchEvent(NurEventDeviceInfo event) { }
-		
 		@Override
 		public void debugMessageEvent(String event) { }
-		
 		@Override
 		public void connectedEvent() {
-			mAccessorySupported = getAccessoryApi().isSupported();
+			try {
+				mAccessorySupported = getAccessoryApi().isSupported();
+			} catch (Exception e)
+			{
+				mAccessorySupported = false;
+			}
 			if (!mProgrammingMode && mAppListener != null)
 				mAppListener.connectedEvent();
 			if (mCurrentListener != null)
 				mCurrentListener.connectedEvent();
 		}
-		
 		@Override
 		public void clientDisconnectedEvent(NurEventClientInfo event) { }
 		@Override
 		public void clientConnectedEvent(NurEventClientInfo event) { }
-		
 		@Override
 		public void bootEvent(String event) {
 			//Toast.makeText(AppTemplate.this, "BOOT " + event, Toast.LENGTH_SHORT).show();
 			if (mCurrentListener != null)
 				mCurrentListener.bootEvent(event);			
 		}
-		
 		@Override
 		public void IOChangeEvent(NurEventIOChange event) {
 			//Toast.makeText(AppTemplate.this, "IOCHG " + event.source + "; " + event.direction, Toast.LENGTH_SHORT).show();
 			if (mCurrentListener != null)
 				mCurrentListener.IOChangeEvent(event);
 		}
-
 		@Override
 		public void autotuneEvent(NurEventAutotune event) { }
 		@Override
@@ -200,12 +200,26 @@ public class AppTemplate extends FragmentActivity {
 	private void changeSubAppListener()
 	{
 		SubApp tmpSubApp = mSubAppList.getCurrentOpenSubApp();
-
 		if (tmpSubApp != null) 
 			mCurrentListener = tmpSubApp.getNurApiListener();		
 		else 
 			mCurrentListener = null;
 	}
+
+	/** Swaping Listeners from settings fragment **/
+    //FIXME is there a better way ?
+	private NurApiListener oldListener = null;
+	public void switchNurApiListener(NurApiListener newListener){
+        oldListener = mCurrentListener;
+        mCurrentListener = newListener;
+    }
+    public void restoreListener(){
+        if(oldListener != null)
+            mCurrentListener = oldListener;
+        else
+            mCurrentListener = mNurApiListener;
+    }
+	/** Testing only **/
 
 	/**
 	 * if back button pressed once. @see doubleOnBackPressedExit
@@ -226,6 +240,38 @@ public class AppTemplate extends FragmentActivity {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		/** Bluetooth Permission checks **/
+		if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+			if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+				/** ? ? ? **/
+			} else {
+				ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},COARSE_LOCATION_REQ_CODE);
+			}
+		}
+
+		if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+			if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+				/** ? ? ? **/
+			} else {
+				ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},FINE_LOCATION_REQ_CODE);
+			}
+		}
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                /** ? ? ? **/
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},READ_EXTERNAL_STORAGE_REQ_CODE);
+            }
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                /** ? ? ? **/
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},WRITE_EXTERNAL_STORAGE_REQ_CODE);
+            }
+        }
 
 		gInstance = this;
 
@@ -287,7 +333,31 @@ public class AppTemplate extends FragmentActivity {
 			}
 		}
 	}
-	
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+		switch (requestCode) {
+			case FINE_LOCATION_REQ_CODE:
+			case COARSE_LOCATION_REQ_CODE: {
+				// If request is cancelled, the result arrays are empty.
+				if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+				} else {
+					Toast.makeText(this,"Applioation will not connect to bluetooth devices without these permissions",Toast.LENGTH_SHORT).show();
+				}
+				return;
+			}
+            case READ_EXTERNAL_STORAGE_REQ_CODE:
+            case WRITE_EXTERNAL_STORAGE_REQ_CODE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                } else {
+                    Toast.makeText(this,"Application will not be able to execute some features",Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+		}
+	}
+
 	public void setStatusText(String text)
 	{
 		TextView t = (TextView) findViewById(R.id.app_statustext);
@@ -426,9 +496,9 @@ public class AppTemplate extends FragmentActivity {
 	 * @see #doubleOnBackPressExit
 	 * @see com.nordicid.apptemplate.AppTemplate
 	 */
+
 	@Override
 	public void onBackPressed() {
-		
 		SubApp currentSubApp = mSubAppList.getCurrentOpenSubApp();
 		
 		if (currentSubApp != null) {

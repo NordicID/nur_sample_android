@@ -3,6 +3,7 @@ package com.nordicid.controllers;
 import android.content.Context;
 import android.util.Log;
 
+import com.nordicid.helpers.UpdateContainer;
 import com.nordicid.rfiddemo.DfuService;
 
 import no.nordicsemi.android.dfu.DfuProgressListener;
@@ -15,10 +16,9 @@ import no.nordicsemi.android.dfu.DfuServiceListenerHelper;
  * https://github.com/NordicSemiconductor/Android-DFU-Library
  */
 
-public class BthDFUController {
+public class BthDFUController extends UpdateController{
 
     private final String TAG = "BTHDFUCONTROLLER";
-    private String mFilePath = null;
     private String mDFUDeviceAddress = null;
     private BthFirmwareControllerListener mBthFwControllerListener = null;
     private Context mContext = null;
@@ -37,7 +37,6 @@ public class BthDFUController {
         void onEnablingDfuMode(String deviceAddress);
         void onDeviceDisconnecting(String deviceAddress);
         void onDfuCompleted(String deviceAddress);
-
     }
 
     public String getTargerAddress() { return mDFUDeviceAddress; }
@@ -46,18 +45,10 @@ public class BthDFUController {
         mBthFwControllerListener = l;
     }
 
-    public BthDFUController(Context context){
+    public BthDFUController(Context context, String appSource, String bldrSource){
         mContext = context;
-    }
-
-    public void setFilePath(String filePath){
-        mFilePath = filePath;
-    }
-
-    public String getFilePath() { return mFilePath; }
-
-    public boolean isFileSet(){
-        return mFilePath != null;
+        mAppUpdateSource = appSource;
+        mBldrUpdateSource = bldrSource;
     }
 
     public void setTargetAddress(String address){
@@ -130,53 +121,12 @@ public class BthDFUController {
         }
     };
 
-    /**
-     *  Starts DFU service sets target address and zip packet to update
-     * @param deviceAddress DFU target address
-     * @param filePath full path to the zip file (only zip distribution packets)
-     */
-    public boolean StartDfu(String deviceAddress, String filePath){
-        mDFUDeviceAddress = deviceAddress;
-        mFilePath = filePath;
-        return StartDfu();
-    }
-
-    /**
-     * Starts Dfu service and starts update
-     * @return
-     */
-    public boolean StartDfu(){
-        Log.e(TAG,"in start dfu");
-        Log.e(TAG,"File path : " + mFilePath);
-        Log.e(TAG,"Target device : " + mDFUDeviceAddress);
-        DfuServiceListenerHelper.registerProgressListener(mContext,mDfuProgressListener);
-        if(mDFUDeviceAddress != null && mFilePath != null && mContext != null){
-            final DfuServiceInitiator dfuStarter = new DfuServiceInitiator(mDFUDeviceAddress)
-                    .setDisableNotification(true)
-                    .setZip(mFilePath);
-            mDFUServiceController = dfuStarter.start(mContext, DfuService.class);
-        }
-        return false;
-    }
-
     public void registerListener(){
         DfuServiceListenerHelper.registerProgressListener(mContext,mDfuProgressListener);
     }
 
     public void unregisterListener(){
         DfuServiceListenerHelper.unregisterProgressListener(mContext,mDfuProgressListener);
-    }
-
-    public void dfuAbort(){
-        mDFUServiceController.abort();
-    }
-
-    public void dfuPause(){
-        mDFUServiceController.pause();
-    }
-
-    public void dfuResume(){
-        mDFUServiceController.resume();
     }
 
     /**
@@ -186,5 +136,48 @@ public class BthDFUController {
      */
     public String getDfuTargetAddress(String deviceAddress){
         return Long.toHexString(Long.parseLong(deviceAddress.replace(":",""),16)+1).replaceAll("(.{2})", "$1"+':').substring(0,17).toUpperCase();
+    }
+
+    public boolean startUpdate(){
+        DfuServiceListenerHelper.registerProgressListener(mContext,mDfuProgressListener);
+        if(mDFUDeviceAddress != null && mFilePath != null && mContext != null){
+            final DfuServiceInitiator dfuStarter = new DfuServiceInitiator(mDFUDeviceAddress)
+                    .setDisableNotification(true)
+                    .setForceDfu(true)
+                    .setZip(mFilePath);
+            mDFUServiceController = dfuStarter.start(mContext, DfuService.class);
+        }
+        return false;
+    }
+
+    public void abortUpdate(){
+        mDFUServiceController.abort();
+    }
+
+    public void pauseUpdate(){
+        mDFUServiceController.pause();
+    }
+
+    public void resumeUpdate(){
+        mDFUServiceController.resume();
+    }
+
+    /**
+     * Compares remote and current versions
+     * @param currentVersion
+     * @param remoteVersion
+     * @return true if remote is newer false if not
+     */
+    public boolean checkVersion(String currentVersion, String remoteVersion){
+        String[] currentSplits = currentVersion.split("\\.");
+        String[] remoteSplits = remoteVersion.split("\\.");
+        int i = 0;
+        while (i < currentSplits.length && i < remoteSplits.length && currentSplits[i].equals(remoteSplits[i])){
+            i++;
+        }
+        if (i < currentSplits.length && i < remoteSplits.length) {
+            return Integer.valueOf(currentSplits[i]).compareTo(Integer.valueOf(remoteSplits[i])) < 0;
+        }
+        return currentSplits.length - remoteSplits.length < 0;
     }
 }

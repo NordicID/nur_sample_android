@@ -9,6 +9,7 @@ import com.nordicid.controllers.TagWriteController.WriteTagControllerListener;
 import com.nordicid.nurapi.NurApi;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -35,6 +36,8 @@ public class WriteApp extends SubApp {
 	
 	private TagWriteController mTagWriteController;
 	private InventoryController mInventoryController;
+
+    private Button mRefreshButton = null;
 	
 	public WriteApp() {
 		super();
@@ -92,8 +95,8 @@ public class WriteApp extends SubApp {
 				
 			}
 		});
-		
-		addButtonBarButton(getString(R.string.refresh_list), new OnClickListener() {
+
+        mRefreshButton = addButtonBarButton(getString(R.string.refresh_list), new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
@@ -170,6 +173,13 @@ public class WriteApp extends SubApp {
 			}
 			
 		});
+
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                mRefreshButton.performClick();
+            }
+        });
 		
 		final Button writeButton = (Button) dialogLayout.findViewById(R.id.dialog_write);
 		writeButton.setOnClickListener(new OnClickListener() {
@@ -177,24 +187,34 @@ public class WriteApp extends SubApp {
 			@Override
 			public void onClick(View v) {
 				if (newEpcOK) {
-						try {
-							byte[] newEpc = NurApi.hexStringToByteArray(newEpcEditText.getText().toString());
-							byte[] currentEpc = NurApi.hexStringToByteArray(currentEpcTextView.getText().toString());
-							
-							boolean succeeded = mTagWriteController.writeTagByEpc(currentEpc, currentEpc.length, newEpc.length, newEpc);
-							
-							if (succeeded) {
-								Toast.makeText(getActivity(), "Tag write succeeded", Toast.LENGTH_SHORT).show();
-								dialog.dismiss();
-								Beeper.beep(Beeper.BEEP_100MS);
-							} else {
-								Toast.makeText(getActivity(), "Tag write failed miserably!\n"+mTagWriteController.getLastWriteError(), Toast.LENGTH_SHORT).show();
-								Beeper.beep(Beeper.FAIL);
-							}
-							
-						} catch (Exception e) {
-							Toast.makeText(getActivity(), getString(R.string.reader_error), Toast.LENGTH_SHORT).show();
-						}
+                    try {
+                        byte[] newEpc = NurApi.hexStringToByteArray(newEpcEditText.getText().toString());
+                        byte[] currentEpc = NurApi.hexStringToByteArray(currentEpcTextView.getText().toString());
+
+                        boolean succeeded = mTagWriteController.writeTagByEpc(currentEpc, currentEpc.length, newEpc.length, newEpc);
+
+                        if (succeeded) {
+                            Toast.makeText(getActivity(), "Tag write succeeded", Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+                            Beeper.beep(Beeper.BEEP_100MS);
+                        } else {
+                            String error = mTagWriteController.getLastWriteError();
+                            String errorMsg;
+                            if(error.contains("select"))
+                                errorMsg = "Could not find tag";
+                            else if(error.contains("unspecified"))
+                                errorMsg = "Could not write to tag";
+                            else if(error.contains("Partial"))
+                                errorMsg = "Data partially written !";
+                            else
+                                errorMsg = error;
+                            Toast.makeText(getActivity(), "Tag write failed miserably!\n"+errorMsg, Toast.LENGTH_SHORT).show();
+                            Beeper.beep(Beeper.FAIL);
+                        }
+
+                    } catch (Exception e) {
+                        Toast.makeText(getActivity(), getString(R.string.reader_error), Toast.LENGTH_SHORT).show();
+                    }
 				}
 			}
 			

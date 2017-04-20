@@ -35,6 +35,17 @@
             android:layout_height="wrap_content"
             android:text="Disable application sounds" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Updates" />
+
+        <CheckBox
+            android:id="@+id/disable_update_check"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Disable update checking on device connection" />
+
 
     </LinearLayout>
 </ScrollView>

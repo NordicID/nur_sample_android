@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.nordicid.nurapi.AntennaMapping;
 import com.nordicid.nurapi.AutotuneSetup;
 import com.nordicid.nurapi.NurApi;
+import com.nordicid.nurapi.NurApiException;
 import com.nordicid.nurapi.NurApiListener;
 import com.nordicid.nurapi.NurEventAutotune;
 import com.nordicid.nurapi.NurEventClientInfo;
@@ -19,10 +20,16 @@ import com.nordicid.nurapi.NurEventTagTrackingChange;
 import com.nordicid.nurapi.NurEventTagTrackingData;
 import com.nordicid.nurapi.NurEventTraceTag;
 import com.nordicid.nurapi.NurEventTriggeredRead;
+import com.nordicid.nurapi.NurPacket;
 import com.nordicid.nurapi.NurSetup;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.InputType;
+import android.text.method.PasswordTransformationMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,14 +39,17 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
-public class SettingsAppSettingsTab extends Fragment 
+public class SettingsAppSettingsTab extends Fragment
 {
 	SettingsAppTabbed mOwner;
 	NurApi mApi;
-	
+
+    private ToggleButton mRegionLockDevice;
 	private Spinner mRegionSpinner;
 	private Spinner mTxLevelSpinner;
 	private Spinner mLinkFreqSpinner;
@@ -52,17 +62,19 @@ public class SettingsAppSettingsTab extends Fragment
 	private MultiSelectionSpinner mAntennaSpinner;
 	private CheckBox mAutotuneCheckbox;
 
+    private byte CMD_PRODUCTION_CFG = 0x76;
+
 	private NurApiListener mThisClassListener = null;
-	
+
 	public NurApiListener getNurApiListener()
 	{
 		return mThisClassListener;
 	}
-	
+
 	public SettingsAppSettingsTab() {
 		mOwner = SettingsAppTabbed.getInstance();
 		mApi = mOwner.getNurApi();
-		
+
 		mThisClassListener =  new NurApiListener() {
 			@Override
 			public void connectedEvent() {
@@ -81,13 +93,13 @@ public class SettingsAppSettingsTab extends Fragment
 
 			@Override public void logEvent(int level, String txt) {}
 			@Override public void bootEvent(String event) {}
-			@Override public void inventoryStreamEvent(NurEventInventory event) { } 
+			@Override public void inventoryStreamEvent(NurEventInventory event) { }
 			@Override public void IOChangeEvent(NurEventIOChange event) {}
-			@Override public void traceTagEvent(NurEventTraceTag event) { } 
+			@Override public void traceTagEvent(NurEventTraceTag event) { }
 			@Override public void triggeredReadEvent(NurEventTriggeredRead event) {}
 			@Override public void frequencyHopEvent(NurEventFrequencyHop event) {}
 			@Override public void debugMessageEvent(String event) {}
-			@Override public void inventoryExtendedStreamEvent(NurEventInventory event) { } 
+			@Override public void inventoryExtendedStreamEvent(NurEventInventory event) { }
 			@Override public void programmingProgressEvent(NurEventProgrammingProgress event) {}
 			@Override public void deviceSearchEvent(NurEventDeviceInfo event) {}
 			@Override public void clientConnectedEvent(NurEventClientInfo event) {}
@@ -98,24 +110,22 @@ public class SettingsAppSettingsTab extends Fragment
 
 			@Override
 			public void tagTrackingScanEvent(NurEventTagTrackingData event) {
-				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void tagTrackingChangeEvent(NurEventTagTrackingChange event) {
-				// TODO Auto-generated method stub
-				
-			}			
+
+			}
 		};
 	}
-	
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.tab_settings, container, false);
 	}
-		
+
 	public void onVisibility(boolean val)
 	{
 		if (val)
@@ -130,11 +140,11 @@ public class SettingsAppSettingsTab extends Fragment
 
 	ArrayAdapter<CharSequence> txLevelSpinnerAdapter;
 	ArrayAdapter<CharSequence> txLevelSpinnerAdapter1W;
-	
+
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-		
+
 		mRegionSpinner = (Spinner) view.findViewById(R.id.region_spinner);
 		mRegionSpinner.setEnabled(false);
 		mTxLevelSpinner = (Spinner) view.findViewById(R.id.txlevel_spinner);
@@ -157,7 +167,9 @@ public class SettingsAppSettingsTab extends Fragment
 		mAntennaSpinner.setEnabled(false);
 		mAutotuneCheckbox = (CheckBox)view.findViewById(R.id.autotune_checkbox);
 		mAutotuneCheckbox.setEnabled(false);
-		
+        mRegionLockDevice = (ToggleButton) view.findViewById(R.id.regionLock_checkbox);
+        mRegionLockDevice.setEnabled(false);
+
 		ArrayAdapter<CharSequence> regionSpinnerAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.regions_entries, android.R.layout.simple_spinner_item);
 		regionSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mRegionSpinner.setAdapter(regionSpinnerAdapter);
@@ -166,17 +178,25 @@ public class SettingsAppSettingsTab extends Fragment
 			@Override
 			public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
 				if (mApi.isConnected()) {
+                    int currentRegion = 0;
 					try {
+                        currentRegion = mApi.getSetupRegionId();
 						mApi.setSetupRegionId(position);
 						mApi.storeSetup(NurApi.STORE_RF);
-					} catch (Exception e) {
-						storeError(e);
-					}
+					} catch (NurApiException e) {
+                        mRegionSpinner.setSelection(currentRegion);
+                        if(e.error == 5)
+                            Toast.makeText(Main.getInstance(),"Failed to set region, Device is region locked",Toast.LENGTH_SHORT).show();
+						else
+                            storeError(e);
+					} catch (Exception ex){
+                        storeError(ex);
+                    }
 				}
 			}
 			@Override public void onNothingSelected(AdapterView<?> arg0) {  }
 		});
-		
+
 		txLevelSpinnerAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.tx_level_entries, android.R.layout.simple_spinner_item);
 		txLevelSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		txLevelSpinnerAdapter1W = ArrayAdapter.createFromResource(getActivity(), R.array.tx_level_entries_1W, android.R.layout.simple_spinner_item);
@@ -196,7 +216,7 @@ public class SettingsAppSettingsTab extends Fragment
 			}
 			@Override public void onNothingSelected(AdapterView<?> arg0) {  }
 		});
-		
+
 		ArrayAdapter<CharSequence> linkFrequencySpinnerAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.link_frequency_entries, android.R.layout.simple_spinner_item);
 		linkFrequencySpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mLinkFreqSpinner.setAdapter(linkFrequencySpinnerAdapter);
@@ -206,16 +226,16 @@ public class SettingsAppSettingsTab extends Fragment
 				if (mApi.isConnected()) {
 					try {
 						switch (position) { // To set proper TX-level, we must use frequency integer in Hz
-							case 0: 
-								mApi.setSetupLinkFreq(NurApi.LINK_FREQUENCY_160000); 
+							case 0:
+								mApi.setSetupLinkFreq(NurApi.LINK_FREQUENCY_160000);
 								break;
 							case 1:
-								mApi.setSetupLinkFreq(NurApi.LINK_FREQUENCY_256000); 
+								mApi.setSetupLinkFreq(NurApi.LINK_FREQUENCY_256000);
 								break;
-							case 2: 
-								mApi.setSetupLinkFreq(NurApi.LINK_FREQUENCY_320000); 
+							case 2:
+								mApi.setSetupLinkFreq(NurApi.LINK_FREQUENCY_320000);
 								break;
-							default: 
+							default:
 								break;
 						}
 						mApi.storeSetup(NurApi.STORE_RF);
@@ -226,7 +246,7 @@ public class SettingsAppSettingsTab extends Fragment
 			}
 			@Override public void onNothingSelected(AdapterView<?> arg0) {  }
 		});
-		
+
 		ArrayAdapter<CharSequence> rxDecodingSpinnerAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.rx_decoding_entries, android.R.layout.simple_spinner_item);
 		rxDecodingSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mRxDecodSpinner.setAdapter(rxDecodingSpinnerAdapter);
@@ -244,8 +264,8 @@ public class SettingsAppSettingsTab extends Fragment
 			}
 			@Override public void onNothingSelected(AdapterView<?> arg0) {  }
 		});
-		
-		
+
+
 		ArrayAdapter<CharSequence> txModulationSpinnerAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.tx_modulation_entries, android.R.layout.simple_spinner_item);
 		txModulationSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mTxModulSpinner.setAdapter(txModulationSpinnerAdapter);
@@ -263,7 +283,7 @@ public class SettingsAppSettingsTab extends Fragment
 			}
 			@Override public void onNothingSelected(AdapterView<?> arg0) {  }
 		});
-		
+
 		ArrayAdapter<CharSequence> qSpinnerAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.q_entries, android.R.layout.simple_spinner_item);
 		qSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mQSpinner.setAdapter(qSpinnerAdapter);
@@ -281,7 +301,7 @@ public class SettingsAppSettingsTab extends Fragment
 			}
 			@Override public void onNothingSelected(AdapterView<?> arg0) {  }
 		});
-		
+
 		ArrayAdapter<CharSequence> roundsSpinnerAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.rounds_entries, android.R.layout.simple_spinner_item);
 		roundsSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mRoundSpinner.setAdapter(roundsSpinnerAdapter);
@@ -299,7 +319,7 @@ public class SettingsAppSettingsTab extends Fragment
 			}
 			@Override public void onNothingSelected(AdapterView<?> arg0) {  }
 		});
-		
+
 		ArrayAdapter<CharSequence> sessionSpinnerAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.session_entries, android.R.layout.simple_spinner_item);
 		sessionSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mSessionSpinner.setAdapter(sessionSpinnerAdapter);
@@ -317,7 +337,7 @@ public class SettingsAppSettingsTab extends Fragment
 			}
 			@Override public void onNothingSelected(AdapterView<?> arg0) {  }
 		});
-		
+
 		ArrayAdapter<CharSequence> targetSpinnerAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.target_entries, android.R.layout.simple_spinner_item);
 		targetSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mTargetSpinner.setAdapter(targetSpinnerAdapter);
@@ -335,7 +355,7 @@ public class SettingsAppSettingsTab extends Fragment
 			}
 			@Override public void onNothingSelected(AdapterView<?> arg0) {  }
 		});
-		
+
 		mAntennaSpinner.setItems(new String[] { "Antenna1","Antenna2","Antenna3","Antenna4" });
 		mAntennaSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
 			@Override
@@ -353,25 +373,26 @@ public class SettingsAppSettingsTab extends Fragment
 						else {
 							Toast.makeText(mOwner.getActivity(), "At least one antenna must be selected", Toast.LENGTH_SHORT).show();
 						}
-						
+
 					} catch (Exception e) {
-						storeError(e);						
+						storeError(e);
 					}
 				}
 			}
 			@Override public void onNothingSelected(AdapterView<?> arg0) {  }
 		});
-		
+
 		mAutotuneCheckbox.setOnCheckedChangeListener(mAutoTuneListener);
-		
+        mRegionLockDevice.setOnClickListener(mRegionalLockListener);
+
 		enableItems(mApi.isConnected());
-		if (mApi.isConnected()) {			
+		if (mApi.isConnected()) {
 			readCurrentSetup();
 		}
 	}
-	
+
 	OnCheckedChangeListener mAutoTuneListener = new OnCheckedChangeListener() {
-		
+
 		@Override
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 			if (mApi.isConnected()) {
@@ -385,19 +406,59 @@ public class SettingsAppSettingsTab extends Fragment
 					storeError(e);
 				}
 			}
-			
+
 		}
 	};
-	
+
+    View.OnClickListener mRegionalLockListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            mRegionLockDevice.setChecked(!mRegionLockDevice.isChecked());
+            if (mApi.isConnected()) {
+                try {
+                    final int region = mApi.getSetupRegionId();
+                    final boolean lockState = mRegionLockDevice.isChecked();
+                    AlertDialog.Builder alert = new AlertDialog.Builder(Main.getInstance());
+                    alert.setTitle("Unlock Code");
+                    alert.setMessage("Please enter the lock/unlock code.");
+                    final EditText input = new EditText(Main.getInstance());
+                    input.setInputType(InputType.TYPE_CLASS_TEXT);
+                    input.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                    alert.setView(input);
+                    alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            //TODO
+                            try {
+                                mApi.customCmd(CMD_PRODUCTION_CFG,(!lockState) ? getLockRegionCommand(input.getText().toString(),region) : getLockRegionCommand(input.getText().toString(),-1));
+                                mApi.storeSetup(NurApi.STORE_RF);
+                                mRegionLockDevice.setChecked(!lockState);
+                            } catch (Exception e) {
+                                Toast.makeText(Main.getInstance(),"Failed to " + ((lockState) ? "unlock" : "lock") + " device",Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                    alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            // do nothing
+                        }
+                    });
+                    alert.show();
+                } catch (Exception e) {
+                    storeError(e);
+                }
+            }
+        }
+    };
+
 	void storeError(Exception e)
 	{
 		Toast.makeText(getActivity(), "Problem occured while setting reader setup", Toast.LENGTH_SHORT).show();
 		e.printStackTrace();
 	}
-	
+
 	private void readCurrentSetup() {
 
-		final Object []listeners = new Object[11];
+		final Object []listeners = new Object[12];
 		int idx = 0;
 		listeners[idx++] = mRegionSpinner.getOnItemSelectedListener();
 		listeners[idx++] = mTxLevelSpinner.getOnItemSelectedListener();
@@ -410,6 +471,8 @@ public class SettingsAppSettingsTab extends Fragment
 		listeners[idx++] = mTargetSpinner.getOnItemSelectedListener();
 		listeners[idx++] = mAntennaSpinner.getOnItemSelectedListener();
 		listeners[idx++] = mAutoTuneListener;
+        listeners[idx++] = mRegionalLockListener;
+
 
 		mRegionSpinner.setOnItemSelectedListener(null);
 		mTxLevelSpinner.setOnItemSelectedListener(null);
@@ -419,38 +482,50 @@ public class SettingsAppSettingsTab extends Fragment
 		mQSpinner.setOnItemSelectedListener(null);
 		mRoundSpinner.setOnItemSelectedListener(null);
 		mSessionSpinner.setOnItemSelectedListener(null);
-		mTargetSpinner.setOnItemSelectedListener(null);			
-		mAntennaSpinner.setOnItemSelectedListener(null);			
+		mTargetSpinner.setOnItemSelectedListener(null);
+		mAntennaSpinner.setOnItemSelectedListener(null);
 		mAutotuneCheckbox.setOnCheckedChangeListener(null);
+        mRegionLockDevice.setOnClickListener(null);
 
 		try {
-			
+
 			if (mApi.getDeviceCaps().isOneWattReader())
 				mTxLevelSpinner.setAdapter(txLevelSpinnerAdapter1W);
 			else
 				mTxLevelSpinner.setAdapter(txLevelSpinnerAdapter);
-			
+
 			NurSetup setup = mApi.getModuleSetup();
 			int regionSetup = setup.regionId;// mApi.getSetupRegionId();
 			mRegionSpinner.setSelection(regionSetup);
 			int txLevelSetup = setup.txLevel;// mApi.getSetupTxLevel();
 			mTxLevelSpinner.setSelection(txLevelSetup);
 			int linkFreqSetup = setup.linkFreq;// mApi.getSetupLinkFreq();
-			
+
+            /** Check if device region locked **/
+            try{
+                // try to change region to one other than the current one
+                mApi.setSetupRegionId((regionSetup % 11) +  1);
+                // expected NurAPIException 5 if device is region locked
+                mRegionLockDevice.setChecked(false);
+            } catch (Exception e) {
+                mRegionLockDevice.setChecked(true);
+            }
+            /** **/
+
 			switch (linkFreqSetup) {
-				case NurApi.LINK_FREQUENCY_160000: 
-					mLinkFreqSpinner.setSelection(0); 
+				case NurApi.LINK_FREQUENCY_160000:
+					mLinkFreqSpinner.setSelection(0);
 					break;
 				case NurApi.LINK_FREQUENCY_256000:
-					mLinkFreqSpinner.setSelection(1); 
+					mLinkFreqSpinner.setSelection(1);
 					break;
-				case NurApi.LINK_FREQUENCY_320000: 
-					mLinkFreqSpinner.setSelection(2); 
+				case NurApi.LINK_FREQUENCY_320000:
+					mLinkFreqSpinner.setSelection(2);
 					break;
-				default: 
+				default:
 					break;
 			}
-			
+
 			int rxDecodSetup = setup.rxDecoding;// mApi.getSetupRxDecoding();
 			mRxDecodSpinner.setSelection(rxDecodSetup);
 			int txModulSetup = setup.txModulation;// mApi.getSetupTxModulation();
@@ -470,7 +545,7 @@ public class SettingsAppSettingsTab extends Fragment
 			{
 				antStrings = new String[mapping.length];
 				for (int n=0; n<mapping.length; n++)
-					antStrings[n] = mapping[n].name;				
+					antStrings[n] = mapping[n].name;
 			} else {
 				antStrings = new String[mapping.length];
 				for (int n=0; n<4; n++)
@@ -487,14 +562,14 @@ public class SettingsAppSettingsTab extends Fragment
 				}
 			}
 			mAntennaSpinner.setSelectionI(selInd);
-			
+
 			mAutotuneCheckbox.setChecked(setup.autotune.mode != 0);
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			Toast.makeText(getActivity(), "Problem occured while retrieving readers setup", Toast.LENGTH_SHORT).show();
 		}
-		
+
 		mTargetSpinner.post(new Runnable() {
 		    @Override
 			public void run() {
@@ -510,6 +585,7 @@ public class SettingsAppSettingsTab extends Fragment
 				mTargetSpinner.setOnItemSelectedListener((OnItemSelectedListener) listeners[idx++]);
 				mAntennaSpinner.setOnItemSelectedListener((OnItemSelectedListener) listeners[idx++]);
 				mAutotuneCheckbox.setOnCheckedChangeListener((OnCheckedChangeListener) listeners[idx++]);
+                mRegionLockDevice.setOnClickListener((View.OnClickListener) listeners[idx++]);
 		    }
 		});
 	}
@@ -526,5 +602,17 @@ public class SettingsAppSettingsTab extends Fragment
 		mTargetSpinner.setEnabled(v);
 		mAntennaSpinner.setEnabled(v);
 		mAutotuneCheckbox.setEnabled(v);
+        mRegionLockDevice.setEnabled(v);
 	}
+
+    private byte[] getLockRegionCommand(String command,int regionId) throws Exception{
+            byte[] commandAr = NurApi.hexStringToByteArray(command);
+            if(regionId != -1) {
+                byte[] cmdArray = new byte[commandAr.length + 1];
+                System.arraycopy(commandAr, 0, cmdArray, 0, commandAr.length);
+                cmdArray[cmdArray.length - 1] = (byte) regionId;
+                return cmdArray;
+            }
+            return commandAr;
+    }
 }

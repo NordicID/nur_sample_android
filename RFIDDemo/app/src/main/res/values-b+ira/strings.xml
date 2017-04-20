@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Nordic ID RFID Demo</string>
+
+    <string name="average_speed_textview">AVG. SPEED</string>
+    <string name="peak_textview">PEAK</string>
+    <string name="tags_per_second_textview">TAGS/S</string>
+    <string name="update_state_idle">Update Service idle</string>
+
+    <string name="start">شروع</string>
+    <string name="stop">پایان</string>
+    <string name="clear">پاک کردن</string>
+    <string name="locate">مشخص کردن</string>
+    <string name="text_tam2">شناسایی تگها به روش دوم</string>
+    <string name="write">نوشتن</string>
+    <string name="cancel">انصراف</string>
+    <string name="refresh">بازخوانی</string>
+    <string name="refresh_list">بازخوانی لیست</string>
+    <string name="restore_default_settings">بازگردانی تنظیمات پیش فرض</string>
+    <string name="restore">بازیابی</string>
+    <string name="update_fw">به روز رسانی NUR firmware</string>
+    <string name="update_bth">به روز رسانی bluetooth firmware</string>
+    <string name="file_picker">انتخاب فایل</string>
+    <string name="upload_firmware">بارگذاری NUR firmware</string>
+    <string name="bth_update_firmware">به روز رسانی Bth firmware</string>
+    <string name="file_name">نام فایل</string>
+    <string name="progress">پیشرفت</string>
+    <string name="not_available">N/A</string>
+    <string name="idle_status">Idle</string>
+
+    <string name="hint">HINT</string>
+
+    <string name="inventory_started">شروع لیست برداری</string>
+    <string name="inventory_stopped">خاتمه لیست برداری</string>
+
+    <string name="no_reader_attached">تگ خوان وجود ندارد</string>
+    <string name="attached_reader_info">مشخصات دستگاه تگ خوان:</string>
+    <string name="about_dialog_model">Model:</string>
+    <string name="about_dialog_serial">Serial:</string>
+    <string name="about_dialog_firmware">Firmware:</string>
+    <string name="about_dialog_bootloader">Bootloader:</string>
+    <string name="about_dialog_accessory">Accessory:</string>
+    <string name="about_dialog_nurapi">NurApi version:</string>
+    <string name="about_dialog_app">App version:</string>
+
+    <string name="write_tag_hint">یک تگ را جهت نوشتن انتخاب کنید</string>
+    <string name="locatable_epc_hint"> EPC را جهت مشخص شدن در لیست انتخاب کنید</string>
+    <string name="new_epc_hint">جدید EPC..</string>
+
+    <string name="location_stopped">توقف جستجو</string>
+    <string name="location_started">شروع جستجو</string>
+
+    <string name="default_settings_restored">تنظیمات پیش فرض بازگردانده شد!</string>
+
+    <string name="inventory_clear_notice">تگهای خوانده شده پاک شوند?</string>
+    <string name="no_tags">هنوز تگی خوانده نشده</string>
+
+    <string name="no_auth_yet">هنوز تگی شناسایی نشده است</string>
+
+    <string name="start_location">شروع جستجوی مکان</string>
+    <string name="start_location_notice">Do you want to start location for </string>
+
+    <string name="no_tags_found">تگی پیدا نشد</string>
+    <string name="write_app_top_hint">یک تگ را از لیست جهت نوشتن انتخاب کنید</string>
+
+    <string name="reader_connection_error">تگ خوان متصل نیست</string>
+    <string name="reader_error">خطا در خواندن</string>
+    <string name="unexpected_error">وقوع خطای ناشناخته</string>
+
+    <string name="cannot_clear">هنگام لیست برداری امکان پاک کردن وجود ندارد</string>
+
+    <string name="reader_connected">تگ خوان متصل شد</string>
+    <string name="reader_disconnected">تگ خوان قطع شد</string>
+
+    <string name="title_activity_settings">تنظیمات</string>
+    <string name="region_spinner">محدوده</string>
+    <string name="tx_level_spinner">TX-سطح</string>
+    <string name="link_freg_spinner">فرکانس ارتباط</string>
+    <string name="rx_decod_spinner">RX-رمزگشایی</string>
+    <string name="tx_modul_spinner">TX-ترکیب</string>
+    <string name="q_spinner">Q</string>
+    <string name="rounds_spinner">پیرامون</string>
+    <string name="session_spinner">شبکه</string>
+    <string name="target_spinner">هدف</string>
+    <string name="antenna_spinner">فعال کردن آنتنها</string>
+    <string name="autotune_checkbox">تنظیم خودکار</string>
+    <string name="regionLock_checkbox">قفل محدوده</string>
+    <string name="lock_region_button">قفل دستگاه در محدوده</string>
+    <string name="unlock_region_button">باز کردن قفل محدوده</string>
+
+    <string name="dialog_epc">TAG\'S EPC:</string>
+    <string name="dialog_rssi">RSSI:</string>
+    <string name="dialog_timestamp">TIMESTAMP:</string>
+    <string name="dialog_freg">FREQUENCY:</string>
+    <string name="dialog_found">FOUND (TIMES):</string>
+    <string name="dialog_found_precent">FOUND (% OF TIME):</string>
+
+    <string name="text_not_implemented">هنوز پیاده سازی نشده</string>
+
+    <string name="dialog_authenticated">Authenticated:</string>
+
+    <string name="dialog_auth_ok">تگ تایید شد</string>
+    <string name="dialog_auth_fail">خطا در تایید تگ</string>
+
+    <string name="scanning">جستجوی دستگاههای &#8230;</string>
+    <string name="select_device">دستگاهی را انتخاب کنید</string>
+    <string name="paired">جفت</string>
+    <string name="ble_not_supported">عدم پشتیبانی از Bluetooth ضعیف </string>
+    <string name="scan">جستجو</string>
+
+    <string name="text_tags_processed">تگ پردازش شد</string>
+    <string name="text_tags_ok">تگ سالم است</string>
+    <string name="text_tags_failed">تگ خراب است</string>
+    <string name="text_tam1_keynum">سریال را انتخاب کنید</string>
+
+    <string name="text_authenticating">در حال تایید (TAM1)</string>
+    <string name="text_tags_auth_ok">تگ تایید شد</string>
+    <string name="text_tags_auth_failed">تگ تایید نشد</string>
+
+    <string name="text_auth_keys_missing">سریال اشتباه است</string>
+    <string name="text_auth_key_setup_query">سریال تاییدیه بارگذاری نشد.\nآیا تمایل دارید فایل تاییدیه را در تنظیمات انتخاب کنید?</string>
+
+    <string name="text_key_set_loaded">سریال  %1$d بارگذاری شد, استفاده از %2$d</string>
+
+
+    <string name="device_boot_mode">دستگاه در حالت راه اندازی اولیه است لطفاً ابتدا برنامه   NUR را به روز رسانی کنید</string>
+
+
+    <string name="btn_ready">آماده</string>
+    <string name="no_bluetooth_device">"دستگاهی متصل نیست ابتدا از طریق bluetooth دستگاه را متصل کنید"</string>
+
+    <string name="hint_title">به چپ و راست ضربه بزنید</string>
+    <string name="text_about_tabs">Hint:\nدر هر منو, ممکن است صفحات بیشتری باشد آنرا با ضربه به چپ و راست چک کنید .</string>
+    <string name="dont_show_again">Don\'t نمایش مجدد</string>
+    <string name="text_ok">OK</string>
+
+    <!-- Barcode App -->
+    <string name="barcode_no_result">نتیجه ای یافت نشد</string>
+
+    <!-- Updates App -->
+    <string name="dfu_update">BLE Firmware به روز رسانی</string>
+    <string name="nur_update">NUR Firmware به روز رسانی</string>
+    <string name="start_update">شروع به روز رسانی</string>
+    <string name="update_connected">دستگاه متصل شد</string>
+    <string name="update_connecting">در حال اتصال به دستگاه</string>
+    <string name="update_disconnected">قطع اتصال به دستگاه</string>
+    <string name="update_aborted">به روز رسانی متوقف شد</string>
+    <string name="update_validating_fw">چک کردن firmware</string>
+    <string name="update_starting">شروع به روز رسانی سرویسها</string>
+    <string name="update_started">شروع به روز رسانی سرویسها</string>
+    <string name="update_disconnecting">قطع ارتباط با دستگاه</string>
+    <string name="ready_wait_boot">آماده سازی, منتظر راه اندازی باشید&#8230;</string>
+    <string name="update_complete">به روز رسانی کامل شد</string>
+    <string name="initiating_update">شروع به روز رسانی</string>
+    <string name="device_not_ready">هنوز دستگاه آماده نشده است</string>
+    <string name="file_check_failed">فایل انتخابی مشکل دارد!</string>
+    <string name="no_file_selected">فایلی انتخاب نشده است</string>
+    <string name="update_invalid_file">فایل انتخابی جهت به روز رسانی خراب است</string>
+
+</resources>

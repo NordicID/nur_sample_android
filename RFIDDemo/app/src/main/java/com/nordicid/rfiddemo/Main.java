@@ -10,6 +10,9 @@ import java.util.TimerTask;
 
 import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.apptemplate.SubAppList;
+import com.nordicid.controllers.BthDFUController;
+import com.nordicid.controllers.NURFirmwareController;
+import com.nordicid.controllers.UpdateController;
 import com.nordicid.nurapi.*;
 
 import android.app.AlertDialog;
@@ -23,12 +26,12 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
-import android.view.Window;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.AdapterView;
@@ -40,14 +43,19 @@ public class Main extends AppTemplate {
 
     // Check whether this string is found in the given filename.
     private final String NUR_AUTH_IDENT_STR = "nur_auth_keyset";
-
     final private String TAG = "MAIN";
-
     // Authentication app requirements.
     public static final int AUTH_REQUIRED_VERSION = 0x050500 + ('A' & 0xFF);
     public static final String AUTH_REQUIRED_VERSTRING = "5.5-A";
-
     private static SharedPreferences mApplicationPrefences = null;
+
+    private boolean isApplicationMode = true;
+
+    /**
+     * Update Controllers
+     */
+    BthDFUController mDFUController;
+    NURFirmwareController mNURAPPController;
 
     /**
      * Requesting file for key reading.
@@ -66,6 +74,14 @@ public class Main extends AppTemplate {
     private static Main gInstance;
 
     private boolean mShowSwipeHint = false;
+
+    public NURFirmwareController getNURUpdateController(){
+        return mNURAPPController;
+    }
+
+    public BthDFUController getDFUUpdateController(){
+        return mDFUController;
+    }
 
     public void toggleScreenRotation(boolean enable) {
         setRequestedOrientation((enable) ? ActivityInfo.SCREEN_ORIENTATION_SENSOR : ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
@@ -185,6 +201,8 @@ public class Main extends AppTemplate {
         return mApplicationPrefences.getInt(KEYNUMBER_PREFNAME, -1);
     }
 
+    public boolean checkUpdatesEnabled() { return mApplicationPrefences.getBoolean("CheckUpdate",true); }
+
     void loadSettings() {
         String type = mApplicationPrefences.getString("connType", "");
 
@@ -255,7 +273,6 @@ public class Main extends AppTemplate {
     @Override
     protected void onResume() {
         super.onResume();
-
         Beeper.init();
 
         if (mAcTr == null)
@@ -366,6 +383,9 @@ public class Main extends AppTemplate {
         gInstance = this;
         NurApi theApi = getNurApi();
 
+        /* Set update sources */
+        mDFUController = new BthDFUController(Main.getInstance(),getString(R.string.DFU_APP_SRC),getString(R.string.DFU_BLDR_SRC));
+        mNURAPPController = new NURFirmwareController(mApi,getString(R.string.NUR_APP_SRC),getString(R.string.NUR_BLDR_SRC));
         mApplicationPrefences = getSharedPreferences("DemoApp", Context.MODE_PRIVATE);
         loadHintStatus();
 
@@ -396,20 +416,6 @@ public class Main extends AppTemplate {
         /* Reader settings application. */
         subAppList.addSubApp(new SettingsAppTabbed());
 
-        /** NUR FW Update application
-         *  Never displayed in Main menu
-         *  Accesible from setting subapp
-         **/
-        subAppList.addSubApp(new NurFwUpdateApp());
-        getSubAppList().getApp("NUR Firmware Update").setIsVisibleInMenu(false);
-
-        /** BLE FW Update application
-         *  Never displayed in Main menu
-         *  Accesible from setting subapp
-         **/
-        subAppList.addSubApp(new BthFwUpdateApp());
-        getSubAppList().getApp("BLE Firmware Update").setIsVisibleInMenu(false);
-
         //theApi.setLogLevel(NurApi.LOG_VERBOSE | NurApi.LOG_USER | NurApi.LOG_DATA| NurApi.LOG_ERROR);
         theApi.setLogLevel(NurApi.LOG_ERROR);
 
@@ -429,18 +435,62 @@ public class Main extends AppTemplate {
 
             @Override
             public void connectedEvent() {
-                updateStatus();
-                int fwVer = getFwIntVersion(getNurApi());
-                Toast.makeText(Main.this, getString(R.string.reader_connected), Toast.LENGTH_SHORT).show();
                 try {
-                    if(!mApi.getMode().equalsIgnoreCase("A"))
+                    updateStatus();
+                    isApplicationMode = mApi.getMode().equalsIgnoreCase("A");
+                    final String module = getModuleType();
+                    /**
+                     *  manually set for now
+                     *  Adding device type later to API
+                     **/
+                    mDFUController.setHWType("EXA51");
+                    mDFUController.setAPPVersion(getBLEAppVersion());
+                    mDFUController.setBldrVersion("1.0.0");
+                    mNURAPPController.setAPPVersion(getNurAppVersion());
+                    mNURAPPController.setHWType(module);
+                    mNURAPPController.setBldrVersion(getNurBldrVersion());
+                    /**
+                    * trigger update checking ?
+                    * //TODO implement Check for updates when sources available
+                    */
+                    if(checkUpdatesEnabled()){
+                        boolean dfuApp = mDFUController.isAppUpdateAvailable();
+                        boolean dfuBldr = mDFUController.isBldrUpdateAvailable();
+                        boolean nurApp = mNURAPPController.isAppUpdateAvailable();
+                        boolean nurBldr = mNURAPPController.isBldrUpdateAvailable();
+                        if(dfuApp || dfuBldr || nurApp || nurBldr) {
+                            final AlertDialog.Builder alertDialog = new AlertDialog.Builder(gInstance);
+                            alertDialog.setTitle("Available Updates:");
+                            String message = "";
+                            if(dfuApp)
+                                message += "Device application available : " + mDFUController.getAvailableAppUpdateVerion();
+                            if(dfuBldr)
+                                message += "\nDevice bootloader available : " + mDFUController.getAvailableBldrUpdateVerion();
+                            if(nurApp)
+                                message += "\nNUR application available : " + mNURAPPController.getAvailableAppUpdateVerion();
+                            if(nurBldr)
+                                message += "\nNUR bootloader available : " + mNURAPPController.getAvailableBldrUpdateVerion();
+                            alertDialog.setMessage(message);
+                            alertDialog.setNegativeButton("Dismiss",null);
+                            alertDialog.setPositiveButton("Open update app", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    SettingsAppTabbed.setPreferredTab("Updates");
+                                    setApp("Settings");
+                                }
+                            });
+                            alertDialog.show();
+                        }
+                    }
+                    Toast.makeText(Main.this, getString(R.string.reader_connected), Toast.LENGTH_SHORT).show();
+                    if(!isApplicationMode)
                         Toast.makeText(Main.this, getString(R.string.device_boot_mode), Toast.LENGTH_LONG).show();
+                    // Show barcode app only for accessory devices
+                    getSubAppList().getApp("Barcode").setIsVisibleInMenu(getAccessorySupported());
+                    getSubAppList().getApp("Authentication").setIsVisibleInMenu(/*fwVer >= AUTH_REQUIRED_VERSION*/ false);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                // Show barcode app only for accessory devices
-                getSubAppList().getApp("Barcode").setIsVisibleInMenu(getAccessorySupported());
-                getSubAppList().getApp("Authentication").setIsVisibleInMenu(fwVer >= AUTH_REQUIRED_VERSION);
             }
 
             @Override
@@ -567,7 +617,6 @@ public class Main extends AppTemplate {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 view.loadUrl(url);
-
                 return true;
             }
         });
@@ -582,69 +631,45 @@ public class Main extends AppTemplate {
         alert.show();
     }
 
-    void handleAboutClick() {
-        final View dialogLayout = getLayoutInflater().inflate(R.layout.dialog_about, null);
-        boolean isApplicationMode = true;
+    public String getModuleType(){
         try {
-            isApplicationMode = mApi.getMode().equalsIgnoreCase("A");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        AlertDialog.Builder builder = new Builder(this);
-        builder.setView(dialogLayout);
-
-        final TextView readerAttachedTextView = (TextView) dialogLayout.findViewById(R.id.reader_attached_is);
-
-        String appversion = "0.0";
-        try {
-            appversion = this.getPackageManager().getPackageInfo("com.nordicid.rfiddemo", 0).versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        final TextView appVersion = (TextView) dialogLayout.findViewById(R.id.app_version);
-        appVersion.setText(getString(R.string.about_dialog_app) + " " + appversion);
-
-        final TextView nurApiVersion = (TextView) dialogLayout.findViewById(R.id.nur_api_version);
-        nurApiVersion.setText(getString(R.string.about_dialog_nurapi) + " " + getNurApi().getFileVersion());
-
-        if (getNurApi().isConnected()) {
-
-            readerAttachedTextView.setText(getString(R.string.attached_reader_info));
-
-            try {
-                NurRespReaderInfo readerInfo = getNurApi().getReaderInfo();
-
-                final TextView modelTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_model);
-                modelTextView.setText(getString(R.string.about_dialog_model) + " " + readerInfo.name);
-                modelTextView.setVisibility(View.VISIBLE);
-
-                final TextView serialTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_serial);
-                serialTextView.setText(getString(R.string.about_dialog_serial) + " " + readerInfo.serial);
-                serialTextView.setVisibility(View.VISIBLE);
-
-                final TextView firmwareTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_firmware);
-                firmwareTextView.setText(getString(R.string.about_dialog_firmware) + " " + ((isApplicationMode) ? getNurApi().getVersions().primaryVersion : mApi.getVersions().secondaryVersion));
-                firmwareTextView.setVisibility(View.VISIBLE);
-
-                final TextView bootloaderTextView = (TextView) dialogLayout.findViewById(R.id.reader_bootloader_version);
-                bootloaderTextView.setText(getString(R.string.about_dialog_bootloader) + " " + ((isApplicationMode) ? getNurApi().getVersions().secondaryVersion : mApi.getVersions().primaryVersion));
-                bootloaderTextView.setVisibility(View.VISIBLE);
-
-                if (getAccessorySupported()) {
-                    final TextView accessoryTextView = (TextView) dialogLayout.findViewById(R.id.accessory_version);
-                    accessoryTextView.setText(getString(R.string.about_dialog_accessory) + " " + getAccessoryApi().getFwVersion());
-                    accessoryTextView.setVisibility(View.VISIBLE);
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (mApi.isConnected()) {
+                return mApi.getFwInfo().get("MODULE");
             }
-        } else {
-            readerAttachedTextView.setText(getString(R.string.no_reader_attached));
+        } catch (Exception e){
+            Log.e(TAG,e.getMessage());
         }
+        return null;
+    }
 
-        builder.show();
+    public String getNurAppVersion(){
+        try{
+            if(mApi.isConnected())
+                return ((isApplicationMode) ? mApi.getVersions().primaryVersion : mApi.getVersions().secondaryVersion);
+        } catch (Exception e){
+            //
+        }
+        return null;
+    }
+
+    public String getNurBldrVersion(){
+        try{
+            if(mApi.isConnected())
+                return ((isApplicationMode) ? getNurApi().getVersions().secondaryVersion : mApi.getVersions().primaryVersion);
+        } catch (Exception e){
+            //
+        }
+        return null;
+    }
+
+    public String getBLEAppVersion(){
+        try{
+            if(mApi.isConnected())
+                return getAccessoryApi().getFwVersion();
+        } catch (Exception e){
+            //
+        }
+        return null;
     }
 
     // Parse the URI the get the actual file name.
@@ -729,6 +754,65 @@ public class Main extends AppTemplate {
         builder.show();
     }
 
+    void handleAboutClick() {
+        final View dialogLayout = getLayoutInflater().inflate(R.layout.dialog_about, null);
+        AlertDialog.Builder builder = new Builder(this);
+        builder.setView(dialogLayout);
+
+        final TextView readerAttachedTextView = (TextView) dialogLayout.findViewById(R.id.reader_attached_is);
+
+        String appversion = "0.0";
+        try {
+            appversion = this.getPackageManager().getPackageInfo("com.nordicid.rfiddemo", 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        final TextView appVersion = (TextView) dialogLayout.findViewById(R.id.app_version);
+        appVersion.setText(getString(R.string.about_dialog_app) + " " + appversion);
+
+        final TextView nurApiVersion = (TextView) dialogLayout.findViewById(R.id.nur_api_version);
+        nurApiVersion.setText(getString(R.string.about_dialog_nurapi) + " " + getNurApi().getFileVersion());
+
+        if (getNurApi().isConnected()) {
+
+            readerAttachedTextView.setText(getString(R.string.attached_reader_info));
+
+            try {
+                NurRespReaderInfo readerInfo = getNurApi().getReaderInfo();
+
+                final TextView modelTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_model);
+                modelTextView.setText(getString(R.string.about_dialog_model) + " " + getModuleType());
+                modelTextView.setVisibility(View.VISIBLE);
+
+                final TextView serialTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_serial);
+                serialTextView.setText(getString(R.string.about_dialog_serial) + " " + readerInfo.serial);
+                serialTextView.setVisibility(View.VISIBLE);
+
+                final TextView firmwareTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_firmware);
+                firmwareTextView.setText(getString(R.string.about_dialog_firmware) + " " + getNurAppVersion());
+                firmwareTextView.setVisibility(View.VISIBLE);
+
+                final TextView bootloaderTextView = (TextView) dialogLayout.findViewById(R.id.reader_bootloader_version);
+                bootloaderTextView.setText(getString(R.string.about_dialog_bootloader) + " " + getNurBldrVersion());
+                bootloaderTextView.setVisibility(View.VISIBLE);
+
+                if (getAccessorySupported()) {
+                    final TextView accessoryTextView = (TextView) dialogLayout.findViewById(R.id.accessory_version);
+                    accessoryTextView.setText(getString(R.string.about_dialog_accessory) + " " + getBLEAppVersion());
+                    accessoryTextView.setVisibility(View.VISIBLE);
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            readerAttachedTextView.setText(getString(R.string.no_reader_attached));
+        }
+
+        builder.show();
+    }
+
     @Override
     public void onDrawerItemClick(AdapterView<?> parent, View view, int position, long id) {
         switch (position) {
@@ -748,7 +832,6 @@ public class Main extends AppTemplate {
                 break;
         }
     }
-
 
     // Get "raw" filename from given resource ID.
     String getRawFileName(int resourceID)
