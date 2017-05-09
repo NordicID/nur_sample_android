@@ -297,7 +297,9 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
     };
     NurDeviceScanner.NurDeviceScannerListener mNurDeviceScannerListener = new NurDeviceScanner.NurDeviceScannerListener() {
         @Override
-        public void onScanStarted() {}
+        public void onScanStarted() {
+            Log.e("DEVICESCAN","Looking for device: " + mDFUTargetAdd);
+        }
 
         @Override
         public void onDeviceFound(NurDeviceSpec nurDeviceSpec) {
@@ -421,6 +423,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
             mDeviceScanner.scanDevices(NurDeviceScanner.MAX_SCAN_PERIOD, false);
             return true;
         }  catch (Exception e) {
+            Log.e("UPDATE APP",e.getMessage());
         }
         return false;
     }
