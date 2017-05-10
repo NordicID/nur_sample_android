@@ -35,6 +35,18 @@
 	            android:layout_height="wrap_content"
 	            android:text="Enable HID RFID" />
 
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:id="@+id/hid_wireless_charging_label"
+				android:text="Wireless charging" />
+
+			<CheckBox
+				android:id="@+id/hid_wireless_charging_checkbox"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+                android:enabled="false"
+				android:text="Enable Wireless Charging" />
 	        	        
 	</LinearLayout>
 </ScrollView>

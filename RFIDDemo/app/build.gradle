@@ -6,14 +6,14 @@ android {
     }
 
     compileSdkVersion 24
-    buildToolsVersion "24.0.3"
+    buildToolsVersion '25.0.2'
 
     defaultConfig {
         applicationId "com.nordicid.rfiddemo"
         minSdkVersion 21
         targetSdkVersion 21
-        versionCode 41
-        versionName "1.0.27"
+        versionCode 42
+        versionName "1.0.28"
         multiDexEnabled true
     }
     buildTypes {
