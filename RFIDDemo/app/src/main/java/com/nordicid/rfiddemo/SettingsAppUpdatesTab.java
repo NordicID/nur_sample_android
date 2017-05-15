@@ -89,6 +89,8 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
     /** true if NUR | DFU APP update is selected **/
     boolean mAppUpdate = true;
     boolean mUpdateRetry = false;
+    /** holds NUR MODULE type **/
+    private String mModuleType;
     /** holds currently selected updateController **/
     UpdateController mCurrentController;
     BthDFUController mDFUController;
@@ -488,6 +490,13 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
 
     @Override
     public void onClick(View view){
+        try {
+            mModuleType = mApi.getFwInfo().get("MODULE");
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
         switch (view.getId()){
             case R.id.btn_select_file:
                 Intent intent;
@@ -579,7 +588,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
     private void handleFileSelection(String fullPath){
         String path = fullPath;
         if(mNURFWUpdate)
-            if(!mNURAPPController.inspectSelectedFwFile(fullPath, mAppUpdate ? NurApi.NUR_BINTYPE_L2APP : NurApi.NUR_BINTYPE_L2LOADER)){
+            if(!mNURAPPController.inspectSelectedFwFile(fullPath, mModuleType ,mAppUpdate ? NurApi.NUR_BINTYPE_L2APP : NurApi.NUR_BINTYPE_L2LOADER)){
                 path =null;
                 Toast.makeText(mOwner.getActivity(), getString(R.string.update_invalid_file), Toast.LENGTH_SHORT).show();
                 //return;
@@ -665,8 +674,8 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
             mFilePicker.setEnabled(enable);
             mStartUpdate.setEnabled(enable && ( mNURAPPController.isFileSet() || mDFUController.isFileSet()));
         } else {
-            mRemoteFilePicker.setEnabled(true);
-            mFilePicker.setEnabled(true);
+            mRemoteFilePicker.setEnabled(false);
+            mFilePicker.setEnabled(false);
             mStartUpdate.setEnabled(false);
         }
     }

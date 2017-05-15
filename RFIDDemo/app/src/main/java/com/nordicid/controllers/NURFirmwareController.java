@@ -144,13 +144,15 @@ public class NURFirmwareController extends UpdateController {
         return mApi.getMode().equalsIgnoreCase("A");
     }
 
-    public boolean inspectSelectedFwFile(String fullPath, int fileType) {
+    public boolean inspectSelectedFwFile(String fileName, String desiredModuleType, int fileType) {
         mFwFileType = null;
         try {
-            mFwFileType = mApi.checkNurFwBinaryFile(fullPath);
-            mIsApplication = mFwFileType.fwType == NurApi.NUR_BINTYPE_L2APP;
+            Log.e("MODULE_TYPE",desiredModuleType);
+            mFwFileType = mApi.checkNurFwBinaryFile(fileName,desiredModuleType);
+            mIsApplication = (mFwFileType.fwType == NurApi.NUR_BINTYPE_L2APP);
             return mFwFileType.fwType == fileType;
         } catch (Exception ex) {
+            ex.printStackTrace();
             Log.e(TAG, "File check error: " + ex.getMessage());
         }
         return false;
@@ -164,6 +166,7 @@ public class NURFirmwareController extends UpdateController {
             else
                 mApi.programBootloaderFile(mFilePath);
         } catch (Exception ex) {
+            ex.printStackTrace();
             if (mFirmwareControllerListener != null)
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
@@ -178,6 +181,7 @@ public class NURFirmwareController extends UpdateController {
             mApi.moduleBoot(false);
             mUpdateComplete = true;
         } catch (Exception ex) {
+            ex.printStackTrace();
             if (mFirmwareControllerListener != null)
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
@@ -210,6 +214,7 @@ public class NURFirmwareController extends UpdateController {
                     handleBootEvent();
             } catch (Exception ex) {
                 mStartProgramOnBoot = false;
+                ex.printStackTrace();
                 if (mFirmwareControllerListener != null)
                     mFirmwareControllerListener.onUpdateInterrupted(ex.getMessage());
             }

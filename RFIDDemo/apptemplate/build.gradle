@@ -27,5 +27,5 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile project(':nurapiandroid')
-    compile 'com.android.support:support-v4:25.3.0'
+    compile 'com.android.support:support-v4:25.3.1'
 }
