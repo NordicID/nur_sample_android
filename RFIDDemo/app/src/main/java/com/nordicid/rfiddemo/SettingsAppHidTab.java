@@ -149,7 +149,7 @@ public class SettingsAppHidTab extends Fragment {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			mWirelessChargingCheckBox.setEnabled(true);
+			mWirelessChargingCheckBox.setEnabled(false);
 		}
 		mHidBarcodeCheckBox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		mHidRFIDCheckBox.setOnCheckedChangeListener(mOnCheckedChangeListener);

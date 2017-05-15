@@ -156,11 +156,12 @@ public class NURFirmwareController {
         return mApi.getMode().equalsIgnoreCase("A");
     }
 
-    public boolean inspectSelectedFwFile(String fileName) {
+    public boolean inspectSelectedFwFile(String fileName, String desiredModuleType) {
         boolean checkOK = false;
         mFwFileType = null;
         try {
-            mFwFileType = mApi.checkNurFwBinaryFile(fileName);
+            Log.e("MODULE",desiredModuleType);
+            mFwFileType = mApi.checkNurFwBinaryFile(fileName,desiredModuleType);
             mIsApplication = (mFwFileType.fwType == NurApi.NUR_BINTYPE_L2APP);
             checkOK = true;
         } catch (Exception ex) {
@@ -177,6 +178,7 @@ public class NURFirmwareController {
             else
                 mApi.programBootloaderFile(mFullFilePath);
         } catch (Exception ex) {
+            ex.printStackTrace();
             if (mFirmwareControllerListener != null)
                 mFirmwareControllerListener.onUpdateInterrupted(ex.getMessage());
         }
@@ -185,6 +187,7 @@ public class NURFirmwareController {
             mApi.moduleBoot(false);
             mUpdateComplete = true;
         } catch (Exception ex) {
+            ex.printStackTrace();
             if (mFirmwareControllerListener != null)
                 mFirmwareControllerListener.onUpdateInterrupted(ex.getMessage());
         }
@@ -212,6 +215,7 @@ public class NURFirmwareController {
                     handleBootEvent();
             } catch (Exception ex) {
                 mStartProgramOnBoot = false;
+                ex.printStackTrace();
                 if (mFirmwareControllerListener != null)
                     mFirmwareControllerListener.onUpdateInterrupted(ex.getMessage());
             }

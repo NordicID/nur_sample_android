@@ -29,6 +29,7 @@ public class NurFwUpdateApp extends SubApp implements View.OnClickListener {
     private Main mainRef = null;
     private View mView;
     private boolean mUpdateRunning = false;
+    private String moduleType;
     private NURFirmwareController.FirmWareControllerListener mNurFWListener = null;
 
     @Override
@@ -167,6 +168,7 @@ public class NurFwUpdateApp extends SubApp implements View.OnClickListener {
                 intent.setType("*/*");
                 chooser = Intent.createChooser(intent, getResources().getString(R.string.file_picker));
                 try {
+                    moduleType = mainRef.getNurApi().getFwInfo().get("MODULE");
                     startActivityForResult(chooser, REQ_FILE_OPEN);
                 } catch (Exception ex) {
                     String strErr = ex.getMessage();
@@ -191,7 +193,7 @@ public class NurFwUpdateApp extends SubApp implements View.OnClickListener {
             if (data != null) {
                 String fullPath;
                 fullPath = getActualFileName(data.getDataString());
-                if (fullPath == null || !mFWController.inspectSelectedFwFile(fullPath)) {
+                if (fullPath == null || !mFWController.inspectSelectedFwFile(fullPath, moduleType)) {
                     mFileNameTV.setText(R.string.not_available);
                     Toast.makeText(mainRef, R.string.file_check_failed, Toast.LENGTH_SHORT).show();
                 } else {
@@ -266,7 +268,7 @@ public class NurFwUpdateApp extends SubApp implements View.OnClickListener {
             mSelectFileBtn.setEnabled(enable);
             mUpdateFWBtn.setEnabled(enable && mFWController.isFileSet());
         } else {
-            mSelectFileBtn.setEnabled(true);
+            mSelectFileBtn.setEnabled(false);
             mUpdateFWBtn.setEnabled(false);
         }
     }
