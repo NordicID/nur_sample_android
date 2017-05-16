@@ -78,6 +78,8 @@ public class NurDeviceListActivity extends Activity implements NurDeviceScanner.
     private ProgressBar mScanProgress;
     private Button mCancelButton;
 
+    private static  NurApi mApi;
+
     public void onScanStarted(){
         Log.d(TAG,"Scan for devices started");
         mScanProgress.setVisibility(View.VISIBLE);
@@ -118,7 +120,7 @@ public class NurDeviceListActivity extends Activity implements NurDeviceScanner.
         mCheckNordicID = getIntent().getBooleanExtra(STR_CHECK_NID, true);
 
         /** Device scanner **/
-        mDeviceScanner = new NurDeviceScanner(this,mRequestedDevices,this);
+        mDeviceScanner = new NurDeviceScanner(this,mRequestedDevices,this, mApi);
         /** **/
 
         if ((mRequestedDevices & REQ_BLE_DEVICES) != 0) {
@@ -286,26 +288,25 @@ public class NurDeviceListActivity extends Activity implements NurDeviceScanner.
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
-    public static void startDeviceRequest(Activity activity) throws InvalidParameterException
+    public static void startDeviceRequest(Activity activity, NurApi api) throws InvalidParameterException
     {
-        startDeviceRequest(activity, ALL_DEVICES, 0, false);
+        startDeviceRequest(activity, ALL_DEVICES, 0, false,api);
     }
 
-    public static void startDeviceRequest(Activity activity, int devMask) throws InvalidParameterException
+    public static void startDeviceRequest(Activity activity, int devMask, NurApi api) throws InvalidParameterException
     {
-        startDeviceRequest(activity, devMask, 0, false);
+        startDeviceRequest(activity, devMask, 0, false,api);
     }
 
-    public static void startDeviceRequest(Activity activity, int devMask, long scanTimeout, boolean filterNID) throws InvalidParameterException
+    public static void startDeviceRequest(Activity activity, int devMask, long scanTimeout, boolean filterNID, NurApi api) throws InvalidParameterException
     {
         if (devMask == 0 || (devMask & ALL_DEVICES) == 0)
             throw new InvalidParameterException("startDeviceRequest(): no devices specified or context is invalid");
-
+        mApi = api;
         Intent newIntent = new Intent(activity.getApplicationContext(), NurDeviceListActivity.class);
         newIntent.putExtra(REQUESTED_DEVICE_TYPES, devMask & ALL_DEVICES);
         newIntent.putExtra(STR_SCANTIMEOUT, scanTimeout);
         newIntent.putExtra(STR_CHECK_NID, filterNID);
-
         activity.startActivityForResult(newIntent, NurDeviceListActivity.REQUEST_SELECT_DEVICE);
     }
 }

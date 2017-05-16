@@ -151,6 +151,7 @@
     <string name="update_validating_fw">Validating firmware</string>
     <string name="update_starting">Update service starting</string>
     <string name="update_started">Update service started</string>
+    <string name="update_running" translatable="false">Updating device</string>
     <string name="update_disconnecting">Disconnecting from device</string>
     <string name="ready_wait_boot">Ready, wait for boot&#8230;</string>
     <string name="update_complete">Update complete</string>
@@ -159,13 +160,13 @@
     <string name="file_check_failed">Selected file check failed!</string>
     <string name="no_file_selected">No file selected</string>
     <string name="update_invalid_file">Invalid update file</string>
-    <string name="update_dialog_title" translatable="false">Available Updates</string>
-    <string name="update_list_text" translatable="false">Select update</string>
-    <string name="ui_blocked" translatable="false">UI blocked during update. Do not close the application or switch to another while it\'s running.</string>
+    <string name="update_dialog_title">Available Updates</string>
+    <string name="update_list_text">Select update</string>
+    <string name="ui_blocked">UI blocked during update. Do not close the application or switch to another while it\'s running.</string>
     <string name="update_state_idle">Update Service idle</string>
-    <string name="looking_for_device">Looking for device</string>
-    <string name="update_file_source" translatable="false">Update file source</string>
-    <string name="dfu_finished" translatable="false">Update finished. you can now turn on your device normally.</string>
+    <string name="looking_for_device" >Looking for device</string>
+    <string name="update_file_source" >Update file source</string>
+    <string name="dfu_finished" >Update finished. you can now turn on your device normally.</string>
 
     <!-- Update sources -->
     <string name="DFU_APP_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_exa_firmware/master/Applicationfirmwares.json</string>

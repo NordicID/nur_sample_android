@@ -83,6 +83,21 @@ public class Main extends AppTemplate {
         return mDFUController;
     }
 
+    // TODO GEt transport
+    public NurApiAutoConnectTransport getAutoConnectTrasport()
+    {
+        return mAcTr;
+    }
+
+    public void disposeTrasport()
+    {
+        if (mAcTr != null) {
+            System.out.println("Dispose transport");
+            mAcTr.dispose();
+        }
+        mAcTr = null;
+    }
+
     public void toggleScreenRotation(boolean enable) {
         setRequestedOrientation((enable) ? ActivityInfo.SCREEN_ORIENTATION_SENSOR : ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
     }
@@ -203,7 +218,7 @@ public class Main extends AppTemplate {
 
     public boolean checkUpdatesEnabled() { return mApplicationPrefences.getBoolean("CheckUpdate",true); }
 
-    void loadSettings() {
+    public void loadSettings() {
         String type = mApplicationPrefences.getString("connType", "");
 
         /* Get rotation setting enable / disable rotation sensors */
@@ -744,7 +759,7 @@ public class Main extends AppTemplate {
 
 	void handleConnectionClick()
 	{
-		NurDeviceListActivity.startDeviceRequest(this);
+		NurDeviceListActivity.startDeviceRequest(this, mApi);
 	}
 
     void handleContactClick() {

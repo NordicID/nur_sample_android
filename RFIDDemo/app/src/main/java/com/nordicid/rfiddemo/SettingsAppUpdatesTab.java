@@ -53,7 +53,6 @@ import com.nordicid.nurapi.NurEventTriggeredRead;
 
 import java.io.File;
 
-import static android.graphics.Color.rgb;
 import static com.nordicid.apptemplate.AppTemplate.getAppTemplate;
 
 public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment implements View.OnClickListener {
@@ -115,6 +114,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
 
         @Override
         public void onProgressChanged(String deviceAddress, int percent, float speed, float avgSpeed, int currentPart, int partsTotal) {
+            setStatus(R.color.StatusGreen,R.string.update_started);
             setProgress(percent);
         }
 
@@ -316,29 +316,13 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
 
         @Override
         public void onScanFinished() {
-            /** if Device was found during scan round start DFU **/
-            if(mTargetFound && !mUpdateRunning) {
+            if(!mUpdateRunning) {
                 Log.e("DEVICESCAN", "Starting DFU");
                 mUpdateRunning = true;
                 setStatus(R.color.StatusOrange,R.string.update_starting);
                 keepScreenOn(true);
                 disableAll();
                 mDFUController.startUpdate();
-            }
-            else{
-                /** DFU device was not found ask user to force or abort **/
-                handleUpdateFinished();
-                AlertDialog.Builder alert = createAlertDialog("Failed to find device.");
-                    alert.setPositiveButton("Force update", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            mUpdateRetry = true;
-                            mDFUController.startUpdate();
-                        }
-                    });
-                alert.setNegativeButton("Dismiss",null);
-                alert.show();
-                handleUpdateFinished();
             }
         }
     };
@@ -351,7 +335,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
         mNURAPPController = Main.getInstance().getNURUpdateController();
         mDFUController = Main.getInstance().getDFUUpdateController();
         mCurrentController = mNURAPPController;
-        mDeviceScanner = new NurDeviceScanner(Main.getInstance(),NurDeviceScanner.REQ_BLE_DEVICES);
+        mDeviceScanner = new NurDeviceScanner(Main.getInstance(),NurDeviceScanner.REQ_BLE_DEVICES, mApi);
         /** Listeners **/
         mNURControllerListener = mNURAPPController.getNurApiListener();
         mDFUController.setBthFwControllerListener(mDFUUpdateListener);
@@ -401,7 +385,8 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
             Main.getInstance().setProgrammingFlag(false);
             getAppTemplate().setEnableBattUpdate(true);
         } else {
-            Main.getInstance().getNurAutoConnect().setAddress(mApplicationModeAddress);
+            Main.getInstance().loadSettings();
+            //Main.getInstance().getNurAutoConnect().setAddress(mApplicationModeAddress);
         }
         toggleLockUI(false);
         mUIBlockedTV.setVisibility(View.GONE);
@@ -418,6 +403,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
             if(!mUpdateRetry) {
                 Main.getInstance().getAccessoryApi().restartBLEModuleToDFU();
                 Thread.sleep(1000);
+                Main.getInstance().disposeTrasport();
             }
             mDFUTargetAdd = mDFUController.getDfuTargetAddress(mApplicationModeAddress);
             mDFUController.setTargetAddress(mDFUTargetAdd);

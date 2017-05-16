@@ -36,7 +36,7 @@ public class NurDeviceScanner {
     private Runnable mEthQueryRunnable;
     private  boolean mEthQueryRunning = false;
     private boolean mScanning = false;
-    private Activity mOwner = null;
+    private Context mOwner = null;
     private NurDeviceScannerListener mListener = null;
 
     public interface NurDeviceScannerListener{
@@ -45,16 +45,17 @@ public class NurDeviceScanner {
         void onScanFinished();
     }
 
-    public NurDeviceScanner(Activity context,int requestedDevices){
-        this(context,requestedDevices,null);
+    public NurDeviceScanner(Context context,int requestedDevices, NurApi mApi){
+        this(context,requestedDevices,null, mApi);
     }
 
-    public NurDeviceScanner(Activity context,int requestedDevices, NurDeviceScannerListener listener){
+    public NurDeviceScanner(Context context,int requestedDevices, NurDeviceScannerListener listener, NurApi api){
         mDeviceList = new ArrayList<NurDeviceSpec>();
         mOwner = context;
         mRequestedDevices = requestedDevices;
         mHandler = new Handler();
         mListener = listener;
+        mApi = api;
     }
 
     public void registerScanListener(NurDeviceScannerListener listener){
@@ -138,7 +139,7 @@ public class NurDeviceScanner {
     }
 
     private void addDevice(NurDeviceSpec device) {
-        if (device.getName() == null)
+        if (device.getName() == null || device.getName().equals("null"))
             return;
         boolean deviceFound = false;
         for (NurDeviceSpec listDev : mDeviceList) {
@@ -165,7 +166,6 @@ public class NurDeviceScanner {
     }
 
     public void queryEthernetDevices(){
-        mApi = new NurApi();
         mEthQueryRunnable = new Runnable() {
             @Override
             public void run() {
@@ -224,19 +224,11 @@ public class NurDeviceScanner {
 
     //region BLE Devices
 
-    private boolean checkForBluetooth()
-    {
-        if (!mBluetoothAdapter.isEnabled())
-            return false;
-        return true;
-    }
-
     public void queryBLEDevices(){
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
         if (!mOwner.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(mOwner, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
-            mOwner.finish();
         }
 
         // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
@@ -248,17 +240,16 @@ public class NurDeviceScanner {
         // Checks if Bluetooth is supported on the device.
         if (mBluetoothAdapter == null) {
             Toast.makeText(mOwner, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
-            mOwner.finish();
             return;
         }
 
         // If requesting only BT devices, check for BT on
-        if (mRequestedDevices == REQ_BLE_DEVICES && !checkForBluetooth())
+        if (mRequestedDevices == REQ_BLE_DEVICES &&  !mBluetoothAdapter.isEnabled())
         {
             Toast.makeText(mOwner, R.string.text_bt_not_on, Toast.LENGTH_SHORT).show();
-            mOwner.finish();
             return;
         }
+
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
@@ -295,13 +286,18 @@ public class NurDeviceScanner {
             new BluetoothAdapter.LeScanCallback() {
                 @Override
                 public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
-                    mOwner.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (checkNIDBLEFilter(device.getName()))
-                                addDevice(getBtDeviceSpec(device, false, rssi));
-                        }
-                    });
+                    if( mApi != null && mApi.getUiThreadRunner() != null) {
+                        mApi.getUiThreadRunner().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (checkNIDBLEFilter(device.getName()))
+                                    addDevice(getBtDeviceSpec(device, false, rssi));
+                            }
+                        });
+                    } else {
+                        if (checkNIDBLEFilter(device.getName()))
+                            addDevice(getBtDeviceSpec(device, false, rssi));
+                    }
                 }
             };
 
