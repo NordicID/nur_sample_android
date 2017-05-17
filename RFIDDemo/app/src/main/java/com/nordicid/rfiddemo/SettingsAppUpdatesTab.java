@@ -408,7 +408,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
             mDFUTargetAdd = mDFUController.getDfuTargetAddress(mApplicationModeAddress);
             mDFUController.setTargetAddress(mDFUTargetAdd);
             setStatus(R.color.StatusOrange,R.string.looking_for_device);
-            mDeviceScanner.scanDevices(NurDeviceScanner.MAX_SCAN_PERIOD, false);
+            mDeviceScanner.scanDevices(NurDeviceScanner.DEF_SCAN_PERIOD, false);
             return true;
         }  catch (Exception e) {
             Log.e("UPDATE APP",e.getMessage());

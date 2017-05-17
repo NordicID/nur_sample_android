@@ -1,6 +1,10 @@
 package com.nordicid.nurapi;
 
-import android.app.Activity;
+import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
+import no.nordicsemi.android.support.v18.scanner.ScanCallback;
+import no.nordicsemi.android.support.v18.scanner.ScanResult;
+import no.nordicsemi.android.support.v18.scanner.ScanSettings;
+
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -18,9 +22,9 @@ public class NurDeviceScanner {
 
     public static final String TAG = "NurDeviceScanner";
     private static final String NID_FILTER = "nordicid_";
-    public static final long MIN_SCAN_PERIOD = 3000;
+    public static final long MIN_SCAN_PERIOD = 1000;
     public static final long MAX_SCAN_PERIOD = 10000;
-    public static final long DEF_SCAN_PERIOD = 5000;
+    public static final long DEF_SCAN_PERIOD = 60000;
     public static final int REQ_BLE_DEVICES = (1 << 0);
     public static final int REQ_USB_DEVICES = (1 << 1);
     public static final int REQ_ETH_DEVICES = (1 << 2);
@@ -269,19 +273,70 @@ public class NurDeviceScanner {
                     if(!mScanning)
                         return;
                     mScanning = false;
-                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                    //mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                    Log.e(TAG,"Scanning STOP BLE");
+                    BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+                    scanner.stopScan(mScanCallback);
                     mListener.onScanFinished();
                 }
             }, mScanPeriod);
 
             mScanning = true;
-            mBluetoothAdapter.startLeScan(mLeScanCallback);
+            //mBluetoothAdapter.startLeScan(mLeScanCallback);
+
+            Log.e(TAG,"Scanning START BLE");
+            BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+            ScanSettings settings = new ScanSettings.Builder()
+                    .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).setReportDelay(1000).build();
+
+            scanner.startScan(null, settings, mScanCallback);
+
         } else {
-            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+            Log.e(TAG,"Scanning STOP BLE");
+            BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+            scanner.stopScan(mScanCallback);
+            //mBluetoothAdapter.stopLeScan(mLeScanCallback);
             mScanning = false;
         }
     }
 
+    private ScanCallback mScanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(final int callbackType, final ScanResult result) {
+            // empty
+        }
+
+        @Override
+        public void onBatchScanResults(final List<ScanResult> results) {
+            Log.e(TAG,"Scanning BLE results: " + results.size());
+            for (final ScanResult result : results)
+            {
+                final BluetoothDevice device = result.getDevice();
+                Log.e(TAG,"Scanning BLE result: " + device.getName());
+                if (checkNIDBLEFilter(device.getName()))
+                {
+                    if( mApi != null && mApi.getUiThreadRunner() != null) {
+                        mApi.getUiThreadRunner().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                addDevice(getBtDeviceSpec(device, false, result.getRssi()));
+                            }
+                        });
+                    } else {
+                        addDevice(getBtDeviceSpec(device, false, result.getRssi()));
+                    }
+                }
+
+            }
+        }
+
+        @Override
+        public void onScanFailed(final int errorCode) {
+            // empty
+        }
+    };
+/*
     private BluetoothAdapter.LeScanCallback mLeScanCallback =
             new BluetoothAdapter.LeScanCallback() {
                 @Override
@@ -300,7 +355,7 @@ public class NurDeviceScanner {
                     }
                 }
             };
-
+*/
     private boolean checkNIDBLEFilter(String deviceName)
     {
         if (!mCheckNordicID)
