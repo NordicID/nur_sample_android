@@ -504,9 +504,12 @@ public class SettingsAppSettingsTab extends Fragment
             /** Check if device region locked **/
             try{
                 // try to change region to one other than the current one
-                mApi.setSetupRegionId((regionSetup % 11) +  1);
+				int testregion = regionSetup > 0 ? 0 : 1;
+                mApi.setSetupRegionId(testregion);
                 // expected NurAPIException 5 if device is region locked
                 mRegionLockDevice.setChecked(false);
+				// Restore
+				mApi.setSetupRegionId(regionSetup);
             } catch (Exception e) {
                 mRegionLockDevice.setChecked(true);
             }
