@@ -273,7 +273,6 @@ public class NurDeviceScanner {
                     if(!mScanning)
                         return;
                     mScanning = false;
-                    //mBluetoothAdapter.stopLeScan(mLeScanCallback);
                     Log.e(TAG,"Scanning STOP BLE");
                     BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
                     scanner.stopScan(mScanCallback);
@@ -282,8 +281,6 @@ public class NurDeviceScanner {
             }, mScanPeriod);
 
             mScanning = true;
-            //mBluetoothAdapter.startLeScan(mLeScanCallback);
-
             Log.e(TAG,"Scanning START BLE");
             BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
             ScanSettings settings = new ScanSettings.Builder()
@@ -296,7 +293,6 @@ public class NurDeviceScanner {
             Log.e(TAG,"Scanning STOP BLE");
             BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
             scanner.stopScan(mScanCallback);
-            //mBluetoothAdapter.stopLeScan(mLeScanCallback);
             mScanning = false;
         }
     }
@@ -309,11 +305,9 @@ public class NurDeviceScanner {
 
         @Override
         public void onBatchScanResults(final List<ScanResult> results) {
-            Log.e(TAG,"Scanning BLE results: " + results.size());
             for (final ScanResult result : results)
             {
                 final BluetoothDevice device = result.getDevice();
-                Log.e(TAG,"Scanning BLE result: " + device.getName());
                 if (checkNIDBLEFilter(device.getName()))
                 {
                     if( mApi != null && mApi.getUiThreadRunner() != null) {
@@ -336,26 +330,7 @@ public class NurDeviceScanner {
             // empty
         }
     };
-/*
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
-            new BluetoothAdapter.LeScanCallback() {
-                @Override
-                public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
-                    if( mApi != null && mApi.getUiThreadRunner() != null) {
-                        mApi.getUiThreadRunner().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (checkNIDBLEFilter(device.getName()))
-                                    addDevice(getBtDeviceSpec(device, false, rssi));
-                            }
-                        });
-                    } else {
-                        if (checkNIDBLEFilter(device.getName()))
-                            addDevice(getBtDeviceSpec(device, false, rssi));
-                    }
-                }
-            };
-*/
+
     private boolean checkNIDBLEFilter(String deviceName)
     {
         if (!mCheckNordicID)

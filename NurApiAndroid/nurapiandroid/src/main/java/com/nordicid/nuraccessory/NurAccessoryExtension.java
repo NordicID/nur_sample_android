@@ -339,7 +339,7 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	{
 		String strVersion;
 		try {
-			strVersion = getFwVersion();
+			strVersion = getFwVersion().getFullApplicationVersion();
 			Log.d(TAG, "isSupported: version = \"" + strVersion + "\".");
 		}
 		catch (Exception e)
@@ -509,17 +509,15 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	 *
 	 * @see #makeIntegerVersion(String)
      */
-	public String getFwVersion() throws Exception
+	public NurAccessoryVersionInfo getFwVersion() throws Exception
 	{
 		byte []reply;
-		String strVersion = "";
+		String strVersion;
 		reply = doCustomCommand(new byte [] { ACC_EXT_GET_FWVERSION });
-
 		strVersion = new String(reply, StandardCharsets.UTF_8);
-
-		return strVersion;
+		return new NurAccessoryVersionInfo(strVersion);
 	}
-	
+
 	/**
      * Split a string to a string array based on give character.
      * Can be used e.g. to split comma or semicolon separated string to multiple fields.
