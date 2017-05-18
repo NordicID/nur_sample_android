@@ -44,7 +44,7 @@
             android:id="@+id/disable_update_check"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Disable update checking on device connection" />
+            android:text="Enable update checking on device connection" />
 
 
     </LinearLayout>

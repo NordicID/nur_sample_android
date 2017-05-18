@@ -1,6 +1,7 @@
 package com.nordicid.rfiddemo;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.nordicid.nurapi.AntennaMapping;
 import com.nordicid.nurapi.AutotuneSetup;
@@ -61,6 +62,7 @@ public class SettingsAppSettingsTab extends Fragment
 	private Spinner mTargetSpinner;
 	private MultiSelectionSpinner mAntennaSpinner;
 	private CheckBox mAutotuneCheckbox;
+	private ArrayAdapter<String> mRegionSpinnerAdapter;
 
     private byte CMD_PRODUCTION_CFG = 0x76;
 
@@ -79,6 +81,9 @@ public class SettingsAppSettingsTab extends Fragment
 			@Override
 			public void connectedEvent() {
 				if (isAdded()) {
+					mRegionSpinnerAdapter.clear();
+					mRegionSpinnerAdapter.addAll(getDeviceRegions());
+					mRegionSpinnerAdapter.notifyDataSetChanged();
 					enableItems(true);
 					readCurrentSetup();
 				}
@@ -138,6 +143,22 @@ public class SettingsAppSettingsTab extends Fragment
 		}
 	}
 
+	private List<String> getDeviceRegions(){
+        List<String> regions = new ArrayList<>();
+		if(mApi.isConnected()) {
+			try {
+				Log.e("NUMREGIONS", "" + mApi.getReaderInfo().numRegions);
+				for (int i = 0; i < mApi.getReaderInfo().numRegions; i++) {
+					Log.e("REgion", "" + i);
+					regions.add(mApi.getRegionInfo(i).name);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+        return regions;
+    }
+
 	ArrayAdapter<CharSequence> txLevelSpinnerAdapter;
 	ArrayAdapter<CharSequence> txLevelSpinnerAdapter1W;
 
@@ -170,9 +191,9 @@ public class SettingsAppSettingsTab extends Fragment
         mRegionLockDevice = (ToggleButton) view.findViewById(R.id.regionLock_checkbox);
         mRegionLockDevice.setEnabled(false);
 
-		ArrayAdapter<CharSequence> regionSpinnerAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.regions_entries, android.R.layout.simple_spinner_item);
-		regionSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		mRegionSpinner.setAdapter(regionSpinnerAdapter);
+		mRegionSpinnerAdapter = new ArrayAdapter<String>(this.getContext(), android.R.layout.simple_spinner_item, getDeviceRegions());
+		mRegionSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		mRegionSpinner.setAdapter(mRegionSpinnerAdapter);
 		mRegionSpinner.setOnItemSelectedListener(new OnItemSelectedListener()
 		{
 			@Override

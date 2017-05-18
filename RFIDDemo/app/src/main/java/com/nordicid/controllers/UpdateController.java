@@ -65,9 +65,7 @@ public abstract class UpdateController {
         return mAppUpdateVersion;
     }
 
-    public String getAvailableBldrUpdateVerion(){
-        return mBldrUpdateVersion;
-    }
+    public String getAvailableBldrUpdateVerion(){ return mBldrUpdateVersion; }
 
     private String Stream2String(InputStream is) throws Exception {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -252,8 +250,8 @@ public abstract class UpdateController {
     public boolean isBldrUpdateAvailable(){
         try {
             UpdateContainer last = fetchLastBldrUpdate();
-            if(checkVersion(appVersion,last.version)){
-                mAppUpdateVersion = last.version;
+            if(checkVersion(bldrVersion,last.version)){
+                mBldrUpdateVersion = last.version;
                 return true;
             }
         } catch (Exception e){

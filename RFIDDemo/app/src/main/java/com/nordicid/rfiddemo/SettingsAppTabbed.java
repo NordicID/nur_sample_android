@@ -116,16 +116,16 @@ public class SettingsAppTabbed extends SubAppTabbed {
 	@Override
 	protected int onGetFragments(ArrayList<Fragment> fragments, ArrayList<String> fragmentNames) throws Exception
 	{
-        fragmentNames.add("Application settings");
+        fragmentNames.add(getString(R.string.app_settings));
         fragments.add(mSettingsAppTab);
 
-		fragmentNames.add("RFID settings");
+		fragmentNames.add(getString(R.string.rfid_settings));
 		fragments.add(mSettingsTab);
 
-		fragmentNames.add("Reader settings");
+		fragmentNames.add(getString(R.string.reader_settings));
 		fragments.add(mReaderSettings);
 
-		fragmentNames.add("Antenna tuning");
+		fragmentNames.add(getString(R.string.antenna_settings));
 		fragments.add(mSettingsTuneTab);
 
 		/** Application Disabled for now **/
@@ -134,7 +134,7 @@ public class SettingsAppTabbed extends SubAppTabbed {
 		fragments.add(mSettingsAuthTab);
 		*/
 
-        fragmentNames.add("Updates");
+        fragmentNames.add(getString(R.string.firmware_updates));
         fragments.add(mSettingsUpdateTab);
 
 		return R.id.pager;

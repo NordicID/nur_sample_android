@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -127,6 +128,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
         @Override
         public void onUpdateError(String deviceAddress, int error, int errorType, String message) {
             mUpdateProgress.setText("Update error: " + message + " Code:" + error);
+            Log.e("NIDDFUUpdate","Update failed: " + error + " " + errorType + " " + message);
             handleUpdateFinished();
             AlertDialog.Builder alert = createAlertDialog("Update failed. Please restart your device and try again.");
             if(!mUpdateRetry)
@@ -308,7 +310,6 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
             if(nurDeviceSpec.getType().equalsIgnoreCase("BLE") && nurDeviceSpec.getAddress().equalsIgnoreCase(mDFUTargetAdd)){
                 mTargetFound = true;
                 Log.e("DEVICESCAN","Found target device " + nurDeviceSpec.getAddress());
-                /** stop scan will trigger onScanFinished **/
                 mDeviceScanner.stopScan();
                 mDeviceScanner.purge();
             }
@@ -399,7 +400,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
 
     private boolean handleDFUUpdateStart(){
         try {
-            /** skip this if retrying device already in DFU mode **/
+            /* skip this if retrying device already in DFU mode */
             if(!mUpdateRetry) {
                 Main.getInstance().getAccessoryApi().restartBLEModuleToDFU();
                 Thread.sleep(1000);
@@ -411,6 +412,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
             mDeviceScanner.scanDevices(NurDeviceScanner.DEF_SCAN_PERIOD, false);
             return true;
         }  catch (Exception e) {
+            e.printStackTrace();
             Log.e("UPDATE APP",e.getMessage());
         }
         return false;
@@ -506,9 +508,9 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
                 dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
                 dialog.setContentView(R.layout.updates_list_view);
                 final ListView updatesList = (ListView) dialog.findViewById(R.id.updates_list_view);
-                /** click listener
+                /* click listener
                  *  Selected files are handled here
-                 **/
+                 */
                 updatesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -518,7 +520,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
                         handleFileSelection(new File(Main.getInstance().getFilesDir().getPath(),selectedUpdate.name).getPath());
                     }
                 });
-                /** **/
+                /* */
                 ListAdapter customAdapter = new UpdateContainerListAdapter(Main.getInstance(),R.layout.update_container_list_item, ( mAppUpdate ) ? mCurrentController.fetchApplicationUpdates() : mCurrentController.fetchBldrUpdates());
                 updatesList.setAdapter(customAdapter);
                 dialog.show();
@@ -537,10 +539,10 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
                         Toast.makeText(mOwner.getActivity(), R.string.device_not_ready, Toast.LENGTH_SHORT).show();
                 } else {
                     /* DFU FW update selected */
-                    /** Disconnect device
+                    /* Disconnect device
                      *  Save Application mode address to restore autoConnect
                      *  convert address to DFU mode and start
-                     **/
+                     */
                     mApplicationModeAddress = Main.getInstance().getNurAutoConnect().getAddress();
                     if (mApplicationModeAddress == null || mApplicationModeAddress.isEmpty()) {
                         Toast.makeText(mOwner.getActivity(), R.string.no_bluetooth_device, Toast.LENGTH_SHORT).show();

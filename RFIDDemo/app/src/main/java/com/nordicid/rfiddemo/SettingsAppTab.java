@@ -22,7 +22,7 @@ public class SettingsAppTab extends Fragment {
     CheckBox mUpdateCheck;
     boolean rotationEnabled = false;
     boolean soundsEnabled = false;
-    boolean updateCheckingEnabled = true;
+    boolean updateCheckingEnabled = false;
     SharedPreferences settings = null;
     SharedPreferences.Editor settingEditor = null;
 
@@ -54,7 +54,7 @@ public class SettingsAppTab extends Fragment {
         settingEditor = settings.edit();
         rotationEnabled = settings.getBoolean("Rotation",false);
         soundsEnabled = !settings.getBoolean("Sounds",true);
-        updateCheckingEnabled = !settings.getBoolean("CheckUpdate",true);
+        updateCheckingEnabled = settings.getBoolean("CheckUpdate",false);
         return inflater.inflate(R.layout.tab_settings_app, container, false);
     }
 
@@ -80,7 +80,7 @@ public class SettingsAppTab extends Fragment {
     OnCheckedChangeListener mOnCheckedChangeListenerUpdates = new OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            settingEditor.putBoolean("CheckUpdate",!isChecked);
+            settingEditor.putBoolean("CheckUpdate",isChecked);
             settingEditor.apply();
         }
     };

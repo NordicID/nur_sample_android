@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Settings tabs names -->
+    <string name="app_settings">Application settings</string>
+    <string name="rfid_settings">RFID settings</string>
+    <string name="reader_settings">Reader settings</string>
+    <string name="antenna_settings">Antenna tuning</string>
+    <string name="Authentication_settings">Authentication</string>
+    <string name="firmware_updates">Firmware update</string>
+    <!-- -->
+
+    <!-- Drawer item names -->
+    <string name="drawer_connection">Connection</string>
+    <string name="drawer_updates">Updates</string>
+    <string name="drawer_contact">Contact</string>
+    <string name="drawer_guide">Quick Guide</string>
+    <string name="drawer_about">About</string>
+    <!-- -->
+
     <string name="app_name">Nordic ID RFID Demo</string>
 
     <string name="average_speed_textview">AVG. SPEED</string>
@@ -13,7 +30,7 @@
     <string name="locate">LOCATE</string>
     <string name="text_tam2">TAG AUTHENTICATION METHOD 2</string>
     <string name="write">WRITE</string>
-    <string name="cancel">CANCEL</string>
+    <string name="cancel">@android:string/cancel</string>
     <string name="refresh">REFRESH</string>
     <string name="refresh_list">REFRESH LIST</string>
     <string name="restore_default_settings">RESTORE DEFAULT SETTINGS</string>
@@ -21,7 +38,7 @@
     <string name="update_fw">Update NUR firmware</string>
     <string name="update_bth">Update bluetooth firmware</string>
     <string name="file_picker">Local storage</string>
-    <string name="file_picker_remote" translatable="false">NORDIC ID Servers</string>
+    <string name="file_picker_remote">NORDIC ID Servers</string>
     <string name="upload_firmware">upload NUR firmware</string>
     <string name="bth_update_firmware">Update Bth firmware</string>
     <string name="file_name">File Name</string>
@@ -41,6 +58,7 @@
     <string name="about_dialog_firmware">Firmware:</string>
     <string name="about_dialog_bootloader">Bootloader:</string>
     <string name="about_dialog_accessory">Accessory:</string>
+    <string name="about_dialog_accessory_bldr">Accessory bootloader:</string>
     <string name="about_dialog_nurapi">NurApi version:</string>
     <string name="about_dialog_app">App version:</string>
 
@@ -139,10 +157,11 @@
     <string name="barcode_no_result">No available results</string>
 
     <!-- Updates App -->
+    <string name="nur_update">NUR firmware update</string>
     <string name="dfu_update">Device update</string>
-    <string name="dfu_bldr_update" translatable="false">Device bootloader update</string>
-    <string name="nur_app_update" translatable="false">NUR update</string>
-    <string name="nur_bldr_update" translatable="false">NUR bootloader update</string>
+    <string name="dfu_bldr_update">Device bootloader update</string>
+    <string name="nur_app_update">NUR update</string>
+    <string name="nur_bldr_update">NUR bootloader update</string>
     <string name="start_update">Start update</string>
     <string name="update_connected">Connected to device</string>
     <string name="update_connecting">Connecting to device</string>
@@ -151,7 +170,7 @@
     <string name="update_validating_fw">Validating firmware</string>
     <string name="update_starting">Update service starting</string>
     <string name="update_started">Update service started</string>
-    <string name="update_running" translatable="false">Updating device</string>
+    <string name="update_running">Updating device</string>
     <string name="update_disconnecting">Disconnecting from device</string>
     <string name="ready_wait_boot">Ready, wait for boot&#8230;</string>
     <string name="update_complete">Update complete</string>
@@ -173,7 +192,6 @@
     <string name="DFU_BLDR_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_exa_firmware/master/Bootloaderfirmwares.json</string>
     <string name="NUR_APP_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_firmware/master/firmwares.json</string>
     <string name="NUR_BLDR_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_exa_firmware/master/firmwares.json</string>
-    <string name="nur_update">NUR firmware update</string>
 
 
 </resources>

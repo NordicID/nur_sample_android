@@ -13,6 +13,8 @@ import com.nordicid.apptemplate.SubAppList;
 import com.nordicid.controllers.BthDFUController;
 import com.nordicid.controllers.NURFirmwareController;
 import com.nordicid.controllers.UpdateController;
+import com.nordicid.nuraccessory.NurAccessoryConfig;
+import com.nordicid.nuraccessory.NurAccessoryVersionInfo;
 import com.nordicid.nurapi.*;
 
 import android.app.AlertDialog;
@@ -216,7 +218,7 @@ public class Main extends AppTemplate {
         return mApplicationPrefences.getInt(KEYNUMBER_PREFNAME, -1);
     }
 
-    public boolean checkUpdatesEnabled() { return mApplicationPrefences.getBoolean("CheckUpdate",true); }
+    public boolean checkUpdatesEnabled() { return mApplicationPrefences.getBoolean("CheckUpdate",false); }
 
     public void loadSettings() {
         String type = mApplicationPrefences.getString("connType", "");
@@ -454,49 +456,17 @@ public class Main extends AppTemplate {
                     updateStatus();
                     isApplicationMode = mApi.getMode().equalsIgnoreCase("A");
                     final String module = getModuleType();
-                    /**
-                     *  manually set for now
-                     *  Adding device type later to API
-                     **/
-                    mDFUController.setHWType("EXA51");
-                    mDFUController.setAPPVersion(getBLEAppVersion());
-                    mDFUController.setBldrVersion("1.0.0");
+                    final NurAccessoryVersionInfo accessoryVersion = getAccesoryVersionInfo();
+                    mDFUController.setHWType(getAccessoryApi().getConfig().getDeviceType());
+                    if(accessoryVersion != null) {
+                        mDFUController.setAPPVersion(accessoryVersion.getApplicationVersion());
+                        mDFUController.setBldrVersion(accessoryVersion.getmBootloaderVersion());
+                    }
                     mNURAPPController.setAPPVersion(getNurAppVersion());
                     mNURAPPController.setHWType(module);
                     mNURAPPController.setBldrVersion(getNurBldrVersion());
-                    /**
-                    * trigger update checking ?
-                    * //TODO implement Check for updates when sources available
-                    */
-                    if(checkUpdatesEnabled()){
-                        boolean dfuApp = mDFUController.isAppUpdateAvailable();
-                        boolean dfuBldr = mDFUController.isBldrUpdateAvailable();
-                        boolean nurApp = mNURAPPController.isAppUpdateAvailable();
-                        boolean nurBldr = mNURAPPController.isBldrUpdateAvailable();
-                        if(dfuApp || dfuBldr || nurApp || nurBldr) {
-                            final AlertDialog.Builder alertDialog = new AlertDialog.Builder(gInstance);
-                            alertDialog.setTitle("Available Updates:");
-                            String message = "";
-                            if(dfuApp)
-                                message += "Device application available : " + mDFUController.getAvailableAppUpdateVerion();
-                            if(dfuBldr)
-                                message += "\nDevice bootloader available : " + mDFUController.getAvailableBldrUpdateVerion();
-                            if(nurApp)
-                                message += "\nNUR application available : " + mNURAPPController.getAvailableAppUpdateVerion();
-                            if(nurBldr)
-                                message += "\nNUR bootloader available : " + mNURAPPController.getAvailableBldrUpdateVerion();
-                            alertDialog.setMessage(message);
-                            alertDialog.setNegativeButton("Dismiss",null);
-                            alertDialog.setPositiveButton("Open update app", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    SettingsAppTabbed.setPreferredTab("Updates");
-                                    setApp("Settings");
-                                }
-                            });
-                            alertDialog.show();
-                        }
-                    }
+                    if(checkUpdatesEnabled())
+                        checkDeviceUpdates();
                     Toast.makeText(Main.this, getString(R.string.reader_connected), Toast.LENGTH_SHORT).show();
                     if(!isApplicationMode)
                         Toast.makeText(Main.this, getString(R.string.device_boot_mode), Toast.LENGTH_LONG).show();
@@ -616,10 +586,11 @@ public class Main extends AppTemplate {
 
     @Override
     public void onCreateDrawerItems(Drawer drawer) {
-        drawer.addTitle("Connection");
-        drawer.addTitle("Contact");
-        drawer.addTitle("Quick guide");
-        drawer.addTitle("About");
+        drawer.addTitle(getString(R.string.drawer_connection));
+        drawer.addTitle(getString(R.string.drawer_updates));
+        drawer.addTitle(getString(R.string.drawer_contact));
+        drawer.addTitle(getString(R.string.drawer_guide));
+        drawer.addTitle(getString(R.string.drawer_about));
     }
 
     void handleQuickGuide() {
@@ -677,9 +648,43 @@ public class Main extends AppTemplate {
         return null;
     }
 
-    public String getBLEAppVersion(){
+    public void checkDeviceUpdates()
+    {
+        boolean dfuApp = mDFUController.isAppUpdateAvailable();
+        boolean dfuBldr = mDFUController.isBldrUpdateAvailable();
+        boolean nurApp = mNURAPPController.isAppUpdateAvailable();
+        boolean nurBldr = mNURAPPController.isBldrUpdateAvailable();
+        if(dfuApp || dfuBldr || nurApp || nurBldr) {
+            final AlertDialog.Builder alertDialog = new AlertDialog.Builder(gInstance);
+            alertDialog.setTitle("Available Updates:");
+            String message = "";
+            if(dfuApp)
+                message += "Device application available : " + mDFUController.getAvailableAppUpdateVerion();
+            if(dfuBldr)
+                message += "\nDevice bootloader available : " + mDFUController.getAvailableBldrUpdateVerion();
+            if(nurApp)
+                message += "\nNUR application available : " + mNURAPPController.getAvailableAppUpdateVerion();
+            if(nurBldr)
+                message += "\nNUR bootloader available : " + mNURAPPController.getAvailableBldrUpdateVerion();
+            alertDialog.setMessage(message);
+            alertDialog.setNegativeButton("Dismiss",null);
+            alertDialog.setPositiveButton("Open update app", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    SettingsAppTabbed.setPreferredTab("Updates");
+                    setApp("Settings");
+                }
+            });
+            alertDialog.show();
+        }
+        else
+            Toast.makeText(this,"Device up to date",Toast.LENGTH_SHORT).show();
+    }
+
+    public NurAccessoryVersionInfo getAccesoryVersionInfo()
+    {
         try{
-            if(mApi.isConnected())
+            if(mApi.isConnected());
                 return getAccessoryApi().getFwVersion();
         } catch (Exception e){
             //
@@ -813,9 +818,16 @@ public class Main extends AppTemplate {
                 bootloaderTextView.setVisibility(View.VISIBLE);
 
                 if (getAccessorySupported()) {
+
+                    final NurAccessoryVersionInfo accessoryVersion = getAccesoryVersionInfo();
+
                     final TextView accessoryTextView = (TextView) dialogLayout.findViewById(R.id.accessory_version);
-                    accessoryTextView.setText(getString(R.string.about_dialog_accessory) + " " + getBLEAppVersion());
+                    accessoryTextView.setText(getString(R.string.about_dialog_accessory) + " " + accessoryVersion.getApplicationVersion());
                     accessoryTextView.setVisibility(View.VISIBLE);
+
+                    final  TextView accessoryBldrVersion = (TextView) dialogLayout.findViewById(R.id.accessory_bootloader_version);
+                    accessoryBldrVersion.setText(getString(R.string.about_dialog_accessory_bldr) + " " + accessoryVersion.getmBootloaderVersion());
+                    accessoryBldrVersion.setVisibility(View.VISIBLE);
                 }
 
             } catch (Exception e) {
@@ -835,12 +847,15 @@ public class Main extends AppTemplate {
                 handleConnectionClick();
                 break;
             case 1:
-                handleContactClick();
+                checkDeviceUpdates();
                 break;
             case 2:
-                handleQuickGuide();
+                handleContactClick();
                 break;
             case 3:
+                handleQuickGuide();
+                break;
+            case 4:
                 handleAboutClick();
                 break;
             default:

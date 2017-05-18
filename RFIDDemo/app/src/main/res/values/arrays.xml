@@ -109,25 +109,6 @@
         <item>B</item>
         <item>Dual Target</item>
     </string-array>
-    
-    <string-array name="regions_entries">
-        <item>Europe</item>
-        <item>North-America</item>
-        <item>People\'s Republic of China (UB)</item>
-        <item>Malaysia</item>
-        <item>Brazil</item>
-        <item>Australia</item>
-        <item>New Zealand</item>
-        <item>Japan 250mW LBT</item>
-        <item>Japan 500mW DRM</item>
-        <item>Korea LBT</item>
-        <item>India</item>
-        <item>Russia</item>
-        <item>Vietnam</item>
-        <item>Singapore</item>
-        <item>Thailand</item>
-        <item>Philippines</item>
-    </string-array>
 
     <string-array name="tm_nur_test_types">
         <item>NONE</item>
