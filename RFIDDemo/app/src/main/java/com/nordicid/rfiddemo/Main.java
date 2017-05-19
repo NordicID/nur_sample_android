@@ -650,6 +650,10 @@ public class Main extends AppTemplate {
 
     public void checkDeviceUpdates()
     {
+        if(!mApi.isConnected()) {
+            Toast.makeText(this,"No device connected",Toast.LENGTH_SHORT).show();
+            return;
+        }
         boolean dfuApp = mDFUController.isAppUpdateAvailable();
         boolean dfuBldr = mDFUController.isBldrUpdateAvailable();
         boolean nurApp = mNURAPPController.isAppUpdateAvailable();
@@ -822,7 +826,7 @@ public class Main extends AppTemplate {
                     final NurAccessoryVersionInfo accessoryVersion = getAccesoryVersionInfo();
 
                     final TextView accessoryTextView = (TextView) dialogLayout.findViewById(R.id.accessory_version);
-                    accessoryTextView.setText(getString(R.string.about_dialog_accessory) + " " + accessoryVersion.getApplicationVersion());
+                    accessoryTextView.setText(getString(R.string.about_dialog_accessory) + " " + accessoryVersion.getFullApplicationVersion());
                     accessoryTextView.setVisibility(View.VISIBLE);
 
                     final  TextView accessoryBldrVersion = (TextView) dialogLayout.findViewById(R.id.accessory_bootloader_version);
