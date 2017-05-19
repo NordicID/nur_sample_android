@@ -5,13 +5,13 @@ android {
         javaMaxHeapSize "4g"
     }
 
-    compileSdkVersion 25
-    buildToolsVersion '25.0.2'
+    compileSdkVersion 23
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         applicationId "com.nordicid.rfiddemo"
         minSdkVersion 21
-        targetSdkVersion 25
+        targetSdkVersion 21
         versionCode 44
         versionName "1.0.30"
         multiDexEnabled true

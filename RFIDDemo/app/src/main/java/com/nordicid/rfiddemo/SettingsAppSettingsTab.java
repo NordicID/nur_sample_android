@@ -508,6 +508,7 @@ public class SettingsAppSettingsTab extends Fragment
 		mAutotuneCheckbox.setOnCheckedChangeListener(null);
         mRegionLockDevice.setOnClickListener(null);
 
+
 		try {
 
 			if (mApi.getDeviceCaps().isOneWattReader())
