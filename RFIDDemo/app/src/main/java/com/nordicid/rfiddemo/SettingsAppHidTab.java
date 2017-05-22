@@ -139,7 +139,7 @@ public class SettingsAppHidTab extends Fragment {
 			NurAccessoryConfig cfg = mExt.getConfig();
 			mHidBarcodeCheckBox.setChecked(cfg.getHidBarCode());
 			mHidRFIDCheckBox.setChecked(cfg.getHidRFID());
-			mWirelessChargingCheckBox.setChecked(mExt.isWirelessChargingOn());
+			//mWirelessChargingCheckBox.setChecked(mExt.isWirelessChargingOn());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
