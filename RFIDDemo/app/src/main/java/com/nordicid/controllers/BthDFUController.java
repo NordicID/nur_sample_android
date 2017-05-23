@@ -1,10 +1,21 @@
 package com.nordicid.controllers;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 
 import com.nordicid.helpers.UpdateContainer;
 import com.nordicid.rfiddemo.DfuService;
+
+import java.util.List;
 
 import no.nordicsemi.android.dfu.DfuProgressListener;
 import no.nordicsemi.android.dfu.DfuServiceController;
@@ -23,6 +34,7 @@ public class BthDFUController extends UpdateController{
     private BthFirmwareControllerListener mBthFwControllerListener = null;
     private Context mContext = null;
     private DfuServiceController mDFUServiceController = null;
+    Handler mHandler;
 
     public interface BthFirmwareControllerListener {
         void onDeviceConnected(String address);
@@ -49,6 +61,7 @@ public class BthDFUController extends UpdateController{
         mContext = context;
         mAppUpdateSource = appSource;
         mBldrUpdateSource = bldrSource;
+        mHandler = new Handler();
     }
 
     public void setTargetAddress(String address){
@@ -106,18 +119,21 @@ public class BthDFUController extends UpdateController{
         public void onDfuCompleted(String deviceAddress) {
             mBthFwControllerListener.onDfuCompleted(deviceAddress);
             mDFUServiceController = null;
+            disposeGatt();
         }
         /** called when the operation was aborted **/
         @Override
         public void onDfuAborted(String deviceAddress) {
             mBthFwControllerListener.onDfuAborted(deviceAddress);
             mDFUServiceController = null;
+            disposeGatt();
         }
         /** on any error this will be triggered **/
         @Override
         public void onError(String deviceAddress, int error, int errorType, String message) {
             mBthFwControllerListener.onUpdateError(deviceAddress,error,errorType,message);
             mDFUServiceController = null;
+            disposeGatt();
         }
     };
 
@@ -138,28 +154,29 @@ public class BthDFUController extends UpdateController{
         return String.format("%16s", Long.toHexString(Long.parseLong(deviceAddress.replace(":",""),16)+1).replaceAll("(.{2})", "$1"+':')).replace(" ", "00:").substring(0,17).toUpperCase();
     }
 
-    public boolean startUpdate(){
-        DfuServiceListenerHelper.registerProgressListener(mContext,mDfuProgressListener);
-        if(mDFUDeviceAddress != null && mFilePath != null && mContext != null){
-            final DfuServiceInitiator dfuStarter = new DfuServiceInitiator(mDFUDeviceAddress)
-                    .setDisableNotification(true)
-                    .setForceDfu(true)
-                    .setZip(mFilePath);
-            mDFUServiceController = dfuStarter.start(mContext, DfuService.class);
+    public boolean startUpdate()
+    {
+        if (mDFUDeviceAddress != null && mFilePath != null && mContext != null) {
+            // Start with discoring services, this fixes bug in android 7 BT stack where it cannot connect to DFU service if services are not in cache
+            discoverDeviceServices(mDFUDeviceAddress);
+            return true;
         }
         return false;
     }
 
     public void abortUpdate(){
-        mDFUServiceController.abort();
+        if (mDFUServiceController != null)
+            mDFUServiceController.abort();
     }
 
     public void pauseUpdate(){
-        mDFUServiceController.pause();
+        if (mDFUServiceController != null)
+            mDFUServiceController.pause();
     }
 
     public void resumeUpdate(){
-        mDFUServiceController.resume();
+        if (mDFUServiceController != null)
+            mDFUServiceController.resume();
     }
 
     /**
@@ -180,4 +197,142 @@ public class BthDFUController extends UpdateController{
         }
         return currentSplits.length - remoteSplits.length < 0;
     }
+
+    private BluetoothGatt mGatt = null;
+    private boolean mWaitingForConnect = false;
+    private boolean mWaitingForDiscover = false;
+    private boolean mRetry = true;
+
+    private void startDfuUpdate()
+    {
+        DfuServiceListenerHelper.registerProgressListener(mContext,mDfuProgressListener);
+        final DfuServiceInitiator dfuStarter = new DfuServiceInitiator(mDFUDeviceAddress)
+                .setKeepBond(true)
+                .setDeviceName("Nordic ID device")
+                // .setDisableNotification(true)
+                .setForceDfu(true)
+                .setZip(mFilePath);
+        mDFUServiceController = dfuStarter.start(mContext, DfuService.class);
+    }
+
+    private void disposeGatt()
+    {
+        if (mGatt != null) {
+            Log.w(TAG, "disposeGatt");
+            try {
+                mGatt.disconnect();
+                mGatt.close();
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+            mGatt = null;
+        }
+    }
+
+    public void discoverDeviceServices(String address) {
+        mWaitingForDiscover = false;
+        mWaitingForConnect = true;
+        mRetry = true;
+        disposeGatt();
+
+        BluetoothManager bluetoothManager = (BluetoothManager)mContext.getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothAdapter mBluetoothAdapter = bluetoothManager.getAdapter();
+        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+        mGatt = device.connectGatt(mContext, true, mGattCallback);
+    }
+
+    Runnable mDiscoverServicesJamCheck = new Runnable() {
+        @Override
+        public void run() {
+            Log.w(TAG, "discoverServices jammed, restart");
+            if(mGatt != null)
+                mGatt.discoverServices();
+        }
+    };
+
+    private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            Log.i("onConnectionStateChange", "Status: " + status);
+            switch (newState) {
+                case BluetoothProfile.STATE_CONNECTED:
+                    Log.i(TAG, "gattCallback: STATE_CONNECTED");
+                    mWaitingForConnect = false;
+                    mWaitingForDiscover = true;
+                    // post 1sec delayed, fix some huawei phones..
+                    mHandler.postDelayed(new Runnable() {
+                                      @Override
+                                      public void run() {
+                                          if (mGatt==null)
+                                              return;
+                                          Log.i(TAG, "gattCallback: start discover");
+                                          mHandler.postDelayed(mDiscoverServicesJamCheck, 5000);
+                                          mGatt.discoverServices();
+                                      }
+                                  }, 1000);
+                    break;
+
+                case BluetoothProfile.STATE_DISCONNECTED:
+                    mHandler.removeCallbacks(mDiscoverServicesJamCheck);
+                    Log.e(TAG, "gattCallback: STATE_DISCONNECTED; " + mWaitingForConnect + "; " + mWaitingForDiscover + "; " + mRetry);
+                    if (!mRetry && (mWaitingForConnect || mWaitingForDiscover)) {
+                        mWaitingForConnect = false;
+                        mWaitingForDiscover = false;
+                        final int _status = status;
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mBthFwControllerListener.onUpdateError(mDFUDeviceAddress, _status, BluetoothProfile.STATE_DISCONNECTED, "Could not connect to device");
+                            }
+                        });
+                    }
+                    if (mRetry) {
+                        mHandler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                startUpdate();
+                                mRetry = false;
+                            }
+                        }, 1000);
+                    } else {
+                        disposeGatt();
+                    }
+                    break;
+                default:
+                    Log.e(TAG, "gattCallback: STATE_OTHER");
+            }
+
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            mHandler.removeCallbacks(mDiscoverServicesJamCheck);
+            List<BluetoothGattService> services = gatt.getServices();
+            if (services != null) {
+                for (BluetoothGattService s : services) {
+                    Log.i(TAG, "Service: " + s.toString());
+                }
+            }
+
+            // post 10sec delayd, some huawei phones needs long delay before start..
+            // Otherwise update will fail during update to CRC error
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Log.i(TAG, "onServicesDiscovered disposeGatt");
+                    disposeGatt();
+                    Log.i(TAG, "onServicesDiscovered startdfu");
+                    startDfuUpdate();
+                }
+            }, 10000);
+        }
+
+        @Override
+        public void onCharacteristicRead(BluetoothGatt gatt,
+                                         BluetoothGattCharacteristic characteristic,
+                                         int status) {
+            Log.i(TAG, "onCharacteristicRead: " + characteristic.toString());
+        }
+    };
 }

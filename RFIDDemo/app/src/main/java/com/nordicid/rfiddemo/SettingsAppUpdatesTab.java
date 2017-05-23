@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -53,6 +54,8 @@ import com.nordicid.nurapi.NurEventTraceTag;
 import com.nordicid.nurapi.NurEventTriggeredRead;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.nordicid.apptemplate.AppTemplate.getAppTemplate;
 
@@ -79,10 +82,13 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
     RadioButton mDFURadio;
     RadioButton mDFUBLDRRadio;
     RadioButton mNURBLDRRadio;
+
     /** Used to search for DFU targets **/
     NurDeviceScanner mDeviceScanner;
     String mDFUTargetAdd = "";
-    boolean mTargetFound = false;
+    boolean mDFUTargetAddFound = false;
+    List<NurDeviceSpec> mDfuExaFound = new ArrayList<NurDeviceSpec>();
+
     boolean mUpdateRunning = false;
     /** true if NUR FW update is selected **/
     boolean mNURFWUpdate = true;
@@ -299,31 +305,60 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
         @Override
         public void tagTrackingChangeEvent(NurEventTagTrackingChange arg0s) {}
     };
+
     NurDeviceScanner.NurDeviceScannerListener mNurDeviceScannerListener = new NurDeviceScanner.NurDeviceScannerListener() {
         @Override
         public void onScanStarted() {
-            Log.e("DEVICESCAN","Looking for device: " + mDFUTargetAdd);
+            mDFUTargetAddFound = false;
+            mDfuExaFound.clear();
+            mDeviceScanner.purge();
+            Log.i("DEVICESCAN","Looking for device: " + mDFUTargetAdd + " or DfuEXA");
         }
 
         @Override
         public void onDeviceFound(NurDeviceSpec nurDeviceSpec) {
-            if(nurDeviceSpec.getType().equalsIgnoreCase("BLE") && nurDeviceSpec.getAddress().equalsIgnoreCase(mDFUTargetAdd)){
-                mTargetFound = true;
-                Log.e("DEVICESCAN","Found target device " + nurDeviceSpec.getAddress());
+            if (nurDeviceSpec.getAddress().equalsIgnoreCase(mDFUTargetAdd)){
+                Log.i("DEVICESCAN", "Found target device " + nurDeviceSpec.getAddress());
+                mDFUTargetAddFound = true;
+                mDfuExaFound.add(nurDeviceSpec);
                 mDeviceScanner.stopScan();
-                mDeviceScanner.purge();
+                //mDeviceScanner.purge();
+            }
+            else if (nurDeviceSpec.getName().equals("DfuEXA")) {
+                mDfuExaFound.add(nurDeviceSpec);
             }
         }
 
         @Override
         public void onScanFinished() {
-            if(!mUpdateRunning) {
-                Log.e("DEVICESCAN", "Starting DFU");
+            if (!mUpdateRunning && mDfuExaFound.size() > 0)
+            {
+                if (!mDFUTargetAddFound && mDfuExaFound.size() > 1) {
+                    // TODO: Pop up selection list for mDfuExaFound
+                }
+                Log.e("DEVICESCAN", "Starting DFU controller");
                 mUpdateRunning = true;
-                setStatus(R.color.StatusOrange,R.string.update_starting);
                 keepScreenOn(true);
                 disableAll();
-                mDFUController.startUpdate();
+
+                final String dfuTargAddr = mDfuExaFound.get(0).getAddress();
+
+                setStatus(R.color.StatusOrange,R.string.update_starting);
+
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mDFUController.setTargetAddress(dfuTargAddr);
+                        mDFUController.startUpdate();
+                    }
+                }, 100);
+            }
+            else if (mDfuExaFound.size() == 0)
+            {
+                mUpdateProgress.setText("DFU Device not found");
+                Log.e("NIDDFUUpdate","DFU Device not found");
+                handleUpdateFinished();
             }
         }
     };
@@ -376,7 +411,8 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
 
     private void handleUpdateFinished(){
         mUpdateRunning = false;
-        mTargetFound = false;
+        mDFUTargetAddFound = false;
+        mDfuExaFound.clear();
         setProgress(0);
         setStatus(R.color.StatusRed,R.string.update_state_idle);
         mSpinner.setVisibility(View.GONE);
@@ -403,13 +439,14 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
             /* skip this if retrying device already in DFU mode */
             if(!mUpdateRetry) {
                 Main.getInstance().getAccessoryApi().restartBLEModuleToDFU();
-                Thread.sleep(1000);
+                Thread.sleep(500);
                 Main.getInstance().disposeTrasport();
+                Thread.sleep(500);
             }
             mDFUTargetAdd = mDFUController.getDfuTargetAddress(mApplicationModeAddress);
             mDFUController.setTargetAddress(mDFUTargetAdd);
             setStatus(R.color.StatusOrange,R.string.looking_for_device);
-            mDeviceScanner.scanDevices(NurDeviceScanner.DEF_SCAN_PERIOD, false);
+            mDeviceScanner.scanDevices(10000L, false);
             return true;
         }  catch (Exception e) {
             e.printStackTrace();
