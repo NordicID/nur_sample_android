@@ -91,10 +91,9 @@ public class Main extends AppTemplate {
         return mAcTr;
     }
 
-    public void disposeTrasport()
-    {
+    public void disposeTrasport() {
         if (mAcTr != null) {
-            System.out.println("Dispose transport");
+            Log.d(TAG,"Dispose transport");
             mAcTr.dispose();
         }
         mAcTr = null;
@@ -648,8 +647,7 @@ public class Main extends AppTemplate {
         return null;
     }
 
-    public void checkDeviceUpdates()
-    {
+    public void checkDeviceUpdates() {
         if(!mApi.isConnected()) {
             Toast.makeText(this,"No device connected",Toast.LENGTH_SHORT).show();
             return;
@@ -672,10 +670,10 @@ public class Main extends AppTemplate {
                 message += "\nNUR bootloader available : " + mNURAPPController.getAvailableBldrUpdateVerion();
             alertDialog.setMessage(message);
             alertDialog.setNegativeButton("Dismiss",null);
-            alertDialog.setPositiveButton("Open update app", new DialogInterface.OnClickListener() {
+            alertDialog.setPositiveButton("Update firmware", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    SettingsAppTabbed.setPreferredTab("Updates");
+                    SettingsAppTabbed.setPreferredTab(getString(R.string.firmware_updates));
                     setApp("Settings");
                 }
             });

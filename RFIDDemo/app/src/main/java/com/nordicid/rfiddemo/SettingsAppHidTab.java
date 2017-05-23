@@ -114,11 +114,6 @@ public class SettingsAppHidTab extends Fragment {
 				enableItems(mApi.isConnected());
 				if (mApi.isConnected()) {
 					readCurrentSetup();
-					try {
-						mWirelessChargingCheckBox.setEnabled(mExt.getConfig().hasWirelessCharging());
-					} catch (Exception e) {
-						Toast.makeText(AppTemplate.getAppTemplate(),"Failed to get device config", Toast.LENGTH_SHORT).show();
-					}
 				}
 			}
 		}
@@ -139,18 +134,15 @@ public class SettingsAppHidTab extends Fragment {
 			NurAccessoryConfig cfg = mExt.getConfig();
 			mHidBarcodeCheckBox.setChecked(cfg.getHidBarCode());
 			mHidRFIDCheckBox.setChecked(cfg.getHidRFID());
-			//mWirelessChargingCheckBox.setChecked(mExt.isWirelessChargingOn());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			enableItems(false);
 		}
 		try {
-			mWirelessChargingCheckBox.setChecked(mExt.isWirelessChargingOn());
-			mWirelessChargingCheckBox.setEnabled(true);
+			mWirelessChargingCheckBox.setEnabled(mExt.getConfig().hasWirelessCharging());
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Toast.makeText(AppTemplate.getAppTemplate(),"Failed to get device config", Toast.LENGTH_SHORT).show();
 			mWirelessChargingCheckBox.setEnabled(false);
 		}
 		mHidBarcodeCheckBox.setOnCheckedChangeListener(mOnCheckedChangeListener);
