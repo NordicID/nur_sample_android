@@ -432,9 +432,6 @@ public class Main extends AppTemplate {
         /* Reader settings application. */
         subAppList.addSubApp(new SettingsAppTabbed());
 
-        //theApi.setLogLevel(NurApi.LOG_VERBOSE | NurApi.LOG_USER | NurApi.LOG_DATA| NurApi.LOG_ERROR);
-        theApi.setLogLevel(NurApi.LOG_ERROR);
-
         setAppListener(new NurApiListener() {
             @Override
             public void disconnectedEvent() {
