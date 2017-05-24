@@ -172,4 +172,13 @@ public class NurApiSocketTransport implements NurApiTransport
 		}
 		return len;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean disableAck()
+	{
+		return false;
+	}
 }
