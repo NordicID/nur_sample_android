@@ -28,6 +28,7 @@
     <string name="stop">STOP</string>
     <string name="clear">CLEAR</string>
     <string name="locate">LOCATE</string>
+    <string name="locate_tag">Locate tag</string>
     <string name="text_tam2">TAG AUTHENTICATION METHOD 2</string>
     <string name="write">WRITE</string>
     <string name="cancel">@android:string/cancel</string>
@@ -192,6 +193,8 @@
     <string name="DFU_BLDR_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_exa_firmware/master/Bootloaderfirmwares.json</string>
     <string name="NUR_APP_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_firmware/master/firmwares.json</string>
     <string name="NUR_BLDR_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_exa_firmware/master/firmwares.json</string>
+    <string name="export_csv">Export all tags to CSV file</string>
+    <string name="share_via">Share via</string>
 
 
 </resources>

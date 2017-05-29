@@ -211,7 +211,7 @@ public class InventoryApp extends SubApp {
 				
 				//if tag clicked
 				HashMap<String, String> selectedTagData =(HashMap<String, String>) mFoundTagsListView.getItemAtPosition(position);
-				InventoryController.showTagDialog(getActivity(), selectedTagData);
+				mInventoryController.showTagDialog(getActivity(), selectedTagData);
 			}
 			
 		});

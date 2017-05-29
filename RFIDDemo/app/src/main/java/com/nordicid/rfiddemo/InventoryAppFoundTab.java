@@ -14,7 +14,6 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
-import android.widget.TextView;
 
 import com.nordicid.controllers.InventoryController;
 
@@ -35,7 +34,7 @@ public class InventoryAppFoundTab extends Fragment {
 		super.onViewCreated(view, savedInstanceState);
 		
 		mInventoryTagList = (ListView) view.findViewById(R.id.tags_listview);
-		
+
 		mFoundTagsListViewAdapter = new SimpleAdapter(
 				getActivity(),
 				InventoryAppTabbed.getInstance().getInventoryController().getListViewAdapterData(),
@@ -48,15 +47,15 @@ public class InventoryAppFoundTab extends Fragment {
 		mInventoryTagList.setAdapter(mFoundTagsListViewAdapter);
 		mInventoryTagList.setCacheColorHint(0);
 		mInventoryTagList.setOnItemClickListener(new OnItemClickListener() {
-		
+
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-			
+
 				@SuppressWarnings("unchecked")
 				final HashMap<String, String> selectedTagData = (HashMap<String, String>) mInventoryTagList.getItemAtPosition(position);
-				InventoryController.showTagDialog(getActivity(), selectedTagData);
+				InventoryAppTabbed.getInstance().getInventoryController().showTagDialog(getActivity(), selectedTagData);
 			}
-		
+
 		});
 
 		mFoundTagsListViewAdapter.notifyDataSetChanged();
