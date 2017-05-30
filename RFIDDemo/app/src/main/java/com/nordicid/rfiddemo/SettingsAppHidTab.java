@@ -130,21 +130,29 @@ public class SettingsAppHidTab extends Fragment {
 		mHidBarcodeCheckBox.setOnCheckedChangeListener(null);
 		mHidRFIDCheckBox.setOnCheckedChangeListener(null);
 		mWirelessChargingCheckBox.setOnCheckedChangeListener(null);
+
+		if (!AppTemplate.getAppTemplate().getAccessorySupported()) {
+			enableItems(false);
+			return;
+		}
+
+		NurAccessoryConfig cfg;
 		try {
-			NurAccessoryConfig cfg = mExt.getConfig();
-			mHidBarcodeCheckBox.setChecked(cfg.getHidBarCode());
-			mHidRFIDCheckBox.setChecked(cfg.getHidRFID());
+			cfg = mExt.getConfig();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			enableItems(false);
+			return;
 		}
+
 		try {
-			mWirelessChargingCheckBox.setEnabled(mExt.getConfig().hasWirelessCharging());
+			mHidBarcodeCheckBox.setChecked(cfg.getHidBarCode());
+			mHidRFIDCheckBox.setChecked(cfg.getHidRFID());
+			mWirelessChargingCheckBox.setEnabled(cfg.hasWirelessCharging());
 		} catch (Exception e) {
-			Toast.makeText(AppTemplate.getAppTemplate(),"Failed to get device config", Toast.LENGTH_SHORT).show();
-			mWirelessChargingCheckBox.setEnabled(false);
+			e.printStackTrace();
 		}
+
 		mHidBarcodeCheckBox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		mHidRFIDCheckBox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		mWirelessChargingCheckBox.setOnCheckedChangeListener(mWirelessChargingChangeListener);
@@ -190,10 +198,13 @@ public class SettingsAppHidTab extends Fragment {
 					case NurAccessoryExtension.WIRELESS_CHARGING_FAIL:
 					case NurAccessoryExtension.WIRELESS_CHARGING_REFUSED:
 						msg = "Failed to set wireless charging value";
+						break;
 					case NurAccessoryExtension.WIRELESS_CHARGING_NOT_SUPPORTED:
 						msg = "Wireless Charging not supported";
+						break;
 					default:
 						msg = "Wireless charging turned " + ((result == NurAccessoryExtension.WIRELESS_CHARGING_ON) ? "On" : "Off");
+						break;
 				}
 				mWirelessChargingCheckBox.setOnCheckedChangeListener(null);
 				mWirelessChargingCheckBox.setChecked(mExt.isWirelessChargingOn());

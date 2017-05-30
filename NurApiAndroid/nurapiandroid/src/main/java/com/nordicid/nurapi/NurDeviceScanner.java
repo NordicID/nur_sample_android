@@ -162,7 +162,7 @@ public class NurDeviceScanner {
         }
         /** device is new **/
         if (!deviceFound) {
-            Log.i(TAG,"New device found : " + device.getName() + " " + device.getAddress() + " " + device.getType());
+            Log.i(TAG,"New device found : " + device.getSpec());
             mDeviceList.add(device);
             if(mListener != null)
                 mListener.onDeviceFound(device);
@@ -381,7 +381,7 @@ public class NurDeviceScanner {
                 return;
             }
 
-            Log.i(TAG, "BLE device " + name + "; " + device.getAddress());
+            // Log.i(TAG, "BLE device " + name + "; " + device.getAddress() + "; rssi " + rssi);
 
             if (checkNIDBLEFilter(name))
             {
@@ -401,7 +401,7 @@ public class NurDeviceScanner {
 
     boolean isBleDevice(BluetoothDevice device) {
         if (device.getType() != BluetoothDevice.DEVICE_TYPE_LE && device.getType() != BluetoothDevice.DEVICE_TYPE_UNKNOWN) {
-            Log.w(TAG, "NOT BLE device; " + device.getAddress() + "; " + device.getType());
+            // Log.w(TAG, "NOT BLE device; " + device.getAddress() + "; " + device.getType());
             return false;
         }
         return true;
