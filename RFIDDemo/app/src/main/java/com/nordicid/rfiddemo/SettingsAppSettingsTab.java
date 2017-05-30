@@ -494,7 +494,6 @@ public class SettingsAppSettingsTab extends Fragment
 		listeners[idx++] = mAutoTuneListener;
         listeners[idx++] = mRegionalLockListener;
 
-
 		mRegionSpinner.setOnItemSelectedListener(null);
 		mTxLevelSpinner.setOnItemSelectedListener(null);
 		mLinkFreqSpinner.setOnItemSelectedListener(null);
@@ -536,6 +535,10 @@ public class SettingsAppSettingsTab extends Fragment
                 mRegionLockDevice.setChecked(true);
             }
             /** **/
+
+			// Make sure antenna autoswitch is enabled
+			if (setup.selectedAntenna != NurApi.ANTENNAID_AUTOSELECT)
+				mApi.setSetupSelectedAntenna(NurApi.ANTENNAID_AUTOSELECT);
 
 			switch (linkFreqSetup) {
 				case NurApi.LINK_FREQUENCY_160000:

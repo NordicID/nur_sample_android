@@ -305,6 +305,10 @@ public class InventoryController {
 		if (!mApi.isConnected())
 			return false;
 
+		// Make sure antenna autoswitch is enabled
+		if (mApi.getSetupSelectedAntenna() != NurApi.ANTENNAID_AUTOSELECT)
+			mApi.setSetupSelectedAntenna(NurApi.ANTENNAID_AUTOSELECT);
+
 		// Clear old readings
 		clearInventoryReadings();
 		// Perform inventory
@@ -335,6 +339,10 @@ public class InventoryController {
 		// Enable inventory stream zero reading report
 		if ((mApi.getSetupOpFlags() & NurApi.OPFLAGS_INVSTREAM_ZEROS) == 0)
 			mApi.setSetupOpFlags(mApi.getSetupOpFlags() | NurApi.OPFLAGS_INVSTREAM_ZEROS);
+
+		// Make sure antenna autoswitch is enabled
+		if (mApi.getSetupSelectedAntenna() != NurApi.ANTENNAID_AUTOSELECT)
+			mApi.setSetupSelectedAntenna(NurApi.ANTENNAID_AUTOSELECT);
 
 		// Start reading
 		mApi.startInventoryStream();

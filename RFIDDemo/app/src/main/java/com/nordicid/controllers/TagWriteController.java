@@ -88,6 +88,10 @@ public class TagWriteController {
 		int savedAntMask = 0;
 		
 		try {
+			// Make sure antenna autoswitch is enabled
+			if (mApi.getSetupSelectedAntenna() != NurApi.ANTENNAID_AUTOSELECT)
+				mApi.setSetupSelectedAntenna(NurApi.ANTENNAID_AUTOSELECT);
+
 			savedTxLevel = mApi.getSetupTxLevel();
 			savedAntMask = mApi.getSetupAntennaMaskEx();
 			
