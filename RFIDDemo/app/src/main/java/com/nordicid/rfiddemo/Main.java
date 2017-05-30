@@ -77,6 +77,8 @@ public class Main extends AppTemplate {
 
     private boolean mShowSwipeHint = false;
 
+    private boolean mDoNotDisconnectOnStop = false;
+
     public NURFirmwareController getNURUpdateController(){
         return mNURAPPController;
     }
@@ -106,6 +108,16 @@ public class Main extends AppTemplate {
     public static SharedPreferences getApplicationPrefences() { return mApplicationPrefences; }
 
     public NurApiAutoConnectTransport getNurAutoConnect() { return mAcTr;}
+
+    public void setDoNotDisconnectOnStop(boolean val)
+    {
+        mDoNotDisconnectOnStop = val;
+    }
+
+    public boolean getDoNotDisconnectOnStop()
+    {
+        return mDoNotDisconnectOnStop;
+    }
 
     public void startTimer() {
 
@@ -277,17 +289,19 @@ public class Main extends AppTemplate {
 
     @Override
     protected void onPause() {
+        Log.d(TAG, "onPause() mDoNotDisconnectOnStop " + mDoNotDisconnectOnStop);
         super.onPause();
 
         stopTimer();
 
-        if (mAcTr != null) {
+        if (mAcTr != null && !mDoNotDisconnectOnStop) {
             mAcTr.onPause();
         }
     }
 
     @Override
     protected void onResume() {
+        Log.d(TAG, "onResume() mDoNotDisconnectOnStop " + mDoNotDisconnectOnStop);
         super.onResume();
         Beeper.init();
 
@@ -298,21 +312,25 @@ public class Main extends AppTemplate {
             mAcTr.onResume();
         }
 
+        // Reset flag
+        mDoNotDisconnectOnStop = false;
 
         startTimer();
     }
 
     @Override
     protected void onStop() {
+        Log.d(TAG, "onStop() mDoNotDisconnectOnStop " + mDoNotDisconnectOnStop);
         super.onStop();
 
-        if (mAcTr != null) {
+        if (mAcTr != null && !mDoNotDisconnectOnStop) {
             mAcTr.onStop();
         }
     }
 
     @Override
     protected void onDestroy() {
+        Log.d(TAG, "onDestroy()");
         super.onDestroy();
 
         if (mAcTr != null) {
@@ -451,13 +469,17 @@ public class Main extends AppTemplate {
                 try {
                     updateStatus();
                     isApplicationMode = mApi.getMode().equalsIgnoreCase("A");
-                    final String module = getModuleType();
+
                     final NurAccessoryVersionInfo accessoryVersion = getAccesoryVersionInfo();
-                    mDFUController.setHWType(getAccessoryApi().getConfig().getDeviceType());
                     if(accessoryVersion != null) {
+                        mDFUController.setHWType(getAccessoryApi().getConfig().getDeviceType());
                         mDFUController.setAPPVersion(accessoryVersion.getApplicationVersion());
                         mDFUController.setBldrVersion(accessoryVersion.getmBootloaderVersion());
+                    } else {
+                        mDFUController.setHWType(null);
                     }
+
+                    final String module = getModuleType();
                     mNURAPPController.setAPPVersion(getNurAppVersion());
                     mNURAPPController.setHWType(module);
                     mNURAPPController.setBldrVersion(getNurBldrVersion());
@@ -683,7 +705,7 @@ public class Main extends AppTemplate {
     public NurAccessoryVersionInfo getAccesoryVersionInfo()
     {
         try{
-            if(mApi.isConnected());
+            if (getAccessorySupported() && mApi.isConnected())
                 return getAccessoryApi().getFwVersion();
         } catch (Exception e){
             //
