@@ -160,7 +160,11 @@ public abstract class UpdateController {
     }
 
     private List<UpdateContainer> fetchAvailableUpdates(boolean target){
+
         List<UpdateContainer> availableUpdates = new ArrayList<>();
+        if (hwType == null)
+            return availableUpdates;
+
         try{
             /* invoke async task and wait for result */
             String data = new ExecuteGetOperation().execute(target).get();
