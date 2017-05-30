@@ -276,27 +276,27 @@ public class BthDFUController extends UpdateController{
                 case BluetoothProfile.STATE_DISCONNECTED:
                     mHandler.removeCallbacks(mDiscoverServicesJamCheck);
                     Log.e(TAG, "gattCallback: STATE_DISCONNECTED; " + mWaitingForConnect + "; " + mWaitingForDiscover + "; " + mRetry);
-                    if (!mRetry && (mWaitingForConnect || mWaitingForDiscover)) {
+                    if (mWaitingForConnect || mWaitingForDiscover)
+                    {
                         mWaitingForConnect = false;
                         mWaitingForDiscover = false;
-                        final int _status = status;
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                mBthFwControllerListener.onUpdateError(mDFUDeviceAddress, _status, BluetoothProfile.STATE_DISCONNECTED, "Could not connect to device");
-                            }
-                        });
-                    }
-                    if (mRetry) {
-                        mHandler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                startUpdate();
-                                mRetry = false;
-                            }
-                        }, 1000);
-                    } else {
-                        disposeGatt();
+                        if (mRetry) {
+                            mHandler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    startUpdate();
+                                    mRetry = false;
+                                }
+                            }, 1000);
+                        } else {
+                            final int _status = status;
+                            mHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mBthFwControllerListener.onUpdateError(mDFUDeviceAddress, _status, BluetoothProfile.STATE_DISCONNECTED, "Could not connect to device");
+                                }
+                            });
+                        }
                     }
                     break;
                 default:
@@ -308,6 +308,8 @@ public class BthDFUController extends UpdateController{
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             mHandler.removeCallbacks(mDiscoverServicesJamCheck);
+            mWaitingForDiscover = false;
+
             List<BluetoothGattService> services = gatt.getServices();
             if (services != null) {
                 for (BluetoothGattService s : services) {
@@ -315,13 +317,20 @@ public class BthDFUController extends UpdateController{
                 }
             }
 
-            // post 10sec delayd, some huawei phones needs long delay before start..
-            // Otherwise update will fail during update to CRC error
+            // post 1sec delayed, going around some sony phone bugs..
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     Log.i(TAG, "onServicesDiscovered disposeGatt");
                     disposeGatt();
+                }
+            }, 1000);
+
+            // post 10sec delayed, some huawei phones needs long delay before start..
+            // Otherwise update will fail during update to CRC error
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
                     Log.i(TAG, "onServicesDiscovered startdfu");
                     startDfuUpdate();
                 }
