@@ -324,7 +324,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
                 mDeviceScanner.stopScan();
                 //mDeviceScanner.purge();
             }
-            else if (nurDeviceSpec.getName().equals("DfuEXA")) {
+            else if (nurDeviceSpec.getName().equalsIgnoreCase("dfuexa") || nurDeviceSpec.getName().equalsIgnoreCase("dfunid")) {
                 mDfuExaFound.add(nurDeviceSpec);
             }
         }
@@ -534,10 +534,12 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
                     intent.setType("application/zip");
                 filePicker = Intent.createChooser(intent, getResources().getString(R.string.file_picker));
                 try {
+                    Main.getInstance().setDoNotDisconnectOnStop(true);
                     startActivityForResult(filePicker, REQ_FILE_OPEN);
                 } catch (Exception ex) {
                     String strErr = ex.getMessage();
                     Toast.makeText(mOwner.getActivity(), "Error:\n" + strErr, Toast.LENGTH_SHORT).show();
+                    Main.getInstance().setDoNotDisconnectOnStop(false);
                 }
                 break;
             case R.id.btn_download_file:
