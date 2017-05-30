@@ -240,14 +240,7 @@ public class NurDeviceListActivity extends Activity implements NurDeviceScanner.
             final TextView tvpaired = (TextView) vg.findViewById(R.id.paired);
             final TextView tvrssi = (TextView) vg.findViewById(R.id.rssi);
 
-            tvrssi.setVisibility(View.VISIBLE);
-
-            if (deviceSpec.getType().equals("TCP")) {
-                tvrssi.setText("Port: " + deviceSpec.getPort());
-                tvrssi.setVisibility(View.VISIBLE);
-                tvrssi.setTextColor(Color.WHITE);
-            }
-            else if (deviceSpec.getType().equals("BLE")) {
+            if (deviceSpec.getType().equals("BLE")) {
                 int rssiVal = deviceSpec.getRSSI();
                 if (rssiVal < 0)    // Might be also != 0...
                     tvrssi.setText("RSSI: " + rssiVal);
@@ -255,11 +248,19 @@ public class NurDeviceListActivity extends Activity implements NurDeviceScanner.
                     tvrssi.setText("RSSI: N/A");
 
                 tvrssi.setVisibility(View.VISIBLE);
-                tvrssi.setTextColor(Color.WHITE);
+
+                if (deviceSpec.getBondState()) {
+                    tvpaired.setVisibility(View.VISIBLE);
+                } else {
+                    tvpaired.setVisibility(View.GONE);
+                }
+            }
+            else {
+                tvpaired.setVisibility(View.GONE);
+                tvrssi.setVisibility(View.GONE);
             }
 
             tvname.setText(deviceSpec.getName());
-            tvrssi.setVisibility(View.GONE);
 
             if (deviceSpec.getType().equals("TCP")) {
                 tvadd.setText(deviceSpec.getAddress() + " ("+deviceSpec.getPart("transport", "LAN")+")");
@@ -267,19 +268,6 @@ public class NurDeviceListActivity extends Activity implements NurDeviceScanner.
                 tvadd.setText(deviceSpec.getAddress());
             }
 
-            if (deviceSpec.getBondState()) {
-                tvname.setTextColor(Color.WHITE);
-                tvadd.setTextColor(Color.WHITE);
-                tvpaired.setTextColor(Color.GRAY);
-                tvpaired.setVisibility(View.VISIBLE);
-                tvpaired.setText(R.string.text_paired);
-                tvrssi.setVisibility(View.VISIBLE);
-                tvrssi.setTextColor(Color.WHITE);
-            } else {
-                tvname.setTextColor(Color.WHITE);
-                tvadd.setTextColor(Color.WHITE);
-                tvpaired.setVisibility(View.GONE);
-            }
             return vg;
         }
     }
