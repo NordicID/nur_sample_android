@@ -178,10 +178,12 @@ public class NURFirmwareController extends UpdateController {
         }
         try {
             Log.e(TAG, "programThread(): BOOT");
-            mApi.moduleBoot(false);
             mUpdateComplete = true;
+            mApi.moduleBoot(false);
+            Log.e(TAG, "programThread(): update complete");
         } catch (Exception ex) {
             ex.printStackTrace();
+            mUpdateComplete = false;
             if (mFirmwareControllerListener != null)
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
@@ -222,11 +224,14 @@ public class NURFirmwareController extends UpdateController {
     }
 
     private void handleBootEvent() {
+
+        Log.e(TAG, "handleBootEvent(): mStartProgramOnBoot = " + mStartProgramOnBoot + "; mUpdateComplete = " + mUpdateComplete);
+
         if (mStartProgramOnBoot) {
             mStartProgramOnBoot = false;
             beginUpload();
         }
-        if (mUpdateComplete) {
+        else if (mUpdateComplete) {
             if (mFirmwareControllerListener != null)
                 mFirmwareControllerListener.onUpdateComplete(mUpdateCompleteWasOK);
         }
