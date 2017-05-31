@@ -193,7 +193,7 @@
     <string name="DFU_BLDR_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_exa_firmware/master/Bootloaderfirmwares.json</string>
     <string name="NUR_APP_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_firmware/master/firmwares.json</string>
     <string name="NUR_BLDR_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_exa_firmware/master/firmwares.json</string>
-    <string name="export_csv">Export all tags to CSV file</string>
+    <string name="export_csv">Export and share inventory list as CSV file</string>
     <string name="share_via">Share via</string>
 
 
