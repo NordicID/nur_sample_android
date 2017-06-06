@@ -19,6 +19,8 @@ import com.nordicid.nurapi.NurEventTagTrackingData;
 import com.nordicid.nurapi.NurEventTraceTag;
 import com.nordicid.nurapi.NurEventTriggeredRead;
 
+import android.nfc.Tag;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -112,11 +114,6 @@ public class SettingsAppHidTab extends Fragment {
 				enableItems(mApi.isConnected());
 				if (mApi.isConnected()) {
 					readCurrentSetup();
-					try {
-						mWirelessChargingCheckBox.setEnabled(mExt.getConfig().hasWirelessCharging());
-					} catch (Exception e) {
-						Toast.makeText(AppTemplate.getAppTemplate(),"Failed to get device config", Toast.LENGTH_SHORT).show();
-					}
 				}
 			}
 		}
@@ -133,24 +130,29 @@ public class SettingsAppHidTab extends Fragment {
 		mHidBarcodeCheckBox.setOnCheckedChangeListener(null);
 		mHidRFIDCheckBox.setOnCheckedChangeListener(null);
 		mWirelessChargingCheckBox.setOnCheckedChangeListener(null);
+
+		if (!AppTemplate.getAppTemplate().getAccessorySupported()) {
+			enableItems(false);
+			return;
+		}
+
+		NurAccessoryConfig cfg;
 		try {
-			NurAccessoryConfig cfg = mExt.getConfig();
-			mHidBarcodeCheckBox.setChecked(cfg.getHidBarCode());
-			mHidRFIDCheckBox.setChecked(cfg.getHidRFID());
-			mWirelessChargingCheckBox.setChecked(mExt.isWirelessChargingOn());
+			cfg = mExt.getConfig();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			enableItems(false);
+			return;
 		}
+
 		try {
-			mWirelessChargingCheckBox.setChecked(mExt.isWirelessChargingOn());
-			mWirelessChargingCheckBox.setEnabled(true);
+			mHidBarcodeCheckBox.setChecked(cfg.getHidBarCode());
+			mHidRFIDCheckBox.setChecked(cfg.getHidRFID());
+			mWirelessChargingCheckBox.setEnabled(cfg.hasWirelessCharging());
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-			mWirelessChargingCheckBox.setEnabled(false);
 		}
+
 		mHidBarcodeCheckBox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		mHidRFIDCheckBox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		mWirelessChargingCheckBox.setOnCheckedChangeListener(mWirelessChargingChangeListener);
@@ -196,10 +198,13 @@ public class SettingsAppHidTab extends Fragment {
 					case NurAccessoryExtension.WIRELESS_CHARGING_FAIL:
 					case NurAccessoryExtension.WIRELESS_CHARGING_REFUSED:
 						msg = "Failed to set wireless charging value";
+						break;
 					case NurAccessoryExtension.WIRELESS_CHARGING_NOT_SUPPORTED:
 						msg = "Wireless Charging not supported";
+						break;
 					default:
 						msg = "Wireless charging turned " + ((result == NurAccessoryExtension.WIRELESS_CHARGING_ON) ? "On" : "Off");
+						break;
 				}
 				mWirelessChargingCheckBox.setOnCheckedChangeListener(null);
 				mWirelessChargingCheckBox.setChecked(mExt.isWirelessChargingOn());
@@ -224,9 +229,10 @@ public class SettingsAppHidTab extends Fragment {
 		mHidBarcodeCheckBox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		mHidRFIDCheckBox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		mWirelessChargingCheckBox.setOnCheckedChangeListener(mWirelessChargingChangeListener);
-		
+
 		enableItems(mApi.isConnected());
-		if (mApi.isConnected())
-			readCurrentSetup();
+		if (mApi.isConnected()) {
+            readCurrentSetup();
+        }
 	}
 }

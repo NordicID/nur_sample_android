@@ -2,10 +2,15 @@ package com.nordicid.controllers;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.nurapi.NurApi;
@@ -31,7 +36,12 @@ import com.nordicid.rfiddemo.Beeper;
 import com.nordicid.rfiddemo.R;
 import com.nordicid.rfiddemo.TraceApp;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 public class InventoryController {
@@ -224,6 +234,8 @@ public class InventoryController {
 		};
 	}
 
+	SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy kk:mm:ss");
+
 	void handleInventoryResult()
 	{
 		synchronized (mApi.getStorage())
@@ -247,6 +259,8 @@ public class InventoryController {
 					tmp.put("freq", Integer.toString(tag.getFreq())+" kHz Ch: "+Integer.toString(tag.getChannel()));
 					tmp.put("found", "1");
 					tmp.put("foundpercent", "100");
+					tmp.put("firstseentime", dateFormatter.format(new Date()));
+					tmp.put("lastseentime", dateFormatter.format(new Date()));
 					tag.setUserdata(tmp);
 					mListViewAdapterData.add(tmp);
 
@@ -264,6 +278,7 @@ public class InventoryController {
 					tmp.put("freq", Integer.toString(tag.getFreq())+" kHz (Ch: "+Integer.toString(tag.getChannel())+")");
 					tmp.put("found", Integer.toString(tag.getUpdateCount()));
 					tmp.put("foundpercent", Integer.toString((int) (((double) tag.getUpdateCount()) / (double) mStats.getInventoryRounds() * 100)));
+					tmp.put("lastseentime", dateFormatter.format(new Date()));
 
 					if (mInventoryListener != null)
 						mInventoryListener.tagFound(tag, false);
@@ -289,6 +304,10 @@ public class InventoryController {
 	public boolean doSingleInventory() throws Exception {
 		if (!mApi.isConnected())
 			return false;
+
+		// Make sure antenna autoswitch is enabled
+		if (mApi.getSetupSelectedAntenna() != NurApi.ANTENNAID_AUTOSELECT)
+			mApi.setSetupSelectedAntenna(NurApi.ANTENNAID_AUTOSELECT);
 
 		// Clear old readings
 		clearInventoryReadings();
@@ -320,6 +339,10 @@ public class InventoryController {
 		// Enable inventory stream zero reading report
 		if ((mApi.getSetupOpFlags() & NurApi.OPFLAGS_INVSTREAM_ZEROS) == 0)
 			mApi.setSetupOpFlags(mApi.getSetupOpFlags() | NurApi.OPFLAGS_INVSTREAM_ZEROS);
+
+		// Make sure antenna autoswitch is enabled
+		if (mApi.getSetupSelectedAntenna() != NurApi.ANTENNAID_AUTOSELECT)
+			mApi.setSetupSelectedAntenna(NurApi.ANTENNAID_AUTOSELECT);
 
 		// Start reading
 		mApi.startInventoryStream();
@@ -422,7 +445,7 @@ public class InventoryController {
 		return mStats;
 	}
 
-	static public void showTagDialog(Context ctx, final HashMap<String, String> tagData) {
+	public void showTagDialog(Context ctx, final HashMap<String, String> tagData) {
 		//shows dialog and the clicked tags information
 		LayoutInflater inflater = (LayoutInflater) ctx.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
 		View tagDialogLayout = inflater.inflate(R.layout.dialog_tagdata, null);
@@ -467,6 +490,66 @@ public class InventoryController {
 
 				TraceApp.setStartParams(tagData.get("epc"), true);
 				AppTemplate.getAppTemplate().setApp("Locate");
+			}
+		});
+
+		final Context _ctx = ctx;
+		final ArrayList<HashMap<String, String>> tags = mListViewAdapterData;
+		final Button exportAllTags = (Button) tagDialogLayout.findViewById(R.id.export_csv);
+		exportAllTags.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				dialog.dismiss();
+
+				try {
+
+					String postfix = "";
+					if (mApi.isConnected())
+					{
+						postfix = mApi.getReaderInfo().altSerial;
+						if (postfix.length() == 0) {
+							postfix = mApi.getReaderInfo().serial;
+						}
+						if (postfix.length() != 0) {
+							postfix += "_";
+						}
+					}
+
+					String filename = "epc_export_";
+					filename += postfix;
+					filename += new SimpleDateFormat("ddMMyyyykkmmss").format(new Date());
+					filename += ".csv";
+
+					File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+					path.mkdirs();
+
+					File outputFile = new File(path, filename);
+					outputFile.createNewFile();
+
+					FileWriter fileWriter = new FileWriter(outputFile, true);
+					fileWriter.append("firstseen;lastseen;epc;rssi\n");
+
+					for (HashMap<String, String> tag : tags)
+					{
+						fileWriter.append(tag.get("firstseentime") + ";");
+						fileWriter.append(tag.get("lastseentime") + ";");
+						fileWriter.append(tag.get("epc") + ";");
+						fileWriter.append(tag.get("rssi") + "\n");
+					}
+					fileWriter.close();
+
+					Log.i("outputFile", "= " + Uri.fromFile(outputFile));
+
+					Intent intent2 = new Intent();
+					intent2.setAction(Intent.ACTION_SEND);
+					intent2.setType("text/plain");
+					intent2.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(outputFile));
+					_ctx.startActivity(Intent.createChooser(intent2, _ctx.getString(R.string.share_via)));
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					Toast.makeText(_ctx, "Error:\n" + e.getMessage(), Toast.LENGTH_SHORT).show();
+				}
 			}
 		});
 

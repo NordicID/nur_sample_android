@@ -48,8 +48,10 @@ public class NurAccessoryConfig
 	/** HID-bit for the RFID scan / inventory. */
 	public static final int APP_FL_HID_RFID = (1<<1);
 
-	/** Device is configured as ACD reader. */
-	public static final int CONFIG_FLAG_ACD = (1<<0);
+	/** Device is configured as EXA51 reader. */
+	public static final int CONFIG_FLAG_EXA51 = (1<<0);
+	/** Device is configured as EXA31 reader. */
+	public static final int CONFIG_FLAG_EXA31 = (1<<1);
 
 	/** Device has 1D/2D imager. */
 	public static final int DEV_FEATURE_IMAGER = (1<<2);
@@ -258,12 +260,34 @@ public class NurAccessoryConfig
 	}
 
 	/**
-	 * Get whether the device is configured as ACD reader.
-	 * @return Returns true if the reader is ACD.
+	 * Get whether the device is configured as EXA51 reader.
+	 * @return Returns true if the reader is EXA51.
      */
-	public boolean isConfigACD()
+	public boolean isDeviceEXA51()
 	{
-		return ((configValue & CONFIG_FLAG_ACD) != 0);
+		return ((configValue & CONFIG_FLAG_EXA51) != 0);
+	}
+
+	/**
+	 * Get whether the device is configured as EXA31 reader.
+	 * @return Returns true if the reader is EXA31.
+	 */
+	public boolean isDeviceEXA31()
+	{
+		return ((configValue & CONFIG_FLAG_EXA31) != 0);
+	}
+
+	/**
+	 * Get device name EXA51 or EXA31
+	 * @return String with device Name
+	 */
+	public String getDeviceType()
+	{
+		if (isDeviceEXA31())
+			return "EXA31";
+		if (isDeviceEXA51())
+			return "EXA51";
+		return "N/A";
 	}
 
 	// public static final int DEV_FEATURE_IMAGER = (1<<2);

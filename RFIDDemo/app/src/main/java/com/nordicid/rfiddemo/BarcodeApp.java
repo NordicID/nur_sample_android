@@ -21,11 +21,13 @@ import com.nordicid.nurapi.NurEventTagTrackingData;
 import com.nordicid.nurapi.NurEventTraceTag;
 import com.nordicid.nurapi.NurEventTriggeredRead;
 
+import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -39,6 +41,8 @@ public class BarcodeApp extends SubApp {
 	private NurAccessoryConfig mBleCfg = null;
 
 	private EditText mEditText;
+
+	private Button mTriggerBtn = null;
 
 	@Override
 	public NurApiListener getNurApiListener() {
@@ -76,13 +80,14 @@ public class BarcodeApp extends SubApp {
 				}
 				else {
 					mText = result.strBarcode;
-                    ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(getActivity().CLIPBOARD_SERVICE);
+                    ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Activity.CLIPBOARD_SERVICE);
                     ClipData clip = ClipData.newPlainText("Barcode", result.strBarcode);
                     clipboard.setPrimaryClip(clip);
 					Beeper.beep(Beeper.BEEP_100MS);
 				}
 				updateText();
 				mIsActive = false;
+				ChangeTriggerText(false);
 			}
 		};
 
@@ -188,6 +193,17 @@ public class BarcodeApp extends SubApp {
 		});
 	}
 
+	void ChangeTriggerText(final boolean state)
+	{
+		getAppTemplate().runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if(mTriggerBtn != null)
+					mTriggerBtn.setText(getString((state) ? R.string.stop : R.string.start));
+			}
+		});
+	}
+
 	boolean mIsActive = false;
 
 	private void handleTrigger() {
@@ -213,6 +229,7 @@ public class BarcodeApp extends SubApp {
 			}
 
 			mText = "Cancelled";
+			ChangeTriggerText(true);
 			updateText();
 			mIsActive = false;
 			return;
@@ -250,7 +267,7 @@ public class BarcodeApp extends SubApp {
 		mEditText = (EditText) view.findViewById(R.id.result_text);
 
 		mAccessoryExt.registerBarcodeResultListener(mResultListener);
-		addButtonBarButton("Trigger", new OnClickListener() {
+		mTriggerBtn = addButtonBarButton(getString(R.string.start), new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				handleTrigger();

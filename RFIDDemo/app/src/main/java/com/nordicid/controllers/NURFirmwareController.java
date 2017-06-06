@@ -1,7 +1,11 @@
 package com.nordicid.controllers;
 
+import android.graphics.Interpolator;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
+import com.nordicid.helpers.UpdateContainer;
 import com.nordicid.nurapi.NurApi;
 import com.nordicid.nurapi.NurApiErrors;
 import com.nordicid.nurapi.NurApiListener;
@@ -20,7 +24,7 @@ import com.nordicid.nurapi.NurEventTagTrackingData;
 import com.nordicid.nurapi.NurEventTraceTag;
 import com.nordicid.nurapi.NurEventTriggeredRead;
 
-public class NURFirmwareController {
+public class NURFirmwareController extends UpdateController {
 
     private static final String TAG = "NUR_FW_CONTROLLER";
     private NurApi mApi = null;
@@ -30,7 +34,6 @@ public class NURFirmwareController {
     private boolean mIsApplication = false;
     private String mStrCompletionError = "";
     private NurBinFileType mFwFileType = null;
-    private String mFullFilePath = null;
     private NurApiListener mNurListener = null;
     private FirmWareControllerListener mFirmwareControllerListener = null;
 
@@ -43,17 +46,14 @@ public class NURFirmwareController {
         void onUpdateInterrupted(String error);
     }
 
-    public boolean isFileSet() {
-        return mFullFilePath != null;
-    }
-
-    public NURFirmwareController(NurApi api) {
+    public NURFirmwareController(NurApi api, String appSource, String bldrSource) {
+        mAppUpdateSource = appSource;
+        mBldrUpdateSource = bldrSource;
         mApi = api;
         mNurListener = new NurApiListener() {
             @Override
             public void programmingProgressEvent(NurEventProgrammingProgress eventProgramming) {
                 int error;
-                Log.d("PROGRESSEVENTCONTROLLER", "got progress event");
                 if (mFirmwareControllerListener != null)
                     mFirmwareControllerListener.onProgrammingEvent(eventProgramming);
                 error = eventProgramming.error;
@@ -63,12 +63,10 @@ public class NURFirmwareController {
                     Log.e(TAG, "Upload completion error: " + error);
                 }
             }
-
             @Override
             public void bootEvent(String s) {
                 handleBootEvent();
             }
-
             @Override
             public void connectedEvent() {
                 if (mFirmwareControllerListener != null)
@@ -76,7 +74,6 @@ public class NURFirmwareController {
                 if (mStartProgramOnBoot || mUpdateComplete)
                     handleBootEvent();
             }
-
             @Override
             public void disconnectedEvent() {
                 if (mFirmwareControllerListener != null)
@@ -84,7 +81,6 @@ public class NURFirmwareController {
                 if (mStartProgramOnBoot)
                     return;
             }
-
             @Override
             public void logEvent(int i, String arg0) {}
             @Override
@@ -130,14 +126,6 @@ public class NURFirmwareController {
 
     public void unregisterListener() { mFirmwareControllerListener = null;  }
 
-    public void setFilePath(String fullFilePath) {
-        mFullFilePath = fullFilePath;
-    }
-
-    public String getFilePath() {
-        return mFullFilePath;
-    }
-
     public boolean isApplication() {
         return mIsApplication;
     }
@@ -156,40 +144,53 @@ public class NURFirmwareController {
         return mApi.getMode().equalsIgnoreCase("A");
     }
 
-    public boolean inspectSelectedFwFile(String fileName, String desiredModuleType) {
-        boolean checkOK = false;
+    public boolean inspectSelectedFwFile(String fileName, String desiredModuleType, int fileType) {
         mFwFileType = null;
         try {
-            Log.e("MODULE",desiredModuleType);
+            Log.e("MODULE_TYPE",desiredModuleType);
             mFwFileType = mApi.checkNurFwBinaryFile(fileName,desiredModuleType);
             mIsApplication = (mFwFileType.fwType == NurApi.NUR_BINTYPE_L2APP);
-            checkOK = true;
+            return mFwFileType.fwType == fileType;
         } catch (Exception ex) {
+            ex.printStackTrace();
             Log.e(TAG, "File check error: " + ex.getMessage());
         }
-        return checkOK;
+        return false;
     }
 
     private void programThread() {
         mUpdateCompleteWasOK = true;
         try {
             if (mIsApplication)
-                mApi.programApplicationFile(mFullFilePath);
+                mApi.programApplicationFile(mFilePath);
             else
-                mApi.programBootloaderFile(mFullFilePath);
+                mApi.programBootloaderFile(mFilePath);
         } catch (Exception ex) {
             ex.printStackTrace();
             if (mFirmwareControllerListener != null)
-                mFirmwareControllerListener.onUpdateInterrupted(ex.getMessage());
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mFirmwareControllerListener.onUpdateInterrupted("Failed to program the module");
+                    }
+                });
+
         }
         try {
             Log.e(TAG, "programThread(): BOOT");
-            mApi.moduleBoot(false);
             mUpdateComplete = true;
+            mApi.moduleBoot(false);
+            Log.e(TAG, "programThread(): update complete");
         } catch (Exception ex) {
             ex.printStackTrace();
+            mUpdateComplete = false;
             if (mFirmwareControllerListener != null)
-                mFirmwareControllerListener.onUpdateInterrupted(ex.getMessage());
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mFirmwareControllerListener.onUpdateInterrupted("Unexpected error while booting module");
+                    }
+                });
         }
     }
 
@@ -203,7 +204,7 @@ public class NURFirmwareController {
     }
 
     public void prepareUpload() {
-        if (mApi.isConnected() && mFullFilePath != null) {
+        if (mApi.isConnected() && mFilePath != null) {
             mStartProgramOnBoot = true;
             mUpdateComplete = false;
             try {
@@ -223,13 +224,53 @@ public class NURFirmwareController {
     }
 
     private void handleBootEvent() {
+
+        Log.e(TAG, "handleBootEvent(): mStartProgramOnBoot = " + mStartProgramOnBoot + "; mUpdateComplete = " + mUpdateComplete);
+
         if (mStartProgramOnBoot) {
             mStartProgramOnBoot = false;
             beginUpload();
         }
-        if (mUpdateComplete) {
+        else if (mUpdateComplete) {
             if (mFirmwareControllerListener != null)
                 mFirmwareControllerListener.onUpdateComplete(mUpdateCompleteWasOK);
         }
+    }
+
+    public boolean startUpdate(){
+        prepareUpload();
+        return true;
+    }
+
+    public void abortUpdate(){}
+
+    public void pauseUpdate(){}
+
+    public void resumeUpdate(){}
+
+    /**
+     * Compares remote and current versions
+     * @param currentVersion
+     * @param remoteVersion
+     * @return true if remote is newer false if not
+     */
+    public boolean checkVersion(String currentVersion, String remoteVersion){
+        /** Major.Minor-Build **/
+        String[] currentSplits = currentVersion.split("-|\\.");
+        String[] remoteSplits = remoteVersion.split("-|\\.");
+        try{
+            if(!currentSplits[0].equals(remoteSplits[0])){
+                return ((Integer.parseInt(currentSplits[0]) - Integer.parseInt(remoteSplits[0])) < 0);
+            }
+            if(!currentSplits[1].equals(remoteSplits[1])){
+                return ((Integer.parseInt(currentSplits[1]) - Integer.parseInt(remoteSplits[1])) < 0);
+            }
+            if(currentSplits[2].charAt(0) != (remoteSplits[2].charAt(0))){
+                return (currentSplits[2].charAt(0) - remoteSplits[2].charAt(0) < 0);
+            }
+        } catch (Exception e){
+            // ok
+        }
+        return  false;
     }
 }

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/black">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/update_list_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="@string/update_dialog_title"
+            android:textColor="#fff"
+            android:layout_margin="15dp"
+            android:textSize="20sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginTop="2dp"
+            android:background="@android:color/holo_orange_dark"/>
+
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/updates_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:divider="#C0C0C0"
+        android:dividerHeight="1dp">
+    </ListView>
+
+</LinearLayout>

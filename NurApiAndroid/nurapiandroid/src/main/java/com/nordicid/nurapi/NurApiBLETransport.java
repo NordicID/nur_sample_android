@@ -161,4 +161,13 @@ public class NurApiBLETransport implements NurApiTransport
 	{
 		return mConnected;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean disableAck()
+	{
+		return true;
+	}
 }

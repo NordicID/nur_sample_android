@@ -2,9 +2,7 @@ package com.nordicid.rfiddemo;
 
 import java.util.ArrayList;
 
-import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.apptemplate.SubAppTabbed;
-import com.nordicid.nurapi.NurApi;
 import com.nordicid.nurapi.NurApiListener;
 import com.nordicid.nurapi.NurEventAutotune;
 import com.nordicid.nurapi.NurEventClientInfo;
@@ -21,23 +19,17 @@ import com.nordicid.nurapi.NurEventTraceTag;
 import com.nordicid.nurapi.NurEventTriggeredRead;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.PagerTitleStrip;
-import android.support.v4.view.ViewPager;
-import android.widget.Toast;
 
 public class SettingsAppTabbed extends SubAppTabbed { 
 	private static String mPreferredTab = "";
 
 	private SettingsAppSettingsTab mSettingsTab;
 	private SettingsAppTuneTab mSettingsTuneTab;
-	private SettingsAppHidTab mSettingsHidTab;
+	private SettingsAppHidTab mReaderSettings;
 	private SettingsAppAuthTab mSettingsAuthTab;
     private SettingsAppTab mSettingsAppTab;
-    private SettingsUpdateTab mSettingsUpdateTab;
+    private SettingsAppUpdatesTab mSettingsUpdateTab;
 
 	private NurApiListener mThisClassListener = null;
 
@@ -78,17 +70,17 @@ public class SettingsAppTabbed extends SubAppTabbed {
 		
 		mSettingsTab = new SettingsAppSettingsTab();
 		mSettingsTuneTab = new SettingsAppTuneTab();
-		mSettingsHidTab = new SettingsAppHidTab();
+		mReaderSettings = new SettingsAppHidTab();
 		mSettingsAuthTab = new SettingsAppAuthTab();
         mSettingsAppTab = new SettingsAppTab();
-        mSettingsUpdateTab = new SettingsUpdateTab();
+        mSettingsUpdateTab = new SettingsAppUpdatesTab();
 		
 		mThisClassListener =  new NurApiListener() {
 			@Override
 			public void connectedEvent() {
 				if (isAdded()) {
 					mSettingsTab.getNurApiListener().connectedEvent();
-					mSettingsHidTab.getNurApiListener().connectedEvent();
+					mReaderSettings.getNurApiListener().connectedEvent();
 				}
 			}
 
@@ -96,7 +88,7 @@ public class SettingsAppTabbed extends SubAppTabbed {
 			public void disconnectedEvent() {
 				if (isAdded()) {
 					mSettingsTab.getNurApiListener().disconnectedEvent();
-					mSettingsHidTab.getNurApiListener().disconnectedEvent();
+					mReaderSettings.getNurApiListener().disconnectedEvent();
 				}
 			}
 
@@ -116,40 +108,33 @@ public class SettingsAppTabbed extends SubAppTabbed {
 			@Override public void nxpEasAlarmEvent(NurEventNxpAlarm event) {}
 			@Override public void epcEnumEvent(NurEventEpcEnum event) {}
 			@Override public void autotuneEvent(NurEventAutotune event) {}
-
-			@Override
-			public void tagTrackingScanEvent(NurEventTagTrackingData event) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void tagTrackingChangeEvent(NurEventTagTrackingChange event) {
-				// TODO Auto-generated method stub
-				
-			}
+			@Override public void tagTrackingScanEvent(NurEventTagTrackingData event) {}
+			@Override public void tagTrackingChangeEvent(NurEventTagTrackingChange event) {}
 		};
 	}
 
 	@Override
 	protected int onGetFragments(ArrayList<Fragment> fragments, ArrayList<String> fragmentNames) throws Exception
 	{
-        fragmentNames.add("Application settings");
+        fragmentNames.add(getString(R.string.app_settings));
         fragments.add(mSettingsAppTab);
 
-		fragmentNames.add("Reader settings");
+		fragmentNames.add(getString(R.string.rfid_settings));
 		fragments.add(mSettingsTab);
 
-		fragmentNames.add("Antenna tuning");
+		fragmentNames.add(getString(R.string.reader_settings));
+		fragments.add(mReaderSettings);
+
+		fragmentNames.add(getString(R.string.antenna_settings));
 		fragments.add(mSettingsTuneTab);
 
-		fragmentNames.add("Accessory HID");
-		fragments.add(mSettingsHidTab);
-
+		/** Application Disabled for now **/
+		/*
 		fragmentNames.add("Authentication");
 		fragments.add(mSettingsAuthTab);
+		*/
 
-        fragmentNames.add("Updates");
+        fragmentNames.add(getString(R.string.firmware_updates));
         fragments.add(mSettingsUpdateTab);
 
 		return R.id.pager;
@@ -159,7 +144,7 @@ public class SettingsAppTabbed extends SubAppTabbed {
 	public void onVisibility(boolean val)
 	{
 		mSettingsTab.onVisibility(val);
-		mSettingsHidTab.onVisibility(val);
+		mReaderSettings.onVisibility(val);
 	}
 	
 	//main layout

@@ -84,6 +84,19 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	/** Asynchronous beep operation. */
 	public static final int ACC_EXT_BEEP_ASYNC = 8;
 
+
+	/** Imager base Command */
+	public static final int ACC_EXT_IMAGER	= 13;
+
+	/** Imager configuration Command */
+	public static final int ACC_EXT_IMAGER_CMD	= 4;
+
+	/** Imager power on/off */
+	public static final int ACC_EXT_IMAGER_POWER = 5;
+
+	/** Imager aiming on/off */
+	public static final int ACC_EXT_IMAGER_AIM	= 6;
+
 	/** Get HW status (imager, NUR module etc.). */
 	public static final int ACC_EXT_GET_HEALTHSTATE = 11;
 
@@ -339,7 +352,7 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	{
 		String strVersion;
 		try {
-			strVersion = getFwVersion();
+			strVersion = getFwVersion().getFullApplicationVersion();
 			Log.d(TAG, "isSupported: version = \"" + strVersion + "\".");
 		}
 		catch (Exception e)
@@ -375,6 +388,66 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 		payload[0] = (byte)ACC_EXT_BEEP_ASYNC;
 		NurPacket.PacketWord(payload, 1, timeout);
 		mApi.customCmd(NUR_CMD_ACC_EXT, payload);		
+	}
+
+	/**
+	 * Imager power on/off.
+	 *
+	 * @param pwr true=power on false=power off
+	 *
+	 * @throws Exception Can throw I/O, timeout or API related exception based on the occurred error.
+	 */
+	public void imagerPower(boolean pwr) throws Exception
+	{
+		byte[] payload = new byte[3];
+		payload[0] = ACC_EXT_IMAGER; //Imager Command
+		payload[1] = ACC_EXT_IMAGER_POWER;  //IMAGER_CMD
+		if(pwr) payload[2] = 1;
+		else payload[2] = 0;
+
+		mApi.customCmd(NUR_CMD_ACC_EXT, payload);
+	}
+
+	/**
+	 * Imager aimer on/off.
+	 *
+	 * @param aim true=aiming on false=aiming off
+	 *
+	 * @throws Exception Can throw I/O, timeout or API related exception based on the occurred error.
+	 */
+	public void imagerAIM(boolean aim) throws Exception
+	{
+		byte [] params = new byte[3];
+		params[0] = ACC_EXT_IMAGER;
+		params[1] = ACC_EXT_IMAGER_AIM;
+		if(aim) params[2] = 1;
+		else params[2] = 0;
+		mApi.customCmd(NUR_CMD_ACC_EXT, params);
+	}
+
+	/**
+	 * Imager configuration command.
+	 *
+	 * @param cmd Configuration command as string. See Imager manual for details of commands
+	 *
+	 * @throws Exception Can throw I/O, timeout or API related exception based on the occurred error.
+	 */
+	public byte [] imagerCmd( String cmd) throws Exception
+	{
+		int x=0;
+		int len = cmd.length() + 5;
+		byte [] payload = new byte[len];
+
+		payload[0] = ACC_EXT_IMAGER;
+		payload[1] = ACC_EXT_IMAGER_CMD;
+		payload[2] = (byte)(cmd.length() + 2);
+		payload[3] = 0x1b; //ESC
+		payload[len - 1] = 0x0d;
+
+		for(x=0;x<cmd.length();x++)
+			payload[x+4] = (byte)(cmd.charAt(x));
+
+		return mApi.customCmd(NUR_CMD_ACC_EXT, payload);
 	}
 
 	public String [][]getHwHealth() throws NurApiException
@@ -509,17 +582,15 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	 *
 	 * @see #makeIntegerVersion(String)
      */
-	public String getFwVersion() throws Exception
+	public NurAccessoryVersionInfo getFwVersion() throws Exception
 	{
 		byte []reply;
-		String strVersion = "";
+		String strVersion;
 		reply = doCustomCommand(new byte [] { ACC_EXT_GET_FWVERSION });
-
 		strVersion = new String(reply, StandardCharsets.UTF_8);
-
-		return strVersion;
+		return new NurAccessoryVersionInfo(strVersion);
 	}
-	
+
 	/**
      * Split a string to a string array based on give character.
      * Can be used e.g. to split comma or semicolon separated string to multiple fields.

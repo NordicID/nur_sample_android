@@ -134,7 +134,7 @@ public class NurApiSocketTransport implements NurApiTransport
 	{
 		int read = 0;
 		if(mConnected)
-		{			
+		{
 			if (mInput == null)
 				return -1;
 			
@@ -142,6 +142,7 @@ public class NurApiSocketTransport implements NurApiTransport
 				int r = mInput.read(buffer, 0, buffer.length);
 				if (r < 0)
 				{
+					//System.out.println("Socket gracefull exit");
 					disconnect();
 					return -1;
 				}
@@ -151,6 +152,7 @@ public class NurApiSocketTransport implements NurApiTransport
 				return -1;
 			}		
 			catch (SocketException se) {
+				se.printStackTrace();
 				disconnect();
 				return -1;
 			}
@@ -171,5 +173,14 @@ public class NurApiSocketTransport implements NurApiTransport
 			len = -1;
 		}
 		return len;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean disableAck()
+	{
+		return false;
 	}
 }

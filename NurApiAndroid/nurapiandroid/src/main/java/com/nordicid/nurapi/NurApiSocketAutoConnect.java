@@ -73,7 +73,7 @@ public class NurApiSocketAutoConnect implements NurApiAutoConnectTransport
 	@Override
 	public void onDestroy() 
 	{
-		
+		disconnect();
 	}
 
 	@Override
