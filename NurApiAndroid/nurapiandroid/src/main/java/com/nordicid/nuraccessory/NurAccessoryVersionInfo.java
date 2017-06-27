@@ -41,5 +41,5 @@ public class NurAccessoryVersionInfo {
 
     public String getFullApplicationVersion() {return mFullApplicationVersion; }
 
-    public String getmBootloaderVersion() {return mBootloaderVersion; }
+    public String getBootloaderVersion() {return mBootloaderVersion; }
 }

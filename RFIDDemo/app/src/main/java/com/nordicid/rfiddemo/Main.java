@@ -15,6 +15,7 @@ import com.nordicid.controllers.NURFirmwareController;
 import com.nordicid.controllers.UpdateController;
 import com.nordicid.nuraccessory.NurAccessoryConfig;
 import com.nordicid.nuraccessory.NurAccessoryVersionInfo;
+import com.nordicid.nurapi.BleScanner;
 import com.nordicid.nurapi.*;
 
 import android.app.AlertDialog;
@@ -28,6 +29,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -129,8 +131,8 @@ public class Main extends AppTemplate {
         //initialize the TimerTask's job
         initializeTimerTask();
 
-        //schedule the timer, after the first 10000ms the TimerTask will run every 10000ms
-        timer.schedule(timerTask, 10000, 10000); //
+        //schedule the timer, after the first 5000ms the TimerTask will run every 1000ms
+        timer.schedule(timerTask, 5000, 1000); //
     }
 
     public void stopTimer() {
@@ -239,6 +241,11 @@ public class Main extends AppTemplate {
         Beeper.setEnabled(mApplicationPrefences.getBoolean("Sounds", true));
 
         String specStr = mApplicationPrefences.getString("specStr", "");
+        if (specStr.length() == 0 && Build.MANUFACTURER.toLowerCase().contains("nordicid")) {
+            // Defaults to integrated reader
+            specStr = "type=INT;addr=integrated_reader";
+        }
+
         if (specStr.length() > 0)
         {
             NurDeviceSpec spec = new NurDeviceSpec(specStr);
@@ -263,22 +270,10 @@ public class Main extends AppTemplate {
 
     void updateStatus() {
         String str;
-        if (mAcTr != null) {
-            if (getNurApi().isConnected())
-                str = "CONNECTED ";
-            else
-                str = "DISCONNECTED ";
 
-            str += mAcTr.getType();
-
-            String addr = mAcTr.getAddress();
-            if (addr.length() > 0)
-                str += " (" + mAcTr.getAddress() + ")";
-
-            String details = mAcTr.getDetails();
-            if (details.length() > 0)
-				str += " " + details;
-
+        if (mAcTr != null)
+        {
+            str = mAcTr.getDetails();
         } else {
             str = "No connection defined";
         }
@@ -415,6 +410,8 @@ public class Main extends AppTemplate {
     @Override
     public void onCreateSubApps(SubAppList subAppList) {
         gInstance = this;
+        BleScanner.init(this);
+
         NurApi theApi = getNurApi();
 
         /* Set update sources */
@@ -474,7 +471,7 @@ public class Main extends AppTemplate {
                     if(accessoryVersion != null) {
                         mDFUController.setHWType(getAccessoryApi().getConfig().getDeviceType());
                         mDFUController.setAPPVersion(accessoryVersion.getApplicationVersion());
-                        mDFUController.setBldrVersion(accessoryVersion.getmBootloaderVersion());
+                        mDFUController.setBldrVersion(accessoryVersion.getBootloaderVersion());
                     } else {
                         mDFUController.setHWType(null);
                     }
@@ -843,12 +840,22 @@ public class Main extends AppTemplate {
                     final NurAccessoryVersionInfo accessoryVersion = getAccesoryVersionInfo();
 
                     final TextView accessoryTextView = (TextView) dialogLayout.findViewById(R.id.accessory_version);
-                    accessoryTextView.setText(getString(R.string.about_dialog_accessory) + " " + accessoryVersion.getFullApplicationVersion());
+                    accessoryTextView.setText(getString(R.string.about_dialog_accessory) + " " + accessoryVersion.getApplicationVersion());
                     accessoryTextView.setVisibility(View.VISIBLE);
 
                     final  TextView accessoryBldrVersion = (TextView) dialogLayout.findViewById(R.id.accessory_bootloader_version);
-                    accessoryBldrVersion.setText(getString(R.string.about_dialog_accessory_bldr) + " " + accessoryVersion.getmBootloaderVersion());
+                    accessoryBldrVersion.setText(getString(R.string.about_dialog_accessory_bldr) + " " + accessoryVersion.getBootloaderVersion());
                     accessoryBldrVersion.setVisibility(View.VISIBLE);
+
+                    try {
+                        final TextView connDetails = (TextView) dialogLayout.findViewById(R.id.conn_info);
+                        accessoryBldrVersion.setText(getString(R.string.about_dialog_conn_info) + " " + getAccessoryApi().getConnectionInfo());
+                        accessoryBldrVersion.setVisibility(View.VISIBLE);
+                    } catch (Exception ex)
+                    {
+                        // Ignore exception, connection info is not available on old FW
+                        ex.printStackTrace();
+                    }
                 }
 
             } catch (Exception e) {

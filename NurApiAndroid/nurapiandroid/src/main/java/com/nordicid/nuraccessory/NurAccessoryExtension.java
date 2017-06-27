@@ -109,6 +109,9 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	/** Clear device pairing information. */
 	public static final int ACC_EXT_CLEAR_PAIRS = 15;
 
+	/** Get connection info. */
+	public static final int ACC_EXT_GET_CONNECTION_INFO = 18;
+
 	/** Constant indicating battery level being "good". */
 	public static final int BATT_GOOD_mV = 3900;
 	/** Constant indicating battery level being "moderate". */
@@ -736,6 +739,17 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 	public void clearPairingData() throws Exception
 	{
 		doCustomCommand(new byte [] { (byte) ACC_EXT_CLEAR_PAIRS} );
+	}
+
+	/**
+	 * Returns detailed connection info from accessory device.
+	 *
+	 * @throws Exception Can throw exception if an error occurred int APi's transport.
+	 */
+	public String getConnectionInfo() throws Exception
+	{
+		byte []reply = doCustomCommand(new byte [] { ACC_EXT_GET_CONNECTION_INFO });
+		return new String(reply, StandardCharsets.UTF_8);
 	}
 
 	/**

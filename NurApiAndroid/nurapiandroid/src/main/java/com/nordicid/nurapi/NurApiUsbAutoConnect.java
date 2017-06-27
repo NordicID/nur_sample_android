@@ -231,5 +231,9 @@ public class NurApiUsbAutoConnect implements NurApiAutoConnectTransport
 	public String getAddress() { return ""; }
 
 	@Override
-	public String getDetails() { return "";	}
+	public String getDetails() {
+		if (mApi.isConnected())
+			return "Connected to USB";
+		return "Disconnected from USB";
+	}
 }

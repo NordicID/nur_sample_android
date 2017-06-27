@@ -41,6 +41,11 @@ public class NurApiSocketAutoConnect implements NurApiAutoConnectTransport
 	private int mPort = 0;
 	private boolean mInvalidAddress = false;
 
+	public static final int STATE_DISCONNECTED = 0;
+	public static final int STATE_CONNECTING = 1;
+	public static final int STATE_CONNECTED = 2;
+	int mState = STATE_DISCONNECTED;
+
 	public NurApiSocketAutoConnect(Context c, NurApi na)
 	{
 		this.mContext = c;
@@ -59,6 +64,30 @@ public class NurApiSocketAutoConnect implements NurApiAutoConnectTransport
 			}
 			mAutoConnThread = null;
 		}
+
+		// Disconnect
+		try {
+			Log.d(TAG, "disconnect; iscon " + mApi.isConnected());
+			if (mApi.isConnected())
+				mApi.disconnect();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			Log.d(TAG, "disconnect " + mTr);
+			if (mTr != null) {
+				mTr.disconnect();
+				mTr = null;
+			}
+		} catch (Exception ex) { }
+
+		try {
+			mApi.setTransport(null);
+		} catch (Exception ex) { }
+
+		mState = STATE_DISCONNECTED;
+		mAutoConnThread = null;
 	}
 	
 	@Override
@@ -81,6 +110,9 @@ public class NurApiSocketAutoConnect implements NurApiAutoConnectTransport
 	{
 		if (addr == mAddress) {
 			Log.d(TAG, "setAddress address is same! " + addr);
+			Log.d(TAG, "setAddress host=" + mHost);
+			Log.d(TAG, "setAddress port=" + mPort);
+
 			if (!mAutoConnRunning) {
 				startAutoConnectThread();
 			}
@@ -88,6 +120,7 @@ public class NurApiSocketAutoConnect implements NurApiAutoConnectTransport
 		}
 
 		Log.d(TAG, "setAddress " + addr);
+		disconnect();
 
 		mInvalidAddress = false;
 		if (addr.toLowerCase().equals("disabled"))
@@ -98,19 +131,26 @@ public class NurApiSocketAutoConnect implements NurApiAutoConnectTransport
 			return;
 		}
 
-		try {
-			URI uri = new URI("my://" + addr);
-			String host = uri.getHost();
-			int port = uri.getPort();
+		if (addr.toLowerCase().equals("integrated_reader"))
+		{
+			mHost = "integrated_reader";
+			mPort = 0;
+		}
+		else {
+			try {
+				URI uri = new URI("my://" + addr);
+				String host = uri.getHost();
+				int port = uri.getPort();
 
-			if (uri.getHost() == null || uri.getPort() == -1) {
+				if (uri.getHost() == null || uri.getPort() == -1) {
+					mInvalidAddress = true;
+				} else {
+					mHost = host;
+					mPort = port;
+				}
+			} catch (URISyntaxException e) {
 				mInvalidAddress = true;
-			} else {
-				mHost = host;
-				mPort = port;
 			}
-		} catch (URISyntaxException e) {
-			mInvalidAddress = true;
 		}
 
 		if (mInvalidAddress) {
@@ -133,10 +173,13 @@ public class NurApiSocketAutoConnect implements NurApiAutoConnectTransport
 
 	void startAutoConnectThread()
 	{
+		mState = STATE_CONNECTING;
 		mAutoConnRunning = true;
 		mAutoConnThread = new Thread(mAutoConnRunnable);
 		mAutoConnThread.start();
 	}
+
+	NurApiSocketTransport mTr = null;
 
 	Runnable mAutoConnRunnable = new Runnable() {
 		@Override
@@ -144,33 +187,31 @@ public class NurApiSocketAutoConnect implements NurApiAutoConnectTransport
 		{
 			Log.d(TAG, "Auto connect thread started");
 
-			NurApiSocketTransport tr = new NurApiSocketTransport(mHost, mPort);
+			mTr = new NurApiSocketTransport(mHost, mPort);
 			try {
 				while (mAutoConnRunning)
 				{
-					if (tr.isConnected()) {
-						Thread.sleep(5000);
+					if (mTr.isConnected()) {
+						Thread.sleep(2000);
 						continue;
 					}
 
 					Log.d(TAG, "Trying to connect");
 					try {
-						mApi.setTransport(tr);
+						mState = STATE_CONNECTING;
+						mApi.setTransport(mTr);
 						mApi.connect();
+						mState = STATE_CONNECTED;
 					} catch (Exception ex) {
 						Log.d(TAG, "FAILED");
-						Thread.sleep(5000);
+						Thread.sleep(2000);
 					}
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 
-			// Disconnect
-			try {
-				mApi.setTransport(null);
-			} catch (Exception ex) { }
-
+			mState = STATE_DISCONNECTED;
 			Log.d(TAG, "Auto connect thread exit");
 		}
 	};
@@ -205,7 +246,17 @@ public class NurApiSocketAutoConnect implements NurApiAutoConnectTransport
 	@Override
 	public String getDetails() {
 		if (mInvalidAddress)
-			return "Invalid Address";
-		return "";
+			return "Invalid connection URL";
+
+		if (mState == STATE_CONNECTED)
+		{
+			return "Connected to " + mAddress;
+		}
+		else if (mState == STATE_CONNECTING)
+		{
+			return "Connecting to " + mAddress;
+		}
+
+		return "Disconnected from " + mAddress;
 	}
 }

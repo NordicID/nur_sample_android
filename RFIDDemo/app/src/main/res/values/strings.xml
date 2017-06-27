@@ -52,16 +52,17 @@
     <string name="inventory_started">Inventory started</string>
     <string name="inventory_stopped">Inventory stopped</string>
 
-    <string name="no_reader_attached">No reader attached</string>
-    <string name="attached_reader_info">Attached reader info:</string>
+    <string name="no_reader_attached">No reader connected</string>
+    <string name="attached_reader_info">Connected reader info:</string>
     <string name="about_dialog_model">Model:</string>
     <string name="about_dialog_serial">Serial:</string>
-    <string name="about_dialog_firmware">Firmware:</string>
-    <string name="about_dialog_bootloader">Bootloader:</string>
-    <string name="about_dialog_accessory">Accessory:</string>
-    <string name="about_dialog_accessory_bldr">Accessory bootloader:</string>
+    <string name="about_dialog_firmware">NUR firmware:</string>
+    <string name="about_dialog_bootloader">NUR bootloader:</string>
+    <string name="about_dialog_accessory">Device firmware:</string>
+    <string name="about_dialog_accessory_bldr">Device bootloader:</string>
     <string name="about_dialog_nurapi">NurApi version:</string>
     <string name="about_dialog_app">App version:</string>
+    <string name="about_dialog_conn_info">Device connection info:</string>
 
     <string name="write_tag_hint">Select a tag to write</string>
     <string name="locatable_epc_hint">Select EPC to locate from list</string>
@@ -195,6 +196,7 @@
     <string name="NUR_BLDR_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_exa_firmware/master/firmwares.json</string>
     <string name="export_csv">Export and share inventory list as CSV file</string>
     <string name="share_via">Share via</string>
+    <string name="connection_details">Connection Details</string>
 
 
 </resources>

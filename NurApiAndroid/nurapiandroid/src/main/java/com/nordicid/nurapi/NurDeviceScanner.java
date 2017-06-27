@@ -1,15 +1,6 @@
 package com.nordicid.nurapi;
 
-/*
-import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
-import no.nordicsemi.android.support.v18.scanner.ScanCallback;
-import no.nordicsemi.android.support.v18.scanner.ScanResult;
-import no.nordicsemi.android.support.v18.scanner.ScanSettings;
-import no.nordicsemi.android.support.v18.scanner.ScanFilter;
-*/
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
@@ -18,13 +9,15 @@ import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.nordicid.nurapi.BleScanner.BleScannerListener;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import static android.content.Context.LOCATION_SERVICE;
 
-public class NurDeviceScanner {
+public class NurDeviceScanner implements BleScannerListener {
 
     public static final String TAG = "NurDeviceScanner";
     private static final String NID_FILTER = "exa";
@@ -39,8 +32,6 @@ public class NurDeviceScanner {
     private int mRequestedDevices = ALL_DEVICES;
     private Long mScanPeriod = DEF_SCAN_PERIOD;
     private boolean mCheckNordicID;
-    private BluetoothAdapter mBluetoothAdapter;
-    //private BluetoothLeScannerCompat mScanner;
     private NurApi mApi;
     private List<NurDeviceSpec> mDeviceList;
     private Handler mHandler;
@@ -89,11 +80,17 @@ public class NurDeviceScanner {
         else if (timeout > MAX_SCAN_PERIOD)
             timeout = MAX_SCAN_PERIOD;
 
+        mScanning = true;
         mScanPeriod = timeout;
         Log.i(TAG, "scanDevices; timeout " + timeout);
 
         /** notify scan started **/
         mListener.onScanStarted();
+
+        if (requestingIntDevice()) {
+            Log.i(TAG,"Add internal reader device");
+            addDevice(getIntDeviceSpec());
+        }
 
         if (requestingUSBDevice()) {
             Log.i(TAG,"Scanning USB Devices");
@@ -110,20 +107,29 @@ public class NurDeviceScanner {
             queryBLEDevices();
         }
 
+        // Stops scanning after a pre-defined scan period.
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                stopScan();
+            }
+        }, mScanPeriod);
+
         return true;
     }
 
-    public void scanDevices(){
+    public void scanDevices() {
         if(mScanning == false)
             scanDevices(mScanPeriod, mCheckNordicID);
     }
 
-    public void stopScan(){
-        if(mScanning){
-            scanLeDevice(false);
+    public void stopScan() {
+        if (mScanning) {
+            mScanning = false;
+            BleScanner.getInstance().unregisterListener(this);
+            if (mListener != null)
+                mListener.onScanFinished();
         }
-        if(mListener != null)
-            mListener.onScanFinished();
     }
 
     public void purge(){
@@ -150,10 +156,18 @@ public class NurDeviceScanner {
         return false;
     }
 
+    private boolean requestingIntDevice() {
+        if (Build.MANUFACTURER.toLowerCase().contains("nordicid"))
+            return true;
+
+        return false;
+    }
+
     private void addDevice(NurDeviceSpec device) {
-        if (device.getName() == null)
+        if (!mScanning || device.getName() == null)
             return;
         boolean deviceFound = false;
+
         for (NurDeviceSpec listDev : mDeviceList) {
             if (listDev.getAddress().equals(device.getAddress())) {
                 deviceFound = true;
@@ -162,14 +176,19 @@ public class NurDeviceScanner {
         }
         /** device is new **/
         if (!deviceFound) {
-            Log.i(TAG,"New device found : " + device.getSpec());
+            Log.i(TAG, "New device found : " + device.getSpec());
             mDeviceList.add(device);
+
             if(mListener != null)
                 mListener.onDeviceFound(device);
         }
     }
 
     public List<NurDeviceSpec> getDeviceList(){ return mDeviceList; }
+
+    public NurDeviceSpec getIntDeviceSpec() {
+        return new NurDeviceSpec("type=INT;addr=integrated_reader;name=Integrated Reader");
+    }
 
     //region Ethernet devices
 
@@ -192,10 +211,12 @@ public class NurDeviceScanner {
     {
         ArrayList<NurEthConfig> theDevices = null;
         try {
-            theDevices = mApi.queryEthDevices();
-            for (NurEthConfig cfg : theDevices) {
-                if (cfg.hostMode==0) // Only show server mode devices
-                    postNewDevice(getEthDeviceSpec(cfg));
+            while (mScanning) {
+                theDevices = mApi.queryEthDevices();
+                for (NurEthConfig cfg : theDevices) {
+                    if (cfg.hostMode == 0) // Only show server mode devices
+                        postNewDevice(getEthDeviceSpec(cfg));
+                }
             }
         }
         catch (Exception ex)
@@ -203,8 +224,6 @@ public class NurDeviceScanner {
             // TODO
         }
         mEthQueryRunning = false;
-        if(!requestingBLEDevices())
-            mListener.onScanFinished();
     }
 
     private void postNewDevice(final NurDeviceSpec device)
@@ -231,232 +250,51 @@ public class NurDeviceScanner {
     public NurDeviceSpec getUsbDeviceSpec() {
         return new NurDeviceSpec("type=USB;addr=USB;name=USB Device");
     }
-
     //endregion
 
     //region BLE Devices
 
-    private boolean isLocationServicesEnabled() {
-        LocationManager lm = (LocationManager) mOwner.getSystemService(LOCATION_SERVICE);
-        if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
-            lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
+    @Override
+    public void onBleDeviceFound(final BluetoothDevice device, final String name, final int rssi)
+    {
+        if (checkNIDBLEFilter(name))
         {
-            return true;
+            if( mApi != null && mApi.getUiThreadRunner() != null) {
+                mApi.getUiThreadRunner().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        addDevice(getBtDeviceSpec(device, name, false, rssi));
+                    }
+                });
+            } else {
+                addDevice(getBtDeviceSpec(device, name, false, rssi));
+            }
         }
-        return false;
     }
 
-    public void queryBLEDevices(){
-        // Use this check to determine whether BLE is supported on the device.  Then you can
-        // selectively disable BLE-related features.
-        if (!mOwner.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Log.w(TAG, "BT not supported; missing feature: " + PackageManager.FEATURE_BLUETOOTH_LE);
-            // Toast.makeText(mOwner, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
-            return;
-        }
+    public NurDeviceSpec getNearbyBleDeviceSpec() {
+        return new NurDeviceSpec("type=BLE;addr=nearby;name=Nearby Bluetooth");
+    }
 
-        // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
-        // BluetoothAdapter through BluetoothManager.
-        final BluetoothManager bluetoothManager =
-                (BluetoothManager) mOwner.getSystemService(Context.BLUETOOTH_SERVICE);
-        if (bluetoothManager == null) {
-            Log.w(TAG, "BT not supported; BT service not available");
-            Toast.makeText(mOwner, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
-            return;
-        }
+    public void queryBLEDevices()
+    {
+        // Add nearby
+        addDevice(getNearbyBleDeviceSpec());
 
-        mBluetoothAdapter = bluetoothManager.getAdapter();
-        // Checks if Bluetooth is supported on the device.
-        if (mBluetoothAdapter == null) {
-            Log.w(TAG, "BT not supported; BT adapter not available");
-            // Toast.makeText(mOwner, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // If requesting only BT devices, check for BT on
-        if (!mBluetoothAdapter.isEnabled())
-        {
-            Log.w(TAG, "BT not ON");
-            Toast.makeText(mOwner, R.string.text_bt_not_on, Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        // Location ON is required for android M or newer
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !isLocationServicesEnabled())
-        {
-            Log.w(TAG, "Location not ON; BT search not available");
-            Toast.makeText(mOwner, R.string.text_location_not_on, Toast.LENGTH_LONG).show();
-            // return; // Do not return, it might still work.. some xiaomi miui8 phones for example
-        }
-
-        Log.i(TAG, "Start BT scan");
-
-        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+        // Add paired
+        Set<BluetoothDevice> pairedDevices = BleScanner.getInstance().getPairedDevices();
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
-                if (isBleDevice(device) && checkNIDBLEFilter(device.getName()))
+                if (BleScanner.isBleDevice(device) && checkNIDBLEFilter(device.getName()))
                     addDevice(getBtDeviceSpec(device, device.getName(), true, 0));
             }
         }
-        scanLeDevice(true);
+
+        // Start BLE scan
+        Log.i(TAG, "Start BLE scan; " + mOwner);
+        BleScanner.getInstance().registerScanListener(this);
     }
 
-    private void scanLeDevice(final boolean enable)
-    {
-        /*if (mScanner == null) {
-            mScanner = BluetoothLeScannerCompat.getScanner();
-        }*/
-
-        if (enable) {
-            // Stops scanning after a pre-defined scan period.
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if(!mScanning)
-                        return;
-                    mScanning = false;
-                    Log.i(TAG,"Scanning STOP BLE");
-                    //mScanner.stopScan(mScanCallback);
-                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                    mListener.onScanFinished();
-                }
-            }, mScanPeriod);
-
-            mScanning = true;
-            Log.i(TAG,"Scanning START BLE");
-            mBluetoothAdapter.startLeScan(mLeScanCallback);
-            /*ScanSettings settings = new ScanSettings.Builder()
-                    .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
-                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                    .setReportDelay(1000).build();
-            mScanner.startScan(mScanFilters, settings, mScanCallback);*/
-
-        } else {
-            Log.i(TAG,"Scanning STOP BLE");
-            mHandler.removeCallbacksAndMessages(null);
-            //mScanner.stopScan(mScanCallback);
-            mBluetoothAdapter.stopLeScan(mLeScanCallback);
-            mScanning = false;
-        }
-    }
-
-    static String parseName(byte[] advData) {
-        int ptr = 0;
-
-        while (ptr < advData.length - 2) {
-            int length = advData[ptr++] & 0xff;
-            if (length == 0)
-                break;
-
-            final int ad_type = (advData[ptr++] & 0xff);
-
-            switch (ad_type) {
-                case 0xff:
-                    break;
-                case 0x08:
-                case 0x09:
-                    byte[] name = new byte[length - 1];
-                    int i = 0;
-                    length = length - 1;
-                    while (length > 0) {
-                        length--;
-                        name[i++] = advData[ptr++];
-                    }
-                    String nameString = new String(name);
-
-                    return nameString;
-            }
-            ptr += (length - 1);
-        }
-        return null;
-    }
-
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
-    new BluetoothAdapter.LeScanCallback() {
-        @Override
-        public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord)
-        {
-            final String name = parseName(scanRecord);
-            if (name == null || !isBleDevice(device)) {
-                return;
-            }
-
-            // Log.i(TAG, "BLE device " + name + "; " + device.getAddress() + "; rssi " + rssi);
-
-            if (checkNIDBLEFilter(name))
-            {
-                if( mApi != null && mApi.getUiThreadRunner() != null) {
-                    mApi.getUiThreadRunner().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            addDevice(getBtDeviceSpec(device, name, false, rssi));
-                        }
-                    });
-                } else {
-                    addDevice(getBtDeviceSpec(device, name, false, rssi));
-                }
-            }
-        }
-    };
-
-    boolean isBleDevice(BluetoothDevice device) {
-        if (device.getType() != BluetoothDevice.DEVICE_TYPE_LE && device.getType() != BluetoothDevice.DEVICE_TYPE_UNKNOWN) {
-            // Log.w(TAG, "NOT BLE device; " + device.getAddress() + "; " + device.getType());
-            return false;
-        }
-        return true;
-    }
-/*
-    private ScanCallback mScanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(final int callbackType, final ScanResult result) {
-            // empty
-        }
-
-        @Override
-        public void onBatchScanResults(final List<ScanResult> results) {
-            Log.i(TAG, "Found " + results.size() + " BLE devices");
-            if (!mScanning) {
-                Log.e(TAG, "Got event while NOT scanning");
-                return;
-            }
-
-            for (final ScanResult result : results)
-            {
-                final BluetoothDevice device = result.getDevice();
-                final String name = result.getScanRecord().getDeviceName();
-                if (name == null || !isBleDevice(device)) {
-                    continue;
-                }
-
-                Log.i(TAG, "BLE device " + name + "; " + device.getAddress());
-
-                if (checkNIDBLEFilter(name))
-                {
-                    if( mApi != null && mApi.getUiThreadRunner() != null) {
-                        mApi.getUiThreadRunner().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                addDevice(getBtDeviceSpec(device, name, false, result.getRssi()));
-                            }
-                        });
-                    } else {
-                        addDevice(getBtDeviceSpec(device, name, false, result.getRssi()));
-                    }
-                }
-
-                if (!mScanning) {
-                    break;
-                }
-            }
-        }
-
-        @Override
-        public void onScanFailed(final int errorCode) {
-            Log.e(TAG, "onScanFailed " + errorCode);
-        }
-    };
-*/
     private boolean checkNIDBLEFilter(String deviceName)
     {
         if (!mCheckNordicID)

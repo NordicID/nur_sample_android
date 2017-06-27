@@ -24,7 +24,7 @@ import android.util.Log;
 /**
  * Provide "UART service" to the autoconnect.
  */
-public class UartService extends Service
+public class UartService extends Service implements BleScanner.BleScannerListener
 {
     private final static String TAG = UartService.class.getSimpleName();
 
@@ -57,6 +57,8 @@ public class UartService extends Service
     Context mContext;
     Handler mHandler;
 
+    String mAddress = "";
+
     public void setEventListener(UartServiceEvents ev, Context ctx)
     {
         mContext = ctx;
@@ -67,6 +69,35 @@ public class UartService extends Service
     public int getConnState()
     {
         return mConnectionState;
+    }
+
+    void setConnState(int state) {
+        if (state == mConnectionState)
+            return;
+        mConnectionState = state;
+        if (mEvents != null)
+            mEvents.onConnStateChanged();
+
+        if (state == STATE_DISCONNECTED && !mClosed)
+        {
+            mTxActive = false;
+            mRxService = null;
+            mTxChar = null;
+            mRxChar = null;
+            connect(mAddress);
+        }
+    }
+
+    public boolean isNearByConnect() {
+        return mAddress.equalsIgnoreCase("nearby");
+    }
+
+    public String getRealAddress()
+    {
+        if (mBluetoothGatt == null) {
+            return "";
+        }
+        return mBluetoothGatt.getDevice().getAddress();
     }
 
     private String stateToString(int state)
@@ -85,16 +116,18 @@ public class UartService extends Service
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
-    private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+    private BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState)
         {
-        	if (mClosed) {
+            super.onConnectionStateChange(gatt, status, newState);
+
+            Log.i(TAG, "onConnectionStateChange -> \"" + stateToString(newState) + "\"");
+
+            if (mClosed) {
         		Log.e(TAG, "onConnectionStateChange; CLOSED");
         		return;
         	}
-            
-            super.onConnectionStateChange(gatt, status, newState);
 
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 if (mBluetoothGatt == null)
@@ -118,14 +151,8 @@ public class UartService extends Service
             }
             else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
 
-                mConnectionState = STATE_DISCONNECTED;
-                if (mEvents != null)
-                    mEvents.onConnStateChanged();
+                setConnState(STATE_DISCONNECTED);
 
-                mTxActive = false;
-                mRxService = null;
-                mTxChar = null;
-                mRxChar = null;
                 Log.i(TAG, "Disconnected from GATT server.");
             }
             else {
@@ -146,6 +173,7 @@ public class UartService extends Service
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
         	
         	mHandler.removeCallbacks(mDiscoverServicesJamCheck);
+            Log.w(TAG, "onServicesDiscovered; status " + status);
         	
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 mRxService = mBluetoothGatt.getService(RX_SERVICE_UUID);
@@ -160,8 +188,12 @@ public class UartService extends Service
                 if (mRxService != null && mTxChar != null && mRxChar != null && enableTXNotification())
                 {
                     Log.i(TAG, "CONNECTED");
-                    if (mEvents != null)
-                        mEvents.onConnStateChanged();
+                    setConnState(STATE_CONNECTED);
+
+                    if (isNearByConnect()) {
+                        mHandler.postDelayed(mCheckNearbyRssi, 5000);
+                    }
+
                 } else {
                     disconnect();
                 }
@@ -226,7 +258,46 @@ public class UartService extends Service
             if (mEvents != null && TX_CHAR_UUID.equals(characteristic.getUuid()))
                 mEvents.onDataAvailable(characteristic.getValue());
         }
+
+        @Override
+        public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
+            super.onReadRemoteRssi(gatt, rssi, status);
+            Log.d(TAG, "onReadRemoteRssi " + rssi + "; status " + status + "; isNearbyConnect " + isNearByConnect() + "; mConnectionState " + mConnectionState);
+            if (isNearByConnect() && mConnectionState == STATE_CONNECTED) {
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    if (rssi < -50) {
+                        disconnect();
+                    }
+                }
+
+                if (mConnectionState == STATE_CONNECTED) {
+                    mHandler.postDelayed(mCheckNearbyRssi, 5000);
+                }
+            }
+        }
     };
+
+    @Override
+    public void onBleDeviceFound(BluetoothDevice device, String name, int rssi) {
+        Log.d(TAG, "onBleDeviceFound() " + device.getAddress());
+
+        if (mClosed)
+            return;
+
+        if (device.getAddress().equalsIgnoreCase(mAddress)) {
+            Log.d(TAG, "onDeviceFound() ADDR MATCH; mConnectionState " + mConnectionState);
+            this.connectInternal(device.getAddress());
+            BleScanner.getInstance().unregisterListener(this);
+        }
+        else if (isNearByConnect())
+        {
+            if (rssi >= -40) {
+                Log.d(TAG, "onDeviceFound() RSSI OK; mConnectionState " + mConnectionState);
+                this.connectInternal(device.getAddress());
+                BleScanner.getInstance().unregisterListener(this);
+            }
+        }
+    }
 
     public class LocalBinder extends Binder {
         UartService getService() {
@@ -287,25 +358,48 @@ public class UartService extends Service
      */
     public boolean connect(final String address)
     {
+        mAddress = address != null ? address : "";
+
+        if (mClosed) {
+            Log.e(TAG, "connect while closed!");
+            return false;
+        }
         if (mBluetoothAdapter == null || address == null || address.isEmpty()) {
-            Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
+            Log.e(TAG, "BluetoothAdapter not initialized or unspecified address.");
             disconnect();
             return false;
         }
 
-        final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+        Log.d(TAG, "connect addr " + address + "; mContext " + mContext);
 
+        setConnState(STATE_DISCONNECTED);
+        BleScanner.getInstance().registerScanListener(this);
+        Log.d(TAG, "started device scan");
+        return true;
+    }
+
+    boolean connectInternal(final String address)
+    {
+        Log.d(TAG, "connectInternal() " + address);
+
+        final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         if (device == null) {
             Log.w(TAG, "Device not found. Unable to connect.");
+            setConnState(STATE_DISCONNECTED);
             return false;
         }
 
-		mClosed = false;
+        mClosed = false;
+        setConnState(STATE_CONNECTING);
 
         // Samsung BT stack..
-        mHandler.post(new Runnable() {
+        mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
+
+                if (mConnectionState != STATE_CONNECTING)
+                    return;
+
                 Log.w(TAG, "connect " + address);
 
                 if (mBluetoothGatt != null) {
@@ -318,13 +412,27 @@ public class UartService extends Service
                 // parameter to false.
                 //mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
                 Log.i(TAG, "Trying to create a new connection");
-                mConnectionState = STATE_CONNECTING;
-                mBluetoothGatt = device.connectGatt(UartService.this, true, mGattCallback);
+                mBluetoothGatt = device.connectGatt(UartService.this, false, mGattCallback);
+                //mBluetoothGatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+                Log.i(TAG, "Connection created");
             }
-        });
+        }, 100);
 
         return true;
     }
+
+    Runnable mCheckNearbyRssi = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "CheckNearbyRssi; mConnectionState " + mConnectionState);
+            if (mConnectionState != STATE_CONNECTED || mBluetoothGatt == null)
+                return;
+            if (!mBluetoothGatt.readRemoteRssi()) {
+                Log.e(TAG, "readRemoteRssi() failed");
+                mHandler.postDelayed(mCheckNearbyRssi, 5000);
+            }
+        }
+    };
 
     /**
      * Disconnects an existing connection or cancel a pending connection. The disconnection result
@@ -339,7 +447,9 @@ public class UartService extends Service
         }
         Log.w(TAG, "mBluetoothGatt disconnect");
         mBluetoothGatt.disconnect();
-        mConnectionState = STATE_DISCONNECTED;
+        mBluetoothGatt.close();
+        mBluetoothGatt = null;
+        setConnState(STATE_DISCONNECTED);
         Log.w(TAG, "mBluetoothGatt disconnected");
     }
     
@@ -349,26 +459,30 @@ public class UartService extends Service
      * After using a given BLE device, the app must call this method to ensure resources are
      * released properly.
      */
-    public void close() {
-        if (mBluetoothGatt == null) {
-            return;
-        }
-        mHandler.post(new Runnable() {
+    synchronized public void close() {
+        Log.w(TAG, "close()");
+        mClosed = true;
+
+        BleScanner.getInstance().unregisterListener(this);
+
+        /*mHandler.post(new Runnable() {
             @Override
-            public void run() {
-                Log.w(TAG, "mBluetoothGatt close");
-                disconnect();
+            public void run() {*/
+                Log.w(TAG, "close() mBluetoothGatt close");
                 if (mBluetoothGatt != null) {
+                    mBluetoothGatt.disconnect();
                     mBluetoothGatt.close();
                     mBluetoothGatt = null;
                     
                 }                
                 else {
-                    Log.e(TAG, "mBluetoothGatt : tried to close null instance!");
+                    Log.e(TAG, "close() mBluetoothGatt: closed already");
                 }
-                Log.w(TAG, "mBluetoothGatt closed");
-            }
-        });
+                Log.w(TAG, "close() mBluetoothGatt closed");
+            /*}
+        });*/
+
+        setConnState(STATE_DISCONNECTED);
     }
 
     /**
@@ -398,7 +512,6 @@ public class UartService extends Service
         BluetoothGattDescriptor descriptor = mTxChar.getDescriptor(CCCD);
         descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
         boolean ret = mBluetoothGatt.writeDescriptor(descriptor);
-        mConnectionState = STATE_CONNECTED;
         return ret;
     }
 

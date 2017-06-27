@@ -102,8 +102,16 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:visibility="gone" />
-        
-    </LinearLayout>
+
+		<TextView
+			android:id="@+id/conn_info"
+			android:layout_marginTop="5dp"
+			android:layout_marginLeft="15dp"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:visibility="gone" />
+
+	</LinearLayout>
     
 
 </LinearLayout>

@@ -151,7 +151,13 @@ public class BthDFUController extends UpdateController{
      *  ToUpperCase is necessary android does not accept lower case addresses.
      */
     public String getDfuTargetAddress(String deviceAddress){
-        return String.format("%16s", Long.toHexString(Long.parseLong(deviceAddress.replace(":",""),16)+1).replaceAll("(.{2})", "$1"+':')).replace(" ", "00:").substring(0,17).toUpperCase();
+        try {
+            return String.format("%16s", Long.toHexString(Long.parseLong(deviceAddress.replace(":",""),16)+1).replaceAll("(.{2})", "$1"+':')).replace(" ", "00:").substring(0,17).toUpperCase();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
     }
 
     public boolean startUpdate()
