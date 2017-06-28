@@ -30,13 +30,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import com.nordicid.nurapi.BleScanner;
 
 import com.nordicid.nuraccessory.*;
 import com.nordicid.nurapi.*;
 
-/**
- * Created by Nordic ID on 26.5.2016.
- */
 public class MainActivity extends AppCompatActivity implements NurApiListener
 {
     public static final String TAG = "AccessoryDemo_MAIN";
@@ -87,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        BleScanner.init(this);
         mDataBroker.loadSettings(this);
         mAutoConnectDevice = mDataBroker.getAutoconnectDevice();
 
@@ -330,9 +328,10 @@ public class MainActivity extends AppCompatActivity implements NurApiListener
      */
     private void startBLEScan()
     {
-        int timeout;
-        timeout = DataBroker.getDeviceSearchTimeout();
-        NurDeviceListActivity.startDeviceRequest(MainActivity.this, NurDeviceListActivity.REQ_BLE_DEVICES, timeout, false);
+        //int timeout;
+        //timeout = DataBroker.getDeviceSearchTimeout();
+        //NurDeviceListActivity.startDeviceRequest(MainActivity.this, NurDeviceListActivity.REQ_BLE_DEVICES, timeout, false);
+        NurDeviceListActivity.startDeviceRequest(MainActivity.this, mApi);
     }
 
     /**
