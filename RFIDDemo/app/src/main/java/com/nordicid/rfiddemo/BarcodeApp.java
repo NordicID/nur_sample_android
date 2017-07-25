@@ -58,6 +58,9 @@ public class BarcodeApp extends SubApp {
 			@Override
 			public void onBarcodeResult(AccessoryBarcodeResult result) {
 
+				if (!mIsActive)
+					return;
+
 				getAppTemplate().setEnableBattUpdate(true);
 
 				if (result.status == NurApiErrors.NO_TAG) {
@@ -167,6 +170,14 @@ public class BarcodeApp extends SubApp {
 		}
 		else if (!val)
 		{
+			if (mIsActive) {
+				mIsActive = false;
+				try {
+					mAccessoryExt.cancelBarcodeAsync();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 			getAppTemplate().setEnableBattUpdate(true);
 		}
 	}
