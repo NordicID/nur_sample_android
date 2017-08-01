@@ -12,8 +12,8 @@ android {
         applicationId "com.nordicid.rfiddemo"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 54
-        versionName "1.0.41"
+        versionCode 55
+        versionName "1.0.42"
         multiDexEnabled true
     }
     buildTypes {
