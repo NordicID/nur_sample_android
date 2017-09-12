@@ -678,8 +678,27 @@ public class Main extends AppTemplate {
             String message = "";
             if(dfuApp)
                 message += "Device application available : " + mDFUController.getAvailableAppUpdateVerion();
-            if(dfuBldr)
-                message += "\nDevice bootloader available : " + mDFUController.getAvailableBldrUpdateVerion();
+            if(dfuBldr) {
+                final NurAccessoryVersionInfo accessoryVersion = getAccesoryVersionInfo();
+                int myVer = 0;
+                int upVer = 0;
+
+                try {
+                    Log.e("myVer=",accessoryVersion.getBootloaderVersion());
+                    Log.e("upVer=",mDFUController.getAvailableBldrUpdateVerion());
+                    myVer = Integer.parseInt(accessoryVersion.getBootloaderVersion());
+                    upVer = Integer.parseInt(mDFUController.getAvailableBldrUpdateVerion());
+
+
+                    if(myVer < upVer)
+                        message += "\nDevice bootloader available : " + mDFUController.getAvailableBldrUpdateVerion();
+                    else message +="\nNo updates available";
+                } catch(NumberFormatException nfe) {
+                    message +="\nNo updates available";
+                }
+
+
+            }
             if(nurApp)
                 message += "\nNUR application available : " + mNURAPPController.getAvailableAppUpdateVerion();
             if(nurBldr)

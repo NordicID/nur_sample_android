@@ -187,7 +187,7 @@
     <string name="update_state_idle">Update Service idle</string>
     <string name="looking_for_device" >Looking for device</string>
     <string name="update_file_source" >Update file source</string>
-    <string name="dfu_finished" >Update finished. you can now turn on your device normally.</string>
+    <string name="dfu_finished" >Update finished. Please wait until device restart (~30sec)</string>
 
     <!-- Update sources -->
     <string name="DFU_APP_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_exa_firmware/master/Applicationfirmwares.json</string>

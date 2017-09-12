@@ -33,8 +33,11 @@ public class NurAccessoryVersionInfo {
             Log.e("NURAccessoryVersion",version);
             String [] versions = version.split(";");
             mBootloaderVersion = (versions.length > 1) ? versions[1] : "1";
+        Log.e("NURAccessoryBootloader",mBootloaderVersion);
             mFullApplicationVersion = versions[0];
+        Log.e("NURAccessoryFullApp",mFullApplicationVersion);
             mApplicationVersion = versions[0].split(" ")[0].replaceAll("[^\\d.]", "");
+        Log.e("NURAccessoryAppVer",mApplicationVersion);
     }
 
     public String getApplicationVersion() { return mApplicationVersion; }
