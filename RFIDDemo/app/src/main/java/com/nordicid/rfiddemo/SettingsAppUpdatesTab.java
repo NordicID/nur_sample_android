@@ -348,11 +348,16 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
         /** Listeners **/
         mNURControllerListener = mNURAPPController.getNurApiListener();
         mDFUController.setBthFwControllerListener(mDFUUpdateListener);
+
     }
 
     private void handleDFUSupported(){
         if(Main.getInstance().getAccessorySupported()){
-            mDFUBLDRRadio.setEnabled(true);
+            //Check bootloader versio
+            if(mDFUController.isBldrUpdateAvailable())
+                mDFUBLDRRadio.setEnabled(true);
+            else mDFUBLDRRadio.setEnabled(false);
+
             mDFURadio.setEnabled(true);
         }
     }

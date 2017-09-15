@@ -16,7 +16,7 @@ public class TraceAntennaSelector
 
 	AvgBuffer mSignalAvg = new AvgBuffer(3, 0);
 	NurApi mApi;
-	
+
 	int mBackupSelectedAntenna;
 	int mBackupAntennaMask;
 	int mBackupTxLevel;
@@ -41,6 +41,8 @@ public class TraceAntennaSelector
 	public void begin(NurApi api) throws Exception
 	{
 		mApi = api;
+
+		mCurrentAnt = ANT_UNKNOWN;
 		
 		//mSignalAvg.Reset();
 		mSignalAvg.clear();
@@ -48,7 +50,7 @@ public class TraceAntennaSelector
 		mBackupAntennaMask = mApi.getSetupAntennaMaskEx();
 		mBackupSelectedAntenna = mApi.getSetupSelectedAntenna();
 		mBackupTxLevel = mApi.getSetupTxLevel();
-		
+
 		mApi.setSetupSelectedAntenna(NurApi.ANTENNAID_AUTOSELECT);
 		
 		AntennaMapping []map = mApi.getAntennaMapping();

@@ -19,6 +19,7 @@ import com.nordicid.nurapi.NurEventTriggeredRead;
 import com.nordicid.nurapi.NurRespInventory;
 import com.nordicid.nurapi.NurTag;
 import com.nordicid.nurapi.NurTagStorage;
+import android.util.Log;
 
 public class TagWriteController {
 	
@@ -112,6 +113,12 @@ public class TagWriteController {
 		{
 			try {
 				// Write tag
+				for(int x=0;x<newEpcBufferLength;x++)
+				{
+					Log.e("0","X=" + String.valueOf(x) + "=" + String.valueOf(newEpcBuffer[x]));
+				}
+
+				Log.e("0","newLen="+String.valueOf(newEpcBufferLength) + " oldLen=" + String.valueOf(epcBufferLength));
 				mApi.writeEpcByEpc(epcBuffer, epcBufferLength, newEpcBufferLength, newEpcBuffer);
 				ret = true;
 			}

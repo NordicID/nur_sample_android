@@ -34,7 +34,7 @@ public class NurApiBLETransport implements NurApiTransport
 	
 	private UartService mService = null;
 	private String mAddr;
-	RingBuffer mRxBuf = new RingBuffer();
+	RingBuffer mRxBuf = new RingBuffer(1024 * 64);
 	Object readLock = new Object();
 
 	/**

@@ -24,6 +24,7 @@ import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Log;
 
 public class WriteApp extends SubApp {
 
@@ -190,7 +191,7 @@ public class WriteApp extends SubApp {
                     try {
                         byte[] newEpc = NurApi.hexStringToByteArray(newEpcEditText.getText().toString());
                         byte[] currentEpc = NurApi.hexStringToByteArray(currentEpcTextView.getText().toString());
-
+						//Log.e("0","oldLen="+String.valueOf(newEpc.length) + " NewLen=" + String.valueOf(currentEpc.length));
                         boolean succeeded = mTagWriteController.writeTagByEpc(currentEpc, currentEpc.length, newEpc.length, newEpc);
 
                         if (succeeded) {

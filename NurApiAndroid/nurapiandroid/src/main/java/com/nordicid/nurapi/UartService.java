@@ -373,6 +373,18 @@ public class UartService extends Service implements BleScanner.BleScannerListene
         Log.d(TAG, "connect addr " + address + "; mContext " + mContext);
 
         setConnState(STATE_DISCONNECTED);
+
+        if (!isNearByConnect()) {
+            BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+            if (device != null && device.getBondState() != BluetoothDevice.BOND_NONE) {
+                // Device is bonded (or bonding) so we cannot use BLE scanner..
+                // Just try direct connect
+                Log.d(TAG, "started bonded device connect");
+                mHandler.postDelayed(mConnectBonded, 100);
+                return true;
+            }
+        }
+
         BleScanner.getInstance().registerScanListener(this);
         Log.d(TAG, "started device scan");
         return true;
@@ -403,8 +415,12 @@ public class UartService extends Service implements BleScanner.BleScannerListene
                 Log.w(TAG, "connect " + address);
 
                 if (mBluetoothGatt != null) {
-                    mBluetoothGatt.disconnect();
-                    mBluetoothGatt.close();
+                    try {
+                        mBluetoothGatt.disconnect();
+                        mBluetoothGatt.close();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                     mBluetoothGatt = null;
                 }
 
@@ -420,6 +436,18 @@ public class UartService extends Service implements BleScanner.BleScannerListene
 
         return true;
     }
+
+    Runnable mConnectBonded = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "ConnectBonded; mConnectionState " + mConnectionState);
+            if (mConnectionState == STATE_CONNECTED)
+                return;
+            else if (mConnectionState == STATE_DISCONNECTED)
+                connectInternal(mAddress);
+            mHandler.postDelayed(mConnectBonded, 500);
+        }
+    };
 
     Runnable mCheckNearbyRssi = new Runnable() {
         @Override
