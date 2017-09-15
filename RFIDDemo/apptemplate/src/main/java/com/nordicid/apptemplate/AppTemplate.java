@@ -843,9 +843,9 @@ public class AppTemplate extends FragmentActivity {
 	}
 
 	public void onDrawerItemClick(AdapterView<?> parent, View view, int position, long id) {}
-	
+
 	public String getPahtToTypeface() {
-		return "fonts/RobotoCondensed-Regular.ttf";
+		return "fonts/Lato-Regular.ttf";
 	}
 	
 	private class DrawerItemClickListener implements ListView.OnItemClickListener {

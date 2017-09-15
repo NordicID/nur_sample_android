@@ -5,5 +5,4 @@
         android:title="@string/close"
         android:showAsAction="always"
         android:visible="false" />
-
 </menu>

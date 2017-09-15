@@ -10,7 +10,7 @@ android:baselineAligned="false">
     android:id="@+id/location_info_container"
     android:layout_height="match_parent"
     android:layout_width="wrap_content"
-    android:background="@android:color/holo_orange_light"
+    android:background="@drawable/orange_border_right_whitefill"
     android:orientation="vertical"
     android:padding="10dp">
 

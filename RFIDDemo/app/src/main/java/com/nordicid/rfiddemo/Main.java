@@ -12,8 +12,6 @@ import com.nordicid.apptemplate.AppTemplate;
 import com.nordicid.apptemplate.SubAppList;
 import com.nordicid.controllers.BthDFUController;
 import com.nordicid.controllers.NURFirmwareController;
-import com.nordicid.controllers.UpdateController;
-import com.nordicid.nuraccessory.NurAccessoryConfig;
 import com.nordicid.nuraccessory.NurAccessoryVersionInfo;
 import com.nordicid.nurapi.BleScanner;
 import com.nordicid.nurapi.*;
@@ -30,7 +28,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
@@ -388,7 +385,9 @@ public class Main extends AppTemplate {
         dlg.setContentView(R.layout.layout_swipe_note);
 
         okBtn = (Button) dlg.findViewById(R.id.btn_hint_ok);
+        okBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         gotItBtn = (Button) dlg.findViewById(R.id.btn_hint_dont_show);
+        gotItBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
 
         View.OnClickListener onClickListener = new View.OnClickListener() {
             @Override

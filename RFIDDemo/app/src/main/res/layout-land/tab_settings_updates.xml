@@ -10,13 +10,14 @@
         android:layout_height="wrap_content"
         android:id="@+id/radioUpdateSelect"
         android:orientation='horizontal'
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="2dp"
         android:checkedButton="@+id/radio_nur_update" >
             <RadioButton
                 android:id="@+id/radio_dfu_update"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:enabled="false"
+                android:textSize="11sp"
                 android:text="@string/dfu_update" />
 
             <RadioButton
@@ -24,18 +25,21 @@
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:enabled="false"
+                android:textSize="11sp"
                 android:text="@string/dfu_bldr_update" />
 
             <RadioButton
                 android:id="@+id/radio_nur_update"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
+                android:textSize="11sp"
                 android:text="@string/nur_app_update" />
 
             <RadioButton
                 android:id="@+id/radio_nur_bldr_update"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textSize="10sp"
                 android:text="@string/nur_bldr_update" />
     </RadioGroup>
 
@@ -49,7 +53,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#c0392b"
-            android:textSize="25sp"
+            android:textSize="13sp"
             android:textStyle="normal|bold"
             android:layout_centerHorizontal="true"
             android:text="@string/update_state_idle"/>
@@ -81,21 +85,24 @@
         android:orientation="horizontal"
         android:layout_marginEnd="5dp"
         android:layout_marginStart="5dp"
+        android:layout_marginBottom="2dp"
         >
 
         <Button
             android:id="@+id/btn_select_file"
             android:layout_weight="1"
+            android:layout_height="35dp"
+            android:textSize="12sp"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
             android:text="@string/file_picker"
             tools:ignore="ButtonStyle" />
 
         <Button
             android:id="@+id/btn_download_file"
             android:layout_weight="1"
+            android:textSize="12sp"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="35dp"
             android:text="@string/file_picker_remote"
             tools:ignore="ButtonStyle" />
     </LinearLayout>
@@ -103,16 +110,19 @@
     <Button
         android:id="@+id/btn_start_update"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
+        android:layout_height="35dp"
+        android:layout_marginBottom="2dp"
         android:layout_marginEnd="5dp"
         android:layout_marginStart="5dp"
+        android:textSize="12sp"
         android:text="@string/start_update" />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_marginEnd="5dp"
+        android:textSize="12sp"
         android:layout_marginStart="5dp"
+        android:layout_marginBottom="2dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/file_name" />
@@ -120,7 +130,9 @@
     <TextView
         android:id="@+id/text_filename"
         android:layout_marginEnd="5dp"
+        android:textSize="12sp"
         android:layout_marginStart="5dp"
+        android:layout_marginBottom="2dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textStyle="normal|bold"
@@ -130,7 +142,9 @@
     <TextView
         android:id="@+id/textView3"
         android:layout_marginEnd="5dp"
+        android:textSize="12sp"
         android:layout_marginStart="5dp"
+        android:layout_marginBottom="2dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/progress" />
@@ -138,7 +152,9 @@
     <TextView
         android:id="@+id/text_update_progress"
         android:layout_marginEnd="5dp"
+        android:textSize="12sp"
         android:layout_marginStart="5dp"
+        android:layout_marginBottom="2dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textStyle="normal|bold"
@@ -157,11 +173,11 @@
         android:id="@+id/ui_blocked_tv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textSize="12sp"
         android:gravity="center"
         android:textColor="#c0392b"
         android:textStyle="bold"
         android:visibility="gone"
-        android:textSize="15sp"
         android:text="@string/ui_blocked" />
 
 </LinearLayout>
