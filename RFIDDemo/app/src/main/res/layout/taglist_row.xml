@@ -9,9 +9,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical|center_horizontal"
-        android:paddingRight="5dp"
+        android:paddingEnd="5dp"
+        android:paddingStart="5dp"
         android:paddingTop="5dp"
+        android:textSize="20sp"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:drawableLeft="@drawable/ic_tag" />
+        android:drawableStart="@drawable/ic_tag" />
         
 </LinearLayout>
