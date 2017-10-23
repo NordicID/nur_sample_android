@@ -428,30 +428,114 @@ public class NurAccessoryExtension implements NurApiUnknownEventListener {
 		mApi.customCmd(NUR_CMD_ACC_EXT, params);
 	}
 
+	/** The list of used imagers types */
+	public static final int IMAGER_TYPE_OPTICON = 0;
+
 	/**
 	 * Imager configuration command.
 	 *
 	 * @param cmd Configuration command as string. See Imager manual for details of commands
-	 *
+	 * @param type Type of imager 0=Opticon
 	 * @throws Exception Can throw I/O, timeout or API related exception based on the occurred error.
 	 */
-	public byte [] imagerCmd( String cmd) throws Exception
-	{
-		int x=0;
-		int len = cmd.length() + 5;
-		byte [] payload = new byte[len];
+	public byte [] imagerCmd( String cmd, int type) throws Exception {
+		int x = 0;
+		int len = 0;
 
-		payload[0] = ACC_EXT_IMAGER;
-		payload[1] = ACC_EXT_IMAGER_CMD;
-		payload[2] = (byte)(cmd.length() + 2);
-		payload[3] = 0x1b; //ESC
-		payload[len - 1] = 0x0d;
+		if (type == IMAGER_TYPE_OPTICON)
+		{
+			byte [] m = ConvertMenuToSerial(cmd);
 
-		for(x=0;x<cmd.length();x++)
-			payload[x+4] = (byte)(cmd.charAt(x));
+			if(m == null) return null;
 
-		return mApi.customCmd(NUR_CMD_ACC_EXT, payload);
+			len = m.length + 5;
+			Log.e("0","IMG len=" + String.valueOf(len));
+			byte[] payload = new byte[len];
+
+			payload[0] = ACC_EXT_IMAGER;
+			payload[1] = ACC_EXT_IMAGER_CMD;
+			payload[2] = (byte) (m.length + 2);
+			payload[3] = 0x1b; //ESC
+			payload[len - 1] = 0x0d;
+			for(x=0;x<m.length;x++)
+				payload[x+4] = m[x];
+			/*
+			for(x=0;x<len;x++)
+			{
+				Log.e("0","IMG payload=" + Integer.toHexString(payload[x]));
+			}
+			*/
+			return mApi.customCmd(NUR_CMD_ACC_EXT, payload);
+		}
+
+		throw new NurApiException("Accessory, imagerCmd: Imager type not supported", NurApiErrors.NOT_READY);
 	}
+
+	private int GetCmdLength(byte[] arr, int pos)
+	{
+		int cnt = 0;
+		for (int x = 0; x < 5; x++)
+		{
+			if (arr[pos + x] != '@') cnt++;
+			else return cnt;
+		}
+
+		return cnt;
+	}
+
+	private byte [] ConvertMenuToSerial(String txt)
+	{
+		int i=0;
+		int dest = 0;
+
+		byte[] b = txt.getBytes(StandardCharsets.UTF_8);
+		byte[] c = new byte[b.length];
+
+		//Log.e("0","IMG bLen="+String.valueOf(b.length) + " txtLen=" + String.valueOf(txt.length()));
+
+		//Search key
+		//if(b[0]=='@' && b[1]=='M' && b[2] == 'E' && b[3] == 'N' && b[4] == 'U' && b[5] == '_' && b[6] == 'O' && b[7] == 'P' && b[8] == 'T' && b[9] == 'O' && b[10] == '@' && b[11] == 'Z' && b[12] == 'Z' && b[13] == '@')
+		if (b[0] == '@' && b[1] == 'M' && b[2] == 'E' && b[3] == 'N' && b[4] == 'U' && b[5] == '_' && b[6] == 'O' && b[7] == 'P' && b[8] == 'T' && b[9] == 'O')
+		{
+			//Start position is 10
+			//Need to know is it 3 or 2 letter length. If more, it's end
+			int x = 10;
+			//int last = b.Length - 14;
+
+			while(x < b.length)
+			{
+				//Find '@'
+				if (b[x] == '@')
+				{
+					int len = GetCmdLength(b, x+1);
+					if (len == 3) c[dest++] = (byte)'[';
+					else if (len > 3) break;
+					for(i=0;i<len;i++)
+						c[dest+i] = b[x+1+i];
+						//b[x+1+i] = c[dest+i];
+					//System.arraycopy(b,x+1,c,dest,len); // Array.Copy(b, x+1, c, dest, len);
+					dest += len;
+					//Log.e("0","IMG @ found x=" + String.valueOf(x) + " CmdLen=" + String.valueOf(len)+ " Dest=" + String.valueOf(dest));
+				}
+
+				x++;
+			}
+		}
+
+		dest -= 4;
+		if(dest <= 0) return null;
+
+		byte [] ret = new byte[dest];
+		for(i=0;i<dest;i++) {
+			ret[i] = c[i+2];
+			//Log.e("0","IMG i="+ String.valueOf(i) + "=" + String.valueOf(ret[i]));
+		}
+
+		//String ret= new String(c,StandardCharsets.UTF_8); // System.TeText.Encoding.UTF8.GetString(c);
+
+		return ret;
+	}
+
 
 	public String [][]getHwHealth() throws NurApiException
 	{

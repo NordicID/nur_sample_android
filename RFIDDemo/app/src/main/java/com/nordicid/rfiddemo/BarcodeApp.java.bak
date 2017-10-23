@@ -251,7 +251,6 @@ public class BarcodeApp extends SubApp {
 
 		if (mIsActive) {
 			try {
-				mAccessoryExt.imagerAIM(false);
 				mAccessoryExt.cancelBarcodeAsync();
 				mCancelRequested = true;
 			} catch (Exception e1) {
@@ -260,8 +259,7 @@ public class BarcodeApp extends SubApp {
 			}
 
 			mText = "Cancelled";
-			Log.e("0","TRG =" + mText);
-			ChangeTriggerText(false);
+			ChangeTriggerText(true);
 			updateText();
 			mIsActive = false;
 			return;
@@ -272,16 +270,13 @@ public class BarcodeApp extends SubApp {
 
 		try {
 			getAppTemplate().setEnableBattUpdate(false);
-			mAccessoryExt.imagerAIM(false);
 			mAccessoryExt.readBarcodeAsync(5000);
-			ChangeTriggerText(true);
 			mIsActive = true;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 
 			mEditText.setText("Could not start scanner!");
-
 			mText = "";
 		}
 	}
@@ -314,30 +309,10 @@ public class BarcodeApp extends SubApp {
 
 	private void bleTrigger(int dir)
 	{
-		boolean aim=false;
-
-		Log.e("0","TRG dir=" + String.valueOf(dir));
-
-		if (dir == 0)
-		{
+		if (dir == 0) {
 			if (!mIgnoreNextTrigger)
 				handleTrigger();
 			mIgnoreNextTrigger = false;
-		}
-		else if(dir == 1)
-		{
-			if(mIsActive) aim = false;
-			else aim = true;
-
-			try
-			{
-				mAccessoryExt.imagerAIM(aim);
-			}
-			catch (Exception e)
-			{
-				mEditText.setText("Could not set aimer!");
-				mText = "";
-			}
 		}
 	}
 
@@ -357,8 +332,7 @@ public class BarcodeApp extends SubApp {
 	private void handleFileSelection(Uri uri)
 	{
 		BufferedReader br;
-		int succes_cnt=0;
-		int nack_cnt = 0;
+		boolean succes_found=false;
 
 		try {
 			br = new BufferedReader(new InputStreamReader(getActivity().getContentResolver().openInputStream(uri)));
@@ -372,43 +346,40 @@ public class BarcodeApp extends SubApp {
 					byte arr[] = mAccessoryExt.imagerCmd(line, 0);
 					if(arr == null)
 					{
-						//mEditText.setText("Config failed! (invalid config string)");
-						//Toast.makeText(getActivity(), "Config line not valid", Toast.LENGTH_SHORT).show();
-						//Not valid config line. Take next
+						mEditText.setText("Config failed! (invalid config string)");
+						Toast.makeText(getActivity(), "Config line not valid", Toast.LENGTH_SHORT).show();
 						continue;
 					}
 					if(arr[0] == 21)
 					{
-						nack_cnt++;
+						mEditText.setText("Config failed! (nack)");
 					}
 					else if(arr[0] == 6)
 					{
 						//mEditText.setText("Config success!");
-						succes_cnt++;
+						succes_found=true;
 					}
-					/*
 					else
 					{
 						mEditText.setText("Config failed! " + String.valueOf(arr[0]));
-
+						/*
 						for (int x = 0; x < arr.length; x++) {
 							Log.e("0", "Line [" + String.valueOf(x) + "]=" + String.valueOf(arr[x]));
 						}
+						*/
 					}
-					*/
 				}
 				catch (Exception e)
 				{
 					Log.e("0","IMG err=" + e.getMessage());
 					mEditText.setText(e.getMessage());
-					//break;
 				}
 
 
 			}
 			br.close();
 
-			if(succes_cnt>0)
+			if(succes_found)
 			{
 				//Save codes to Imager flash(Opticon)
 				line = "@MENU_OPTO@ZZ@Z2@ZZ@OTPO_UNEM@";
@@ -419,9 +390,7 @@ public class BarcodeApp extends SubApp {
 					} else if (rsp[0] == 21) {
 						mEditText.setText("Saving configuration failed! (nack)");
 					} else if (rsp[0] == 6) {
-						if(nack_cnt==0)
-							mEditText.setText("Config success!");
-						else mEditText.setText("Config success: (" + String.valueOf(succes_cnt)+" rows ) failed: ("+ String.valueOf(nack_cnt)+" rows)");
+						mEditText.setText("Config success!");
 					} else {
 						mEditText.setText("Saving configuration failed! " + String.valueOf(rsp[0]));
 						/*
@@ -437,14 +406,6 @@ public class BarcodeApp extends SubApp {
 					mEditText.setText(ex.getMessage());
 				}
 
-			}
-			else
-			{
-				if(nack_cnt>0)
-					mEditText.setText("Config failed! (Check your config string)");
-				else
-					mEditText.setText("Valid config string not found!");
-				//Toast.makeText(getActivity(), "Config line not valid", Toast.LENGTH_SHORT).show();
 			}
 
 		} catch (FileNotFoundException e) {

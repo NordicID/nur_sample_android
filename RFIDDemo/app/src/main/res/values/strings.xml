@@ -46,6 +46,8 @@
     <string name="progress">Progress</string>
     <string name="not_available">N/A</string>
     <string name="idle_status">Idle</string>
+    <string name="set_cfg_file">Set configuration from file...</string>
+
 
     <string name="hint">HINT</string>
 

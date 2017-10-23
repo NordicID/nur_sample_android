@@ -546,6 +546,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
                 Intent intent;
                 Intent filePicker;
                 intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                //intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 if(mNURFWUpdate)
                     intent.setType("application/octet-stream");

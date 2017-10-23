@@ -112,18 +112,32 @@ public class TagWriteController {
 		if (ret)
 		{
 			try {
+				/*
 				// Write tag
 				for(int x=0;x<newEpcBufferLength;x++)
 				{
 					Log.e("0","X=" + String.valueOf(x) + "=" + String.valueOf(newEpcBuffer[x]));
 				}
-
-				Log.e("0","newLen="+String.valueOf(newEpcBufferLength) + " oldLen=" + String.valueOf(epcBufferLength));
+				*/
+				//Log.e("0","newLen="+String.valueOf(newEpcBufferLength) + " oldLen=" + String.valueOf(epcBufferLength));
 				mApi.writeEpcByEpc(epcBuffer, epcBufferLength, newEpcBufferLength, newEpcBuffer);
+				//Just testing reading by epc
+				/*
+				byte [] arr = mApi.readTagByEpc(epcBuffer,epcBufferLength,NurApi.BANK_USER,0,64);
+				Log.e("0","Length=" + String.valueOf(arr.length));
+
+				for(int x=0;x<arr.length;x++)
+				{
+					Log.e("0","mem=" + String.valueOf(x) + "=" + String.valueOf(arr[x]));
+				}
+				*/
+
 				ret = true;
 			}
-			catch (Exception err) {
+			catch (Exception err)
+			{
 				mLastWriteError = err.getMessage();
+				Log.e("0","READERR=" + mLastWriteError);
 				ret = false;
 			}
 		}
