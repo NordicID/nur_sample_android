@@ -168,8 +168,10 @@ public abstract class UpdateController {
         try{
             /* invoke async task and wait for result */
             String data = new ExecuteGetOperation().execute(target).get();
+
             if(data != null){
                 JSONArray firmwares = new JSONObject(data).getJSONArray("firmwares");
+
                 for ( int it = 0; it < firmwares.length(); it++ ) {
                     JSONObject firmware = firmwares.getJSONObject(it);
                     UpdateContainer fwUpdate = new UpdateContainer();
@@ -196,6 +198,7 @@ public abstract class UpdateController {
         } catch (Exception e){
             Log.e(LOG_TAG,e.getMessage());
         }
+        //Log.e("fetchAvailableUpdates size=", Integer.toString(availableUpdates.size()));
         return availableUpdates;
     }
 
@@ -214,7 +217,9 @@ public abstract class UpdateController {
 
     public UpdateContainer fetchLastBldrUpdate(){
         List<UpdateContainer> updatesList = fetchAvailableUpdates(false);
-        return (updatesList.isEmpty()) ? null : updatesList.get(0);
+        if(updatesList.size() == 0) return null;
+        return updatesList.get(0);
+        //return (updatesList.isEmpty()) ? null : updatesList.get(0);
     }
 
     public String grabUpdateFile(UpdateContainer update){
@@ -259,7 +264,7 @@ public abstract class UpdateController {
                 return true;
             }
         } catch (Exception e){
-            // TODO
+
         }
         return  false;
     }

@@ -240,6 +240,7 @@ public class AppTemplate extends FragmentActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		gInstance = this;
+
 		/** Bluetooth Permission checks **/
 		if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED  ||
 				ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED  ||
@@ -267,7 +268,7 @@ public class AppTemplate extends FragmentActivity {
 		//int layoutMask = 0;
 		
 		mApi = new NurApi();
-		//mApi.setLogLevel(mApi.getLogLevel() | NurApi.LOG_VERBOSE);
+		//mApi.setLogLevel(mApi.getLogLevel() | NurApi.LOG_VERBOSE | NurApi.LOG_DATA);
 		mApi.setLogToStdout(true);
 
         mAccessoryApi = new NurAccessoryExtension(mApi);
@@ -352,6 +353,8 @@ public class AppTemplate extends FragmentActivity {
 		}
 	}
 
+	long mLastBattUpdate = 0;
+
 	public void setStatusText(String text)
 	{
 		TextView t = (TextView) findViewById(R.id.app_statustext);
@@ -359,8 +362,10 @@ public class AppTemplate extends FragmentActivity {
 
         if(getNurApi().isConnected() && getAccessorySupported()) {
             try {
-				if (mEnableBattUpdate)
-	                setBatteryStatus(getAccessoryApi().getBatteryInfo().getPercentageString());
+				if (mEnableBattUpdate && (System.currentTimeMillis()-mLastBattUpdate) > 20000) {
+					mLastBattUpdate = System.currentTimeMillis();
+					setBatteryStatus(getAccessoryApi().getBatteryInfo().getPercentageString());
+				}
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -838,9 +843,9 @@ public class AppTemplate extends FragmentActivity {
 	}
 
 	public void onDrawerItemClick(AdapterView<?> parent, View view, int position, long id) {}
-	
+
 	public String getPahtToTypeface() {
-		return "fonts/RobotoCondensed-Regular.ttf";
+		return "fonts/Lato-Regular.ttf";
 	}
 	
 	private class DrawerItemClickListener implements ListView.OnItemClickListener {

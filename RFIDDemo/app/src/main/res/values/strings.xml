@@ -46,22 +46,25 @@
     <string name="progress">Progress</string>
     <string name="not_available">N/A</string>
     <string name="idle_status">Idle</string>
+    <string name="set_cfg_file">Set configuration from file...</string>
+
 
     <string name="hint">HINT</string>
 
     <string name="inventory_started">Inventory started</string>
     <string name="inventory_stopped">Inventory stopped</string>
 
-    <string name="no_reader_attached">No reader attached</string>
-    <string name="attached_reader_info">Attached reader info:</string>
+    <string name="no_reader_attached">No reader connected</string>
+    <string name="attached_reader_info">Connected reader info:</string>
     <string name="about_dialog_model">Model:</string>
     <string name="about_dialog_serial">Serial:</string>
-    <string name="about_dialog_firmware">Firmware:</string>
-    <string name="about_dialog_bootloader">Bootloader:</string>
-    <string name="about_dialog_accessory">Accessory:</string>
-    <string name="about_dialog_accessory_bldr">Accessory bootloader:</string>
+    <string name="about_dialog_firmware">NUR firmware:</string>
+    <string name="about_dialog_bootloader">NUR bootloader:</string>
+    <string name="about_dialog_accessory">Device firmware:</string>
+    <string name="about_dialog_accessory_bldr">Device bootloader:</string>
     <string name="about_dialog_nurapi">NurApi version:</string>
     <string name="about_dialog_app">App version:</string>
+    <string name="about_dialog_conn_info">Device connection info:</string>
 
     <string name="write_tag_hint">Select a tag to write</string>
     <string name="locatable_epc_hint">Select EPC to locate from list</string>
@@ -186,7 +189,7 @@
     <string name="update_state_idle">Update Service idle</string>
     <string name="looking_for_device" >Looking for device</string>
     <string name="update_file_source" >Update file source</string>
-    <string name="dfu_finished" >Update finished. you can now turn on your device normally.</string>
+    <string name="dfu_finished" >Update finished. Please wait until device restart (~30sec)</string>
 
     <!-- Update sources -->
     <string name="DFU_APP_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_exa_firmware/master/Applicationfirmwares.json</string>
@@ -195,6 +198,7 @@
     <string name="NUR_BLDR_SRC" translatable="false">https://raw.githubusercontent.com/NordicID/nur_exa_firmware/master/firmwares.json</string>
     <string name="export_csv">Export and share inventory list as CSV file</string>
     <string name="share_via">Share via</string>
+    <string name="connection_details">Connection Details</string>
 
 
 </resources>

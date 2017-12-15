@@ -195,6 +195,8 @@ public class NurDeviceSpec {
                 return new NurApiUsbAutoConnect(ctx, api);
             case "TCP":
                 return new NurApiSocketAutoConnect(ctx, api);
+            case "INT":
+                return new NurApiSocketAutoConnect(ctx, api);
         }
 
         throw new NurApiException("NurDeviceSpec::createAutoConnectTransport() : can't determine type of transport: " + spec.getType());

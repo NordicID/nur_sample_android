@@ -54,6 +54,11 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 	// The physical transport used here.
 	private NurApiBLETransport mTr = new NurApiBLETransport();
 
+	public static final int STATE_DISCONNECTED = 0;
+	public static final int STATE_CONNECTING = 1;
+	public static final int STATE_CONNECTED = 2;
+	int mState = STATE_DISCONNECTED;
+
 	// UART service connected/disconnected
     private ServiceConnection mServiceConnection = new ServiceConnection() 
     {
@@ -108,7 +113,7 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 			addr = "";
 		mAddr = addr;
 		if (mService != null) {
-			mService.close();
+			//mService.close();
 			mService.connect(addr);
 		} else {
 			onResumeInternal();
@@ -176,6 +181,7 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
                             mTr.setService(mService);
                             mApi.setTransport(mTr);
                             mApi.connect();
+							mState = STATE_CONNECTED;
                         }
 
                     } catch (Exception e) {
@@ -184,7 +190,7 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
                         if (!mApi.isConnected()) {
                             if (mServiceBound) {
                                 Log.w(TAG, "reconnect on failure");
-                                mService.close();
+                                //mService.close();
                                 mService.connect(mAddr);
                             }
                         }
@@ -196,6 +202,10 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 		{
 			forceDisconnect();
 		}
+		else if (mService.getConnState() == UartService.STATE_CONNECTING)
+		{
+			mState = STATE_CONNECTING;
+		}
 		
 		Log.w(TAG, "onConnStateChanged done " + mService.getConnState());
 	}
@@ -203,6 +213,7 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 	private void forceDisconnect() {
 		try {
 			Log.w(TAG, "disconnect");
+			mState = STATE_DISCONNECTED;
 			mApi.disconnect();
 			mApi.setTransport(null);
 		} catch (Exception e) {
@@ -227,6 +238,7 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 	 */
 	@Override
 	public void onPause() {
+		Log.d(TAG, "onPause");
 	}
 	
 	boolean mBtAdapterChangeEventRegistered = false;
@@ -268,6 +280,7 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 	@Override
 	public void onResume() 
 	{
+		Log.d(TAG, "onResume");
 		if (!mBtAdapterChangeEventRegistered)
 		{
 			mBtAdapterChangeEventRegistered = true;
@@ -286,6 +299,7 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 	private void onStopInternal()
 	{
 		if (mApi.isConnected()) {
+			Log.d(TAG, "onStopInternal() disconnect");
 			try {
 				mApi.disconnect();				
 			} catch (Exception e) {
@@ -302,7 +316,7 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 		}
 
 		if (mService != null) {
-
+			Log.d(TAG, "onStopInternal() close service");
 			if (mServiceBound) {
 				mServiceBound = false;
 				mContext.stopService(new Intent(mContext, UartService.class));
@@ -317,6 +331,7 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 	@Override
 	public void onStop() 
 	{
+		Log.d(TAG, "onStop");
 		if (mBtAdapterChangeEventRegistered)
 		{
 			mBtAdapterChangeEventRegistered = false;
@@ -328,6 +343,7 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 
 	@Override
 	public void onDestroy() {
+		Log.d(TAG, "onDestroy");
 	}
 
 	@Override
@@ -349,11 +365,23 @@ public class NurApiBLEAutoConnect implements UartServiceEvents, NurApiAutoConnec
 	public String getDetails() {
 		BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (bluetoothAdapter == null) {
-			return "No BT adapter";
+			return "No bluetooth adapter found";
 		}
 		if (!bluetoothAdapter.isEnabled()) {
-			return "BT not enabled";
+			return "Bluetooth not enabled";
 		}
-		return "";
+
+		if (mService != null) {
+			if (mState == STATE_CONNECTED) {
+				return "Connected bluetooth " + mService.getRealAddress();
+			} else if (mState == STATE_CONNECTING) {
+				return "Connecting bluetooth " + mService.getRealAddress();
+			}
+		}
+
+		if (mAddr.equalsIgnoreCase("nearby"))
+			return "Searching nearby bluetooth device";
+
+		return "Searching bluetooth device " + mAddr;
 	}
 }

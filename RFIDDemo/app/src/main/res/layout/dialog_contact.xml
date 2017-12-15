@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"
             android:gravity="center"
-            android:text="Myllyojankatu 2 A, 24100 SALO, FINLAND"/>
+            android:text="Salo IoT Campus - Joensuunkatu 7, 24100 SALO | FINLAND"/>
 
         <LinearLayout
             android:layout_width="wrap_content"

@@ -18,7 +18,7 @@
 package com.nordicid.nurapi;
 
 public interface NurApiAutoConnectTransport {
-	
+
 	/** Should return the type of the implementing class (e.g. "BLE", "USB"). */
 	public String getType();
 	

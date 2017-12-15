@@ -3,6 +3,7 @@ package com.nordicid.rfiddemo;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -58,8 +59,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.nordicid.apptemplate.AppTemplate.getAppTemplate;
+import com.nordicid.nurapi.BleScanner;
+import com.nordicid.nurapi.BleScanner.BleScannerListener;
 
-public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment implements View.OnClickListener {
+public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment implements View.OnClickListener, BleScannerListener {
 
     static final int REQ_FILE_OPEN = 42;
     SettingsAppTabbed mOwner;
@@ -83,11 +86,12 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
     RadioButton mDFUBLDRRadio;
     RadioButton mNURBLDRRadio;
 
+    Handler mHandler;
+
     /** Used to search for DFU targets **/
-    NurDeviceScanner mDeviceScanner;
     String mDFUTargetAdd = "";
     boolean mDFUTargetAddFound = false;
-    List<NurDeviceSpec> mDfuExaFound = new ArrayList<NurDeviceSpec>();
+    List<BluetoothDevice> mDfuExaFound = new ArrayList<BluetoothDevice>();
 
     boolean mUpdateRunning = false;
     /** true if NUR FW update is selected **/
@@ -182,6 +186,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
             createAlertDialog(getString(R.string.dfu_finished)).show();
         }
     };
+
     NURFirmwareController.FirmWareControllerListener mNURFWListener = new NURFirmwareController.FirmWareControllerListener() {
         @Override
         public void onProgrammingEvent(NurEventProgrammingProgress nurEventProgrammingProgress) {
@@ -246,6 +251,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
             handleUpdateFinished();
         }
     };
+
     NurApiListener mNURApiListener = new NurApiListener() {
         @Override
         public void connectedEvent() { enableAll();
@@ -306,64 +312,31 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
         public void tagTrackingChangeEvent(NurEventTagTrackingChange arg0s) {}
     };
 
-    NurDeviceScanner.NurDeviceScannerListener mNurDeviceScannerListener = new NurDeviceScanner.NurDeviceScannerListener() {
-        @Override
-        public void onScanStarted() {
-            mDFUTargetAddFound = false;
-            mDfuExaFound.clear();
-            mDeviceScanner.purge();
-            Log.i("DEVICESCAN","Looking for device: " + mDFUTargetAdd + " or DfuEXA");
-        }
-
-        @Override
-        public void onDeviceFound(NurDeviceSpec nurDeviceSpec) {
-            if (nurDeviceSpec.getAddress().equalsIgnoreCase(mDFUTargetAdd)){
-                Log.i("DEVICESCAN", "Found target device " + nurDeviceSpec.getAddress());
-                mDFUTargetAddFound = true;
-                mDfuExaFound.add(nurDeviceSpec);
-                mDeviceScanner.stopScan();
-                //mDeviceScanner.purge();
-            }
-            else if (nurDeviceSpec.getName().equalsIgnoreCase("dfuexa") || nurDeviceSpec.getName().equalsIgnoreCase("dfunid")) {
-                mDfuExaFound.add(nurDeviceSpec);
-            }
-        }
-
-        @Override
-        public void onScanFinished() {
-            if (!mUpdateRunning && mDfuExaFound.size() > 0)
-            {
-                if (!mDFUTargetAddFound && mDfuExaFound.size() > 1) {
-                    // TODO: Pop up selection list for mDfuExaFound
+    @Override
+    public void onBleDeviceFound(final BluetoothDevice device, final String name, final int rssi)
+    {
+        if (device.getAddress().equalsIgnoreCase(mDFUTargetAdd)){
+            Log.i("DEVICESCAN", "Found target device " + device.getAddress());
+            mDFUTargetAddFound = true;
+            mDfuExaFound.add(device);
+            BleScanner.getInstance().unregisterListener(this);
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run()
+                {
+                    dfuScanFinished();
                 }
-                Log.e("DEVICESCAN", "Starting DFU controller");
-                mUpdateRunning = true;
-                keepScreenOn(true);
-                disableAll();
-
-                final String dfuTargAddr = mDfuExaFound.get(0).getAddress();
-
-                setStatus(R.color.StatusOrange,R.string.update_starting);
-
-                final Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mDFUController.setTargetAddress(dfuTargAddr);
-                        mDFUController.startUpdate();
-                    }
-                }, 100);
-            }
-            else if (mDfuExaFound.size() == 0)
-            {
-                mUpdateProgress.setText("DFU Device not found");
-                Log.e("NIDDFUUpdate","DFU Device not found");
-                handleUpdateFinished();
-            }
+            }, 3000);
         }
-    };
+        else if (name.equalsIgnoreCase("dfuexa") || name.equalsIgnoreCase("dfunid")) {
+            mDfuExaFound.add(device);
+        }
+    }
 
     public SettingsAppUpdatesTab(){
+        mHandler = new Handler();
+
         mOwner = SettingsAppTabbed.getInstance();
         mApi = mOwner.getNurApi();
         mExt = getAppTemplate().getAccessoryApi();
@@ -371,16 +344,20 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
         mNURAPPController = Main.getInstance().getNURUpdateController();
         mDFUController = Main.getInstance().getDFUUpdateController();
         mCurrentController = mNURAPPController;
-        mDeviceScanner = new NurDeviceScanner(Main.getInstance(),NurDeviceScanner.REQ_BLE_DEVICES, mApi);
+
         /** Listeners **/
         mNURControllerListener = mNURAPPController.getNurApiListener();
         mDFUController.setBthFwControllerListener(mDFUUpdateListener);
-        mDeviceScanner.registerScanListener(mNurDeviceScannerListener);
+
     }
 
     private void handleDFUSupported(){
         if(Main.getInstance().getAccessorySupported()){
-            mDFUBLDRRadio.setEnabled(true);
+            //Check bootloader versio
+            if(mDFUController.isBldrUpdateAvailable())
+                mDFUBLDRRadio.setEnabled(true);
+            else mDFUBLDRRadio.setEnabled(false);
+
             mDFURadio.setEnabled(true);
         }
     }
@@ -434,6 +411,34 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
         mUpdateProgress.setText(progress + "%");
     }
 
+    private void dfuScanFinished()
+    {
+        Log.i("DEVICESCAN", "dfuScanFinished; mUpdateRunning " + mUpdateRunning + "; mDfuExaFound " + mDfuExaFound.size());
+
+        if (!mUpdateRunning && mDfuExaFound.size() > 0)
+        {
+            if (!mDFUTargetAddFound && mDfuExaFound.size() > 1) {
+                // TODO: Pop up selection list for mDfuExaFound
+            }
+            Log.e("DEVICESCAN", "Starting DFU controller");
+            mUpdateRunning = true;
+            keepScreenOn(true);
+            disableAll();
+
+            final String dfuTargAddr = mDfuExaFound.get(0).getAddress();
+            setStatus(R.color.StatusOrange,R.string.update_starting);
+
+            mDFUController.setTargetAddress(dfuTargAddr);
+            mDFUController.startUpdate();
+        }
+        else if (mDfuExaFound.size() == 0)
+        {
+            mUpdateProgress.setText("DFU Device not found");
+            Log.e("NIDDFUUpdate","DFU Device not found");
+            handleUpdateFinished();
+        }
+    }
+
     private boolean handleDFUUpdateStart(){
         try {
             /* skip this if retrying device already in DFU mode */
@@ -443,11 +448,25 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
                 Main.getInstance().disposeTrasport();
                 Thread.sleep(500);
             }
+            mDFUTargetAddFound = false;
+            mDfuExaFound.clear();
             mDFUTargetAdd = mDFUController.getDfuTargetAddress(mApplicationModeAddress);
             mDFUController.setTargetAddress(mDFUTargetAdd);
             setStatus(R.color.StatusOrange,R.string.looking_for_device);
-            mDeviceScanner.scanDevices(10000L, false);
+
+            BleScanner.getInstance().registerScanListener(this);
+
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run()
+                {
+                    dfuScanFinished();
+                }
+            }, 10000);
+
             return true;
+
         }  catch (Exception e) {
             e.printStackTrace();
             Log.e("UPDATE APP",e.getMessage());
@@ -527,6 +546,7 @@ public class SettingsAppUpdatesTab extends android.support.v4.app.Fragment imple
                 Intent intent;
                 Intent filePicker;
                 intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                //intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 if(mNURFWUpdate)
                     intent.setType("application/octet-stream");

@@ -11,6 +11,8 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
+import android.util.Log;
+
 /** 
  * Socket transport for NUR Java API.
  * @author Nordic ID.
@@ -18,6 +20,8 @@ import java.net.UnknownHostException;
  */
 public class NurApiSocketTransport implements NurApiTransport
 {
+	static final String TAG = "NurApiSocketTransport";
+
 	private boolean isClient;
 	private Socket mSocket = null;
 	private InputStream mInput = null;
@@ -25,7 +29,7 @@ public class NurApiSocketTransport implements NurApiTransport
 	private String mHost = "";
 	private int mPort = 0;
 	private boolean mConnected = false;
-	
+
 	/**
 	 * Server uses this internally.
 	 * @param client Client socket that are accepted by the server.
@@ -56,14 +60,19 @@ public class NurApiSocketTransport implements NurApiTransport
 		if(isClient) //client connection
 		{
 			try {
-				mSocket = new Socket(mHost, mPort);
-				//mSocket.setSoTimeout(1000);				
+				String host = mHost;
+				int port = mPort;
+				if (mHost.toLowerCase().equals("integrated_reader")) {
+					host = "localhost";
+					port = 6734;
+				}
+				mSocket = new Socket(host, port);
+				//mSocket.setSoTimeout(1000);
 				//mSocket.setKeepAlive(true);// NEW
 				//mSocket.setTcpNoDelay(false);// NEW (Nagle)
-				mOutput = mSocket.getOutputStream();			
+				mOutput = mSocket.getOutputStream();
 				mInput = mSocket.getInputStream();
-				//Thread.sleep(500);
-			} 
+			}
 			catch (UnknownHostException e) 
 			{				 
 				e.printStackTrace();
@@ -90,6 +99,8 @@ public class NurApiSocketTransport implements NurApiTransport
 	@Override
 	public void disconnect()
 	{
+		Log.d(TAG, "disconnect() mConnected " + mConnected);
+
 		if(!mConnected)
 			return;
 		
@@ -110,17 +121,17 @@ public class NurApiSocketTransport implements NurApiTransport
             }
         }
     	catch(Exception e) {}
-        
-        try{            
-            if(mSocket != null) 
-            {
-            	mSocket.close();
-            	//mSocket = null;
-            }
-        }
-    	catch(Exception e) {}        
-        
-        mConnected = false;
+
+		try{
+			if(mSocket != null)
+			{
+				mSocket.close();
+				//mSocket = null;
+			}
+		}
+		catch(Exception e) {}
+
+		mConnected = false;
 	}
 
 	@Override

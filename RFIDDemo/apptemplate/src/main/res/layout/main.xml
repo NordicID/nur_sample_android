@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:keepScreenOn="true">
 
     <LinearLayout
         android:id="@+id/root"
@@ -21,6 +22,8 @@
         <LinearLayout
             android:id="@+id/app_button_bar"
             style="@style/ButtonBar"
+            android:divider="@drawable/vertical_divider"
+            android:showDividers="middle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -30,7 +33,7 @@
             android:id="@+id/bottom_bar"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/holo_orange_dark"
+            android:background="@drawable/orange_border_top_blackfill"
             android:orientation="horizontal"
             android:gravity="bottom"
             android:weightSum="6">
@@ -41,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:focusable="false"
-                android:textColor="#FFFFFF"
+                android:textColor="#FFF"
                 android:layout_weight="5"
                 android:gravity="start"/>
 
@@ -50,17 +53,17 @@
                 android:id="@+id/battery_level"
                 android:layout_height="wrap_content"
                 android:focusable="false"
-                android:textColor="#FFFFFF"
+                android:textColor="#FFF"
                 android:layout_width="20dp"
                 android:maxLines="1"
                 android:ems="10"
-                android:layout_gravity="right"
+                android:layout_gravity="end"
                 android:layout_weight="1"
                 android:gravity="end"/>
 
             <ImageView
-                android:gravity="left"
-                android:layout_gravity="left"
+                android:gravity="start"
+                android:layout_gravity="start"
                 android:id="@+id/battery_icon"
                 android:layout_width="15dp"
                 android:layout_height="match_parent"
@@ -75,7 +78,7 @@
         android:layout_width="@dimen/drawer_width"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="#111"
+        android:background="#FFF"
         android:choiceMode="singleChoice"
         android:divider="@android:color/transparent"
         android:dividerHeight="0dp"/>
