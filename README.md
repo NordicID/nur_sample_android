@@ -45,3 +45,5 @@ There are various transport types available. The ones of interest in Android are
 
 In the NurApiAndroid there is an interface that represents an automatic connection (NurApiAutoConnectTransport). An example of an automatic connection implemntation is e.g "NurApiBLEAutoConnect". The automatic connection is started by giving an address to the connection class. This method's name is "setAddress" and the address parameter is a string which' contents depend on the type of connection used. In the "RFIDDemo" there is an example how the NurApiAndroid's built-in device search is used and how the address received from the activity is given to the transport layer.
 
+### License
+All source files in this repository is provided under terms specified in [LICENSE](LICENSE) file.
