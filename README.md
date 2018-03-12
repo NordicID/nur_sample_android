@@ -9,6 +9,9 @@ This repository contains Android application project where demonstrating basic f
 You can download installation packet (APK) of this sample application into your phone from NurSampleAndroid/app/release/.
 These simple samples will help you to develop your own Android app to communicate with Nordic ID devices and build sophisticate data collection applications.
 
+#### Looking for Nordic ID RFID Demo source code?
+Nordic ID RFID Demo for android is found in [nur_tools_rfiddemo_android](https://github.com/NordicID/nur_tools_rfiddemo_android) repository.
+
 ## Creating the project from scratch
 Step by step instruction to build "Hello world" type of Android studio project with libraries needed.
 * **NurApi.jar** Java library for RFID and transport operations.
@@ -66,3 +69,7 @@ A NUR reader based application has these layers: application - NUR API - transpo
 There are various transport types available. The ones of interest in Android are BLE (Bluetooth Low Energy), USB (with e.g STIX reader) and TCP/IP (with Sampo and ARxx readers).
 
 In the NurApiAndroid there is an interface that represents an automatic connection (NurApiAutoConnectTransport). An example of an automatic connection implemntation is e.g "NurApiBLEAutoConnect". The automatic connection is started by giving an address to the connection class. This method's name is "setAddress" and the address parameter is a string which' contents depend on the type of connection used. In the "RFIDDemo" there is an example how the NurApiAndroid's built-in device search is used and how the address received from the activity is given to the transport layer.
+
+#### Looking for Nordic ID RFID Demo source code?
+Nordic ID RFID Demo for android is found in [nur_tools_rfiddemo_android](https://github.com/NordicID/nur_tools_rfiddemo_android) repository.
+
