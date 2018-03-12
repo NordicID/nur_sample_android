@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">NurSampleAndroid</string>
+    <string name="iLOG">NURLOG</string>
+
+    <string name="no_reader_attached">No reader connected</string>
+    <string name="attached_reader_info">Attached reader info:</string>
+    <string name="about_dialog_app">App version:</string>
+    <string name="about_dialog_model">Model:</string>
+    <string name="about_dialog_serial">NUR serial number:</string>
+    <string name="about_dialog_device_serial">Device serial number:</string>
+    <string name="about_dialog_firmware">Firmware:</string>
+    <string name="about_dialog_bootloader">Bootloader:</string>
+    <string name="about_dialog_nurapi">NUR API:</string>
+    <string name="about_dialog_accessory">Accessory:</string>
+
+</resources>

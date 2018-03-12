@@ -1,34 +1,56 @@
-# NUR Android examples
+# Nur Android Samples
+This repository contains Android application project where demonstrating basic features of Nordic ID EXA readers.
 
-## About project opening
-When downloading the Android samples note that the project(s) need to be opened separately from the Android Studio; Android Studio's direct Git open won't work.
-Note that the used Android Studio's version in this package is 2.2.2.
+- Device connection
+- Device properties
+- Barcode read
+- RFID Inventory 
 
-## Re-building NurApiAndroid: 
+You can download installation packet (APK) of this sample application into your phone from NurSampleAndroid/app/release/.
+These simple samples will help you to develop your own Android app to communicate with Nordic ID devices and build sophisticate data collection applications.
 
-1. Select Build -> Rebuild Project
-2. Select Build -> Generate APK (generates actually NurApiAndroid.aar)
-2. Run CopyNurApiAndroid.bat to copy the produced AAR to each project in this repo
+## Creating the project from scratch
+Step by step instruction to build "Hello world" type of Android studio project with libraries needed.
+* **NurApi.jar** Java library for RFID and transport operations.
+* **NurApiAndroid.aar** for Android and device specific operations like Barcode reading, BLE connectivity, battery status, I/O events etc.
+* **TDTLib.jar** library for dealing with GS1 coded tags
+### Create new project
+1. Open Android Studio and create a new project with "Empty activity". SDK version must be 21 or higher.
+2. Add **NurApi.jar**, **NurApiAndroid.aar** and **TDTLib.jar** to your project as modules. (New.. Module --> Import .JAR/.AAR Package --> Browse to NurSampleAndroid/NurApi ..NurApiAndroid ..TDTLib)
+3. Select the project view
+4. Right-click the project and select "Open Module Settings"
+5. From left pane, select your app from "Modules"
+6. Select "Dependencies" tab
+7. Add dependencies by clicking + 
+8. Choose "3. Module dependency" and select all the modules from list.
+### Modify activity
+1. Open text view of activity_main.xml
+2. Add row: "android:id="@+id/id_hello_nur" after <TextView row
+3. Modify MainActivity.java  as below and RUN
+4. You should see NurApi version number middle of the screen.
+````
+import android.widget.TextView;
+import com.nordicid.nurapi.*;	   
 
-## Creating a project
+public class MainActivity extends AppCompatActivity { 
 
-Create a project that fits your needs. To add the NurApiAndroid to the project in Android Studio:
+	private TextView helloNurText;       
+	   
+       	@Override
+       	protected void onCreate(Bundle savedInstanceState) {  
+       		super.onCreate(savedInstanceState);
+        	setContentView(R.layout.activity_main); 
+	
+        	NurApi mApi = new NurApi();  
+  
+        	helloNurText = (TextView)findViewById(R.id.id\_hello\_nur);  
+        	helloNurText.setText("Hello NurApi\\nVersion:" \+ mApi.getFileVersion());  
+	} 
+} 
+````
 
-1. Select the project view
-2. Right-click the project and select New -> Module
-3. In the new module dialog, select the "Import .JAR/.AAR Package"
-4. Navigate to the "nurapiandroid-release.aar"
-5. Set the sub-project name to e.g. "nurapiandroid"
-6. Right-click the created module and select "Open Module Settings"
-7. Add the module dependency to "app"
-8. Change the project view to "Android" and open the app-module's Gradle script
-9. Change the minimum SDK version (minSdkVersion) to 21 if it isn't already
-10. Target SDK version (targetSdkVersion) is good to be 21 - higher, e.g. 24 will cause trouble when using Bluetooth. This must be worked around in the application code thus the version 21 recommendation.
-11. Where you want to use the Android API, use
 
-import com.nordicid.nurapi.*;
-
-## Using the API in your application 
+# Using the API in your application 
 
 The API has actually two parts - The NurApi that is same for all Java applications and on top of that is the NurApiAndroid that has some extensions such as battery information and barcode scanning.
 
@@ -44,6 +66,3 @@ A NUR reader based application has these layers: application - NUR API - transpo
 There are various transport types available. The ones of interest in Android are BLE (Bluetooth Low Energy), USB (with e.g STIX reader) and TCP/IP (with Sampo and ARxx readers).
 
 In the NurApiAndroid there is an interface that represents an automatic connection (NurApiAutoConnectTransport). An example of an automatic connection implemntation is e.g "NurApiBLEAutoConnect". The automatic connection is started by giving an address to the connection class. This method's name is "setAddress" and the address parameter is a string which' contents depend on the type of connection used. In the "RFIDDemo" there is an example how the NurApiAndroid's built-in device search is used and how the address received from the activity is given to the transport layer.
-
-### License
-All source files in this repository is provided under terms specified in [LICENSE](LICENSE) file.

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_centerHorizontal="false"
+    android:layout_gravity="top"
+    android:background="@android:color/black"
+    android:orientation="vertical"
+    tools:layout_height="match_parent">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:layout_editor_absoluteX="4dp"
+        tools:layout_editor_absoluteY="4dp">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="125dp"
+            android:background="@android:color/black">
+
+            <Button
+                android:id="@+id/button_connect"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:onClick="onConnectClick"
+                android:text="Connect"
+                tools:layout_editor_absoluteX="5dp"
+                tools:layout_editor_absoluteY="3dp" />
+
+            <ImageButton
+                android:id="@+id/imageButtonPower"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:onClick="onPowerOffClick"
+                app:srcCompat="@android:drawable/ic_lock_power_off" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="125dp"
+            android:background="@android:color/black">
+
+            <Button
+                android:id="@+id/button_readerinfo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:onClick="onButtonReaderInfo"
+                android:text="About..."
+                tools:layout_editor_absoluteX="5dp"
+                tools:layout_editor_absoluteY="3dp" />
+
+            <Button
+                android:id="@+id/button_setup"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:onClick="onButtonSetup"
+                android:text="---"
+                tools:layout_editor_absoluteX="5dp"
+                tools:layout_editor_absoluteY="3dp" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="125dp"
+            android:background="@android:color/black">
+
+            <Button
+                android:id="@+id/button_barcode"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:onClick="onButtonBarcode"
+                android:text="Barcode"
+                tools:layout_editor_absoluteX="5dp"
+                tools:layout_editor_absoluteY="3dp" />
+
+            <Button
+                android:id="@+id/button_inventory"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:onClick="onButtonInventory"
+                android:text="RFID Inventory"
+                tools:layout_editor_absoluteX="5dp"
+                tools:layout_editor_absoluteY="3dp" />
+
+        </TableRow>
+
+    </TableLayout>
+
+    <LinearLayout
+        android:id="@+id/bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/background_dark"
+        android:gravity="bottom"
+        android:orientation="vertical">
+
+
+        <TextView
+            android:id="@+id/text_conn_status"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_weight="20"
+            android:background="@android:color/black"
+            android:ems="10"
+            android:focusable="false"
+            android:fontFamily="@font/lato_black"
+            android:gravity="bottom|start"
+            android:textColor="#FFF"
+            android:textSize="18dp" />
+
+    </LinearLayout>
+</LinearLayout>
