@@ -12,6 +12,9 @@ These simple samples will help you to develop your own Android app to communicat
 #### Looking for Nordic ID RFID Demo source code?
 Nordic ID RFID Demo for android is found in [nur_tools_rfiddemo_android](https://github.com/NordicID/nur_tools_rfiddemo_android) repository.
 
+#### Looking for Android NurApi source code?
+NurApi Android source code is found in [nur_nurapi_android](https://github.com/NordicID/nur_nurapi_android) repository.
+
 ## Creating the project from scratch
 Step by step instruction to build "Hello world" type of Android studio project with libraries needed.
 * **NurApi.jar** Java library for RFID and transport operations.
@@ -73,3 +76,5 @@ In the NurApiAndroid there is an interface that represents an automatic connecti
 #### Looking for Nordic ID RFID Demo source code?
 Nordic ID RFID Demo for android is found in [nur_tools_rfiddemo_android](https://github.com/NordicID/nur_tools_rfiddemo_android) repository.
 
+#### Looking for Android NurApi source code?
+NurApi Android source code is found in [nur_nurapi_android](https://github.com/NordicID/nur_nurapi_android) repository.
