@@ -16,5 +16,5 @@ Go trough these steps to learn how to create Android studio project with reader 
 
 ## Resources
 * Nordic ID RFID Demo for android repository [nur_tools_rfiddemo_android](https://github.com/NordicID/nur_tools_rfiddemo_android)
-* NurApi Android source [nur_nurapi_android](https://github.com/NordicID/nur_nurapi_android) with latest [javadoc](https://github.com/NordicID/nur_nurapi_android/javadoc)
+* NurApi Android source [nur_nurapi_android](https://github.com/NordicID/nur_nurapi_android) with latest [javadoc](https://github.com/NordicID/nur_nurapi_android/tree/master/javadoc)
 * Development kit [nur_sdk](https://github.com/NordicID/nur_sdk) with latest [java doc and libraries]( https://github.com/NordicID/nur_sdk/tree/master/java)
