@@ -20,7 +20,7 @@
                 android:id="@+id/header"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:text="Inventory"
+                android:text="@string/inventory_hdr"
                 android:textAlignment="center"
                 android:textColor="@android:color/holo_green_light"
                 android:textSize="30sp" />
@@ -34,7 +34,7 @@
                 android:id="@+id/textViewInvStrHdr"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="InventoryStream (Trigger button)"
+                android:text="@string/inventory_stream_trigger"
                 android:textColor="@android:color/black"
                 android:textSize="18sp" />
 
@@ -48,7 +48,7 @@
                 android:id="@+id/textViewInvStr1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="1. Press and keep trigger button down. (Inventory started)" />
+                android:text="@string/inventory_line_1" />
         </TableRow>
 
         <TableRow
@@ -59,7 +59,7 @@
                 android:id="@+id/textViewInvStr2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="2. Release trigger to stop" />
+                android:text="@string/inventory_line_2" />
         </TableRow>
 
         <TableRow
@@ -71,8 +71,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ToggleButton"
-                android:textOff="Start inventory stream"
-                android:textOn="Stop" />
+                android:textOff="@string/inventory_stream_start"
+                android:textOn="@string/inventory_stream_stop" />
 
         </TableRow>
 
@@ -84,7 +84,7 @@
                 android:id="@+id/textViewSingleHdr"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Single tag (Unpair button)"
+                android:text="@string/inventory_single_hdr"
                 android:textColor="@android:color/black"
                 android:textSize="18sp" />
         </TableRow>
@@ -97,7 +97,7 @@
                 android:id="@+id/textViewSingle1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Single tag must found before read accepted." />
+                android:text="@string/inventory_single_mustfound" />
         </TableRow>
 
         <TableRow
@@ -108,7 +108,7 @@
                 android:id="@+id/textViewSingle2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Press Unpair button for starting single tag read." />
+                android:text="@string/inventory_single_press_unpair" />
         </TableRow>
 
         <TableRow
@@ -119,7 +119,7 @@
                 android:id="@+id/textViewSingle3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Point reader antenna near tag (~5cm)" />
+                android:text="@string/inventory_point_reader" />
         </TableRow>
 
         <TableRow
@@ -130,7 +130,7 @@
                 android:id="@+id/textViewSingle4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Reading stop automatically when single tag found or timeout ( 7 sec)" />
+                android:text="@string/inventory_reading_stop" />
         </TableRow>
 
         <TableRow
@@ -141,7 +141,7 @@
                 android:id="@+id/buttonScanSingleTag"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Scan single tag"
+                android:text="@string/inventory_scan_single"
                 tools:onClick="onScanSingleClick" />
         </TableRow>
 
@@ -166,7 +166,7 @@
                 android:id="@+id/text_status"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:text="Waiting button press.."
+                android:text="@string/inventory_wait_buttonpress"
                 android:textAlignment="center"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="24sp" />

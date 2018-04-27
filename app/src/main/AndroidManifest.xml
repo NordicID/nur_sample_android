@@ -14,22 +14,35 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Barcode"></activity>
-        <activity android:name=".Inventory"></activity>
-        <activity android:name="com.nordicid.nurapi.NurDeviceListActivity" android:label="@string/app_name" android:theme="@android:style/Theme.Dialog"/>
-
+        <activity
+            android:name=".Barcode"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".Inventory"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".WriteTag"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".Trace"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name="com.nordicid.nurapi.NurDeviceListActivity"
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme.Dialog" />
 
         <service
             android:name="com.nordicid.nurapi.UartService"
             android:enabled="true"
             android:exported="true" />
+
     </application>
 
 </manifest>

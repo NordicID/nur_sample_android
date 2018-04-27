@@ -13,4 +13,36 @@
     <string name="about_dialog_nurapi">NUR API:</string>
     <string name="about_dialog_accessory">Accessory:</string>
 
+    <string name="inventory_hdr">Inventory</string>
+    <string name="inventory_stream_trigger">InventoryStream (Trigger button)</string>
+    <string name="inventory_line_1">1. Press and keep trigger button down. (Inventory started)</string>
+    <string name="inventory_line_2">2. Release trigger to stop</string>
+    <string name="inventory_stream_start">Start inventory stream</string>
+    <string name="inventory_stream_stop">Stop</string>
+    <string name="inventory_single_hdr">Single tag (Unpair button)</string>
+    <string name="inventory_single_mustfound">Single tag must found before read accepted.</string>
+    <string name="inventory_single_press_unpair">Press Unpair button for starting single tag read.</string>
+    <string name="inventory_point_reader">Point reader antenna near tag (~5cm)</string>
+    <string name="inventory_reading_stop">Reading stop automatically when single tag found or timeout ( 7 sec)</string>
+    <string name="inventory_scan_single">Scan single tag</string>
+    <string name="inventory_wait_buttonpress">Waiting button press..</string>
+
+    <string name="trace_tag">Trace tag</string>
+    <string name="trace_texthint">Select EPC to trace from list</string>
+    <string name="trace_refresh">Refresh</string>
+
+    <string name="write_hdr">Write tag</string>
+    <string name="write_hdr_1">Writing new EPC on tag</string>
+    <string name="write_line_1">1. Press \'Refresh list\' button for reading tags near.</string>
+    <string name="write_line_2">2. Select tag from list for writing</string>
+    <string name="write_refresh_but">Refresh list</string>
+
+    <string name="barcode_hdr">Barcode</string>
+    <string name="barcode_hdr_1">Writing new EPC on tag</string>
+    <string name="barcode_line_1">1. Press and keep trigger button down. (Aiming started)</string>
+    <string name="barcode_line_2">2. Aim to barcode</string>
+    <string name="barcode_line_3">3. Release trigger for starting scan.</string>
+    <string name="barcode_status">Waiting trigger..</string>
+
+
 </resources>

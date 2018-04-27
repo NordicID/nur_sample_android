@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/tracetag_txt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="1dp"
+        android:layout_marginTop="20dp"
+        android:background="@android:color/black"
+        android:gravity="center"
+        android:text="@string/trace_tag"
+        android:textAlignment="center"
+        android:textColor="@android:color/holo_green_light"
+        android:textSize="30sp" />
+
+    <RelativeLayout
+        android:id="@+id/location_info_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/holo_orange_dark"
+        android:orientation="vertical"
+        android:padding="5dp">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:background="@drawable/custom_progressbar_bg"
+            android:indeterminate="false"
+            android:indeterminateOnly="false"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/custom_progressbar" />
+
+        <EditText
+            android:id="@+id/pct_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:background="@android:color/transparent"
+            android:clickable="false"
+            android:cursorVisible="false"
+            android:ems="10"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:gravity="center_vertical|center_horizontal"
+            android:inputType="none"
+            android:text="0%"
+            android:textSize="24sp"
+            android:textStyle="bold">
+
+            <requestFocus />
+        </EditText>
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/locate_epc_edittext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="1dp"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:hint="@string/trace_texthint"
+        android:inputType="none"/>
+
+    <Button
+        android:id="@+id/locate_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/trace_refresh" />
+
+    <include
+        layout="@layout/taglist"
+        android:layout_height="fill_parent"
+        android:layout_width="match_parent" />
+
+</LinearLayout>
+

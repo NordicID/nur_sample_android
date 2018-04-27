@@ -4,7 +4,9 @@ This repository contains Android application project where demonstrating basic f
 - Device connection
 - Device properties
 - Barcode read
-- RFID Inventory 
+- RFID Inventory
+- Tag Write
+- Tag Trace 
 
 You can download installation packet (APK) of this sample application into your phone from NurSampleAndroid/app/release/.
 These simple samples will help you to develop your own Android app to communicate with Nordic ID devices and build sophisticate data collection applications.
@@ -18,3 +20,4 @@ Go trough these steps to learn how to create Android studio project with reader 
 * Nordic ID RFID Demo for android repository [nur_tools_rfiddemo_android](https://github.com/NordicID/nur_tools_rfiddemo_android)
 * NurApi Android source [nur_nurapi_android](https://github.com/NordicID/nur_nurapi_android) with latest [javadoc](https://github.com/NordicID/nur_nurapi_android/tree/master/javadoc)
 * Development kit [nur_sdk](https://github.com/NordicID/nur_sdk) with latest [java doc and libraries]( https://github.com/NordicID/nur_sdk/tree/master/java)
+* [Tag Data Translation java library](TDTLib)

@@ -4,38 +4,78 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    tools:context="example.nordicid.com.nursampleandroid.Barcode">
-
+    tools:context="example.nordicid.com.nursampleandroid.WriteTag">
 
     <TableLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:stretchColumns ="*">
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+
             android:background="@android:color/black">
 
             <TextView
-                android:id="@+id/header"
-                android:layout_width="wrap_content"
+                android:id="@+id/headerWriteTag"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="@string/barcode_hdr"
+                android:text="@string/write_hdr"
                 android:textAlignment="center"
                 android:textColor="@android:color/holo_green_light"
                 android:textSize="30sp" />
         </TableRow>
 
+
+
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
             <TextView
-                android:id="@+id/textView6"
+                android:id="@+id/textViewHdr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/write_hdr_1"
+                android:textColor="@android:color/black"
+                android:textSize="20sp" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/textViewRefreshText1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/write_line_1"
+                android:textColor="@android:color/black" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/textViewRefreshText2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/write_line_2"
+                android:textColor="@android:color/black" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/textWriteStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=""
-                android:textSize="30sp" />
+                android:textColor="@android:color/holo_red_light"
+                android:textSize="20sp" />
 
         </TableRow>
 
@@ -43,74 +83,24 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/textView"
+            <Button
+                android:id="@+id/buttonRefreshTagList"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/barcode_line_1" />
+                android:text="@string/write_refresh_but"
+                tools:onClick="onRefreshTagsClick" />
+
         </TableRow>
 
-        <TableRow
+
+
+        <include
+            layout="@layout/taglist"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:layout_margin="25dp" />
 
-            <TextView
-                android:id="@+id/textView2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/barcode_line_2" />
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <TextView
-                android:id="@+id/textView3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/barcode_line_3" />
-
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <TextView
-                android:id="@+id/textView5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:textSize="30sp" />
-
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/text_status"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:text="@string/barcode_status"
-                android:textAlignment="center"
-                android:textColor="@color/colorPrimaryDark"
-                android:textSize="24sp" />
-        </TableRow>
     </TableLayout>
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="104dp">
 
-    </FrameLayout>
-
-    <TextView
-        android:id="@+id/text_result"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAlignment="center"
-        android:textSize="24sp" />
 </LinearLayout>

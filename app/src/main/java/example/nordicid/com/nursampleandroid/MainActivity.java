@@ -1,6 +1,5 @@
 package example.nordicid.com.nursampleandroid;
 import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -12,10 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,8 +19,6 @@ import com.nordicid.nurapi.BleScanner;
 
 import com.nordicid.nuraccessory.*;
 import com.nordicid.nurapi.*;
-
-import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -128,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * NurApi event handlers. Each activity has own NurApiListener and event handlers
+     * NurApi event handlers.
      * NOTE: All NurApi events are called from NurApi thread, thus direct UI updates are not allowed.
      * If you need to access UI controls, you can use runOnUiThread(Runnable) or Handler.
      */
@@ -274,6 +268,50 @@ public class MainActivity extends AppCompatActivity {
             if (mNurApi.isConnected()) {
                     Intent inventoryIntent = new Intent(MainActivity.this, Inventory.class);
                     startActivityForResult(inventoryIntent, 0);
+            }
+            else
+            {
+                Toast.makeText(MainActivity.this, "Reader not connected!", Toast.LENGTH_LONG).show();
+            }
+        }
+        catch(Exception ex)
+        {
+            Toast.makeText(MainActivity.this, ex.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * Handle tag write click. Start Write Tag activity. See Write.java
+     * @param v View parameter as passed from the system when the button is clicked.
+     */
+    public void onButtonWrite(View v)
+    {
+        try {
+            if (mNurApi.isConnected()) {
+                Intent writeTagIntent = new Intent(MainActivity.this, WriteTag.class);
+                startActivityForResult(writeTagIntent, 0);
+            }
+            else
+            {
+                Toast.makeText(MainActivity.this, "Reader not connected!", Toast.LENGTH_LONG).show();
+            }
+        }
+        catch(Exception ex)
+        {
+            Toast.makeText(MainActivity.this, ex.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * Handle tag trace click. Start Write Tag activity. See Trace.java
+     * @param v View parameter as passed from the system when the button is clicked.
+     */
+    public void onButtonTrace(View v)
+    {
+        try {
+            if (mNurApi.isConnected()) {
+                Intent traceIntent = new Intent(MainActivity.this, Trace.class);
+                startActivityForResult(traceIntent, 0);
             }
             else
             {

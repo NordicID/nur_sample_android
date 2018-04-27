@@ -192,6 +192,7 @@ public class Inventory extends Activity {
      */
     private void ScanSingleTagThread()
     {
+        Log.i(TAG, "ScanSingleTagThread");
         if(mSingleTagDoTask  || mTriggerDown) return; //Already running tasks so let's not disturb that operation.
 
         Thread sstThread = new Thread(new Runnable() {
@@ -375,6 +376,8 @@ public class Inventory extends Activity {
     private void HandleIOEvent(NurEventIOChange event)
     {
         try {
+            Log.i(TAG, "IO src=" + Integer.toString(event.source) + " dir=" + Integer.toString(event.direction));
+
             if (event.source == 100) {
                 //Trigger down.
                 if(mSingleTagDoTask) return; //Only if Single scan not running
@@ -421,7 +424,7 @@ public class Inventory extends Activity {
     }
 
     /**
-     * NurApi event handlers. Each activity has own NurApiListener and event handlers
+     * NurApi event handlers.
      * NOTE: All NurApi events are called from NurApi thread, thus direct UI updates are not allowed.
      * If you need to access UI controls, you can use runOnUiThread(Runnable) or Handler.
      */

@@ -230,7 +230,7 @@ public class Barcode extends Activity {
     }
 
     /**
-     * NurApi event handlers. Each activity has own NurApiListener and event handlers
+     * NurApi event handlers.
      * NOTE: All NurApi events are called from NurApi thread, thus direct UI updates are not allowed.
      * If you need to access UI controls, you can use runOnUiThread(Runnable) or Handler.
      */
