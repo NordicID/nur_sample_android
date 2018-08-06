@@ -32,8 +32,8 @@ public class MainActivity extends AppCompatActivity {
 	
         	NurApi mApi = new NurApi();  
   
-        	helloNurText = (TextView)findViewById(R.id.id_hello_nur);  
-        	helloNurText.setText("Hello NurApi\\nVersion:" + mApi.getFileVersion());  
+        	helloNurText = (TextView)findViewById(R.id.id\_hello\_nur);  
+        	helloNurText.setText("Hello NurApi\\nVersion:" \+ mApi.getFileVersion());  
 	} 
 } 
 ````

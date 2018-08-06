@@ -231,6 +231,7 @@ public class Inventory extends Activity {
                         mNurApi.clearIdBuffer(); //Clear buffer from existing tags
                         //Do the inventory with small rounds and Q values. We looking for single tag..
                         NurRespInventory resp = mNurApi.inventory(2, 4, 0); //Rounds=2, Q=4, Session=0
+
                         mSingleTagRoundCount++;
                         if (resp.numTagsFound > 1) {
                             mUiResultMsg = String.valueOf("Too many tags seen");
@@ -256,7 +257,39 @@ public class Inventory extends Activity {
                                 } catch (Exception ex) {
                                     //Not GS1 coded, show EPC only
                                     mUiResultMsg = "Single Tag found!";
-                                    mUiEpcMsg = tag.getEpcString();
+                                    mUiEpcMsg = "EPC:" + tag.getEpcString();
+                                }
+
+                                /*
+                                Reading TID BANK
+                                EPC is known at this point, let's use that for reading first 32-bit TID bank using readTagByEpc()
+                                Change the 'rdAddress' and'readByteCount' params for your purposes. Make sure values are in word boundaries (2,4,6,8...)
+                                */
+                                try {
+                                    byte[] tidBank1 = mNurApi.readTagByEpc(tag.getEpc(), tag.getEpc().length, NurApi.BANK_TID, 0, 4);
+                                    mUiEpcMsg += "\nTID:" + NurApi.byteArrayToHexString(tidBank1);
+                                }
+                                catch (NurApiException e)
+                                {
+                                    mUiEpcMsg += "\nTID:" + e.getMessage();
+                                }
+
+                                /*
+                                Reading USER BANK
+                                Tag may have USER memory or not.
+                                This sample (trying) read first 32-bit
+                                Change the 'rdAddress' and'readByteCount' params for your purposes. Make sure values are in word boundaries (2,4,6,8...)
+                                 */
+                                try
+                                {
+                                    byte [] usrBank1 = mNurApi.readTagByEpc(tag.getEpc(),tag.getEpc().length,NurApi.BANK_USER,0, 4);
+                                    mUiEpcMsg += "\nUSER:"+ NurApi.byteArrayToHexString(usrBank1);
+                                }
+                                catch (NurApiException e)
+                                {
+                                    if(e.error == 4110)
+                                        mUiEpcMsg += "\n(No USER memory)";
+                                    else mUiEpcMsg += "\nUSER:" + e.getMessage(); //Another error. Show it.
                                 }
 
                                 //Set nice 'success' color to result text
