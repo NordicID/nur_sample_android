@@ -489,7 +489,7 @@ public class MainActivity extends AppCompatActivity {
                 NurRespReaderInfo readerInfo = mNurApi.getReaderInfo();
 
                 final TextView nurApiVersion = (TextView) dialogLayout.findViewById(R.id.nur_api_version);
-                nurApiVersion.setText(getString(R.string.about_dialog_nurapi) + " " + mNurApi.getFileVersion());
+                nurApiVersion.setText(getString(R.string.about_dialog_nurapi) + " " + mNurApi.getFileVersion() + " AndroidApi: " + NurApiAndroid.getVersion());
                 nurApiVersion.setVisibility(View.VISIBLE);
 
                 final TextView modelTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_model);

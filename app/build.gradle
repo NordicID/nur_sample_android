@@ -6,8 +6,8 @@ android {
         applicationId "example.nordicid.com.nursampleandroid"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 4
-        versionName "1.4"
+        versionCode 5
+        versionName "1.5"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -21,6 +21,15 @@ android {
 
         checkReleaseBuilds false
 
+    }
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.all {
+            if ("${variant.name}" == "debug")
+                outputFileName = "NurSampleAndroid_${variant.name}_v${variant.versionName}.apk"
+            else
+                outputFileName = "NurSampleAndroid_v${variant.versionName}.apk"
+        }
     }
 }
 
