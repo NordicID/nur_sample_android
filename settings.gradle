@@ -1,1 +1,1 @@
-include ':app', ':NurApiAndroid', ':NurApi', ':TDTLib'
+include ':app', ':NurApiAndroid', ':NurApi', ':TDTLib', ':NurSmartPair'

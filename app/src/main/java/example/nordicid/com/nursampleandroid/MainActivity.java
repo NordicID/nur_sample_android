@@ -107,6 +107,27 @@ public class MainActivity extends AppCompatActivity {
         showOnUI();
     }
 
+    static boolean mShowingSmartPair = false;
+    static boolean mAppPaused = false;
+
+    boolean showSmartPairUI()
+    {
+        if (mNurApi.isConnected() || mAppPaused)
+            return false;
+
+        try {
+            Log.d(TAG, "showSmartPairUI()");
+            Intent startIntent = new Intent(this, Class.forName ("com.nordicid.smartpair.SmartPairConnActivity"));
+            startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(startIntent);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     /**
      * Update content of some global variables to UI items
      */
@@ -150,10 +171,24 @@ public class MainActivity extends AppCompatActivity {
         public void disconnectedEvent() {
             mIsConnected = false;
             Log.i(TAG, "Disconnected!");
-            mUiConnStatusText = "Disconnected";
-            mUiConnStatusTextColor = Color.RED;
-            mUiConnButtonText = "CONNECT";
-            showOnUI();
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MainActivity.this, "Reader disconnected", Toast.LENGTH_SHORT).show();
+                    showConnecting();
+
+                    // Show smart pair ui
+                    if (!mShowingSmartPair && hAcTr != null) {
+                        String clsName = hAcTr.getClass().getSimpleName();
+                        if (clsName.equals("NurApiSmartPairAutoConnect")) {
+                            mShowingSmartPair = showSmartPairUI();
+                        }
+                    } else {
+                        mShowingSmartPair = false;
+                    }
+                }
+            });
         }
         @Override
         public void deviceSearchEvent(NurEventDeviceInfo event) { }
@@ -362,11 +397,27 @@ public class MainActivity extends AppCompatActivity {
      */
     public void onConnectClick(View v)
     {
-        if(mNurApi.isConnected()) hAcTr.dispose();
+        if(mNurApi.isConnected()) {
+            hAcTr.dispose();
+            hAcTr = null;
+        }
         else {
             Toast.makeText(MainActivity.this, "Start searching. Make sure device power ON!", Toast.LENGTH_LONG).show();
             NurDeviceListActivity.startDeviceRequest(MainActivity.this, mNurApi);
         }
+    }
+
+    void showConnecting()
+    {
+        if (hAcTr != null) {
+            mUiConnStatusText = "Connecting to " + hAcTr.getAddress();
+            mUiConnStatusTextColor = Color.YELLOW;
+        } else {
+            mUiConnStatusText = "Disconnected";
+            mUiConnStatusTextColor = Color.RED;
+            mUiConnButtonText = "CONNECT";
+        }
+        showOnUI();
     }
 
     /**
@@ -398,9 +449,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, "Dev selected: code = " + strAddress);
                     hAcTr.setAddress(strAddress);
 
-                    mUiConnStatusText = "Connecting to " + strAddress;
-                    mUiConnStatusTextColor = Color.YELLOW;
-                    showOnUI();
+                    showConnecting();
 
                     //If you want connect to same device automatically later on, you can save 'strAddress" and use that for connecting at app startup for example.
                     //saveSettings(spec);
@@ -416,6 +465,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
+        mAppPaused = true;
         Log.i(TAG, "onPause()");
         super.onPause();
         //if (hAcTr != null)
@@ -424,18 +474,29 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        mAppPaused = false;
         Log.i(TAG, "onResume()" );
         super.onResume();
 
         mNurApi.setListener(mNurApiListener);
         if(!mNurApi.isConnected() && mIsConnected)
             mNurApiListener.disconnectedEvent();
+
+        if (!mShowingSmartPair && hAcTr != null) {
+            String clsName = hAcTr.getClass().getSimpleName();
+            if (clsName.equals("NurApiSmartPairAutoConnect")) {
+                mShowingSmartPair = showSmartPairUI();
+            }
+        } else {
+            mShowingSmartPair = false;
+        }
     }
 
     @Override
     protected void onStop() {
         Log.i(TAG, "onStop()" );
         super.onStop();
+        mShowingSmartPair = false;
         //if (hAcTr != null)
         //    hAcTr.onStop();
     }
@@ -445,8 +506,10 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "onDestroy()");
         super.onDestroy();
         //Kill connection when app killed
-        if (hAcTr != null)
+        if (hAcTr != null) {
             hAcTr.onDestroy();
+            hAcTr = null;
+        }
     }
 
     /**
