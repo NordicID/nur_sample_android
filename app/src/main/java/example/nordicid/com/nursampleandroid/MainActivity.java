@@ -544,16 +544,20 @@ public class MainActivity extends AppCompatActivity {
         final TextView readerAttachedTextView = (TextView) dialogLayout.findViewById(R.id.reader_attached_is);
         readerAttachedTextView.setText(getString(R.string.attached_reader_info));
 
+        final TextView nurApiVersion = (TextView) dialogLayout.findViewById(R.id.nur_api_version);
+        nurApiVersion.setText(getString(R.string.about_dialog_nurapi) + " " + mNurApi.getFileVersion());
+        nurApiVersion.setVisibility(View.VISIBLE);
+
+        final TextView nurApiAndroidVersion = (TextView) dialogLayout.findViewById(R.id.nur_apiandroid_version);
+        nurApiAndroidVersion.setText(getString(R.string.about_dialog_nurapiandroid) + " " + NurApiAndroid.getVersion());
+        nurApiAndroidVersion.setVisibility(View.VISIBLE);
+
         if (mNurApi != null && mNurApi.isConnected()) {
 
             readerAttachedTextView.setText(getString(R.string.attached_reader_info));
 
             try {
                 NurRespReaderInfo readerInfo = mNurApi.getReaderInfo();
-
-                final TextView nurApiVersion = (TextView) dialogLayout.findViewById(R.id.nur_api_version);
-                nurApiVersion.setText(getString(R.string.about_dialog_nurapi) + " " + mNurApi.getFileVersion() + " AndroidApi: " + NurApiAndroid.getVersion());
-                nurApiVersion.setVisibility(View.VISIBLE);
 
                 final TextView modelTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_model);
                 modelTextView.setText(getString(R.string.about_dialog_model) + " " + readerInfo.name);

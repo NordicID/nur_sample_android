@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 27
     defaultConfig {
         applicationId "example.nordicid.com.nursampleandroid"
         minSdkVersion 21
-        targetSdkVersion 26
-        versionCode 5
-        versionName "1.5"
+        targetSdkVersion 27
+        versionCode 6
+        versionName "1.6"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -16,6 +16,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     lintOptions {
 
         checkReleaseBuilds false
@@ -24,24 +25,23 @@ android {
     android.applicationVariants.all { variant ->
         variant.outputs.all {
             if ("${variant.name}" == "debug")
-                outputFileName = "NurSampleAndroid_${variant.name}_v${variant.versionName}.apk"
+                outputFileName = "NurSampleAndroid_v${variant.name}_v${variant.versionName}.apk"
             else
                 outputFileName = "NurSampleAndroid_v${variant.versionName}.apk"
         }
     }
-    buildToolsVersion '27.0.3'
 }
 
 dependencies {
-    implementation project(':NurApi')
-    implementation project(':NurApiAndroid')
-    implementation project(':NurSmartPair')
-    implementation project(':TDTLib')
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:appcompat-v7:27.1.0'
     implementation 'no.nordicsemi.android.support.v18:scanner:1.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    implementation project(':NurApiAndroid')
+    implementation project(':NurSmartPair')
+    implementation files('../nurapi/NurApi.jar')
+    implementation files('../TDTLib/TDTLib.jar')
 }

@@ -10,7 +10,8 @@
     <string name="about_dialog_device_serial">Device serial number:</string>
     <string name="about_dialog_firmware">Firmware:</string>
     <string name="about_dialog_bootloader">Bootloader:</string>
-    <string name="about_dialog_nurapi">NUR API:</string>
+    <string name="about_dialog_nurapi">NurApi java:</string>
+    <string name="about_dialog_nurapiandroid">NurApi Android:</string>
     <string name="about_dialog_accessory">Accessory:</string>
 
     <string name="inventory_hdr">Inventory</string>
