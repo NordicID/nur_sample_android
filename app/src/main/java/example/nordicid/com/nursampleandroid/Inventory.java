@@ -1,25 +1,24 @@
 package example.nordicid.com.nursampleandroid;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.support.annotation.UiThread;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import com.nordicid.nuraccessory.NurAccessoryExtension;
 import com.nordicid.nurapi.*;
 import com.nordicid.tdt.*;
+
+import java.util.Arrays;
+
+import static com.nordicid.nurapi.NurApi.BANK_EPC;
+import static com.nordicid.nurapi.NurApi.BANK_TID;
+import static com.nordicid.nurapi.NurApi.BANK_USER;
+import static com.nordicid.nurapi.NurApi.MAX_EPC_LENGTH;
 
 public class Inventory extends Activity {
 
@@ -27,7 +26,7 @@ public class Inventory extends Activity {
 
     //Handles of these will be fetch from MainActivity
     private NurApi mNurApi;
-    private NurAccessoryExtension mAccessoryApi;
+    private static AccessoryExtension mAccExt;
 
     //UI
     private TextView mResultTextView;
@@ -74,7 +73,8 @@ public class Inventory extends Activity {
 
         //Get NurApi and Accessory handles from MainActivity
         mNurApi = MainActivity.GetNurApi();
-        mAccessoryApi = MainActivity.GetNurAccessory();
+        //mAccessoryApi = MainActivity.GetNurAccessory();
+        mAccExt = MainActivity.GetAccessoryExtensionApi();
 
         //Set event listener for this activity
         mNurApi.setListener(mNurApiEventListener);
@@ -187,6 +187,25 @@ public class Inventory extends Activity {
         mSingleTagDoTask=false;
     }
 
+
+    public void writeEpcByTID(byte[] tidBuffer, int tidBufferLength, int newEpcBufferLength, byte[] newEpcBuffer) throws Exception
+    {
+        byte [] wrBuf = new byte[MAX_EPC_LENGTH + 2];
+        int paddedEpcBufferLen;
+        int pc;
+        paddedEpcBufferLen = ((newEpcBufferLength * 8) + 15)/16*2;
+        Arrays.fill(wrBuf,(byte) 0);
+
+        //Set epc length in words
+        pc = (paddedEpcBufferLen/2) << 11;
+        wrBuf[0] = (byte)(pc>>8);
+        wrBuf[1] = (byte)pc;
+
+        //Add Epc
+        System.arraycopy(newEpcBuffer, 0, wrBuf, 2, newEpcBufferLength );
+        mNurApi.writeTag(BANK_TID, 0, tidBufferLength * 8, tidBuffer, BANK_EPC, 1, paddedEpcBufferLen + 2,wrBuf);
+    }
+
     /**
      * ScanSingleTagThread function making inventory until single tag found from antenna field or time out.
      */
@@ -198,11 +217,13 @@ public class Inventory extends Activity {
         Thread sstThread = new Thread(new Runnable() {
             @Override
             public void run() {
+
                 //Store current TX level of RFID reader
                 try {
                     mSingleTempTxLevel = mNurApi.getSetupTxLevel();
+                    //Log.i(TAG, "Current TxLevel = " + mSingleTempTxLevel);
                     //Set rather low TX power. You need to get close to tag for successful reading
-                    mNurApi.setSetupTxLevel(NurApi.TXLEVEL_8); //This is attenuation level as dBm from max level 27dBm
+                    mNurApi.setSetupTxLevel(NurApi.TXLEVEL_9); //This is attenuation level as dBm from max level 27dBm
                 }
                 catch (Exception ex)
                 {
@@ -211,6 +232,7 @@ public class Inventory extends Activity {
                     showOnUI();
                     return;
                 }
+
 
                 mUiResultMsg = ".";
                 mUiResultColor = Color.BLUE;
@@ -230,6 +252,7 @@ public class Inventory extends Activity {
                     try {
                         mNurApi.clearIdBuffer(); //Clear buffer from existing tags
                         //Do the inventory with small rounds and Q values. We looking for single tag..
+                        //mNurApi.setIRConfig(NurApi.IRTYPE_EPCDATA, BANK_TID, 0, 6);
                         NurRespInventory resp = mNurApi.inventory(2, 4, 0); //Rounds=2, Q=4, Session=0
 
                         mSingleTagRoundCount++;
@@ -244,6 +267,7 @@ public class Inventory extends Activity {
                             if (isSameTag(tag.getEpcString())) mSingleTagFoundCount++;
                             else mSingleTagFoundCount = 1; //It was not. Start all over.
 
+                            mSingleTagFoundCount=3;
                             if (mSingleTagFoundCount == 3) {
                                 //Single tag found multiple times (3) in row so let's accept.
                                 try {
@@ -257,7 +281,7 @@ public class Inventory extends Activity {
                                 } catch (Exception ex) {
                                     //Not GS1 coded, show EPC only
                                     mUiResultMsg = "Single Tag found!";
-                                    mUiEpcMsg = "EPC:" + tag.getEpcString();
+                                    mUiEpcMsg = "EPC=" + tag.getEpcString() + " TID=" + NurApi.byteArrayToHexString(tag.getIrData());
                                 }
 
                                 /*
@@ -265,9 +289,13 @@ public class Inventory extends Activity {
                                 EPC is known at this point, let's use that for reading first 32-bit TID bank using readTagByEpc()
                                 Change the 'rdAddress' and'readByteCount' params for your purposes. Make sure values are in word boundaries (2,4,6,8...)
                                 */
+
                                 try {
-                                    byte[] tidBank1 = mNurApi.readTagByEpc(tag.getEpc(), tag.getEpc().length, NurApi.BANK_TID, 0, 4);
+                                    byte[] tidBank1 = mNurApi.readTagByEpc(tag.getEpc(), tag.getEpc().length, BANK_TID, 0, 4);
                                     mUiEpcMsg += "\nTID:" + NurApi.byteArrayToHexString(tidBank1);
+                                    //SAMPLE WRITING EPC SINGULATED BY TID
+                                    //final byte newEpc[] = new byte[] { (byte)0xaa, (byte)0xbb,(byte)0xcc,(byte)0xdd };
+                                    //writeEpcByTID(tidBank1,tidBank1.length, newEpc.length, newEpc);
                                 }
                                 catch (NurApiException e)
                                 {
@@ -280,10 +308,19 @@ public class Inventory extends Activity {
                                 This sample (trying) read first 32-bit
                                 Change the 'rdAddress' and'readByteCount' params for your purposes. Make sure values are in word boundaries (2,4,6,8...)
                                  */
+                                /*
                                 try
                                 {
                                     byte [] usrBank1 = mNurApi.readTagByEpc(tag.getEpc(),tag.getEpc().length,NurApi.BANK_USER,0, 4);
                                     mUiEpcMsg += "\nUSER:"+ NurApi.byteArrayToHexString(usrBank1);
+
+                                    //SAMPLE WRITING USER SINGULATED BY EPC
+                                    //final byte newUser[] = new byte[] { (byte)0x12, (byte)0x34,(byte)0x56,(byte)0x78, (byte)0x90,(byte)0x78 };
+                                    //byte arr[] = NurApi.hexStringToByteArray("12345697");
+                                    //mNurApi.writeTagByEpc(tag.getEpc(),tag.getEpc().length,BANK_USER,0,arr.length,arr);
+                                    //mNurApi.writeTag(BANK_USER,0,arr.length,arr);
+
+
                                 }
                                 catch (NurApiException e)
                                 {
@@ -291,12 +328,13 @@ public class Inventory extends Activity {
                                         mUiEpcMsg += "\n(No USER memory)";
                                     else mUiEpcMsg += "\nUSER:" + e.getMessage(); //Another error. Show it.
                                 }
+                                */
 
                                 //Set nice 'success' color to result text
                                 mUiResultColor = Color.rgb(0, 128, 0);
                                 //give good beep for user on device if available
                                 if(MainActivity.IsAccessorySupported())
-                                    mAccessoryApi.beepAsync(500);
+                                    mAccExt.beepAsync(500);
                                 //..and on phone
                                 Beeper.beep(Beeper.BEEP_300MS);
                                 //We are done here
@@ -320,7 +358,7 @@ public class Inventory extends Activity {
                             mUiStatusMsg = "Waiting button press...";
                             //give some kind of "timeout beeps" for user
                             if(MainActivity.IsAccessorySupported())
-                                mAccessoryApi.beepAsync(300);
+                                mAccExt.beepAsync(300);
                             else
                                 Beeper.beep(Beeper.BEEP_300MS);
 
@@ -432,6 +470,19 @@ public class Inventory extends Activity {
                     ScanSingleTagThread(); //Do the single scan. No need to keep unpair button down.
                 }
             }
+            else if(event.source == ACC_SENSOR_SOURCE.ToFSensor.getNumVal()) {
+                //ToF sensor of EXA21 has triggered GPIO event
+                // Direction goes 0->1 when sensors reads less than Range Lo filter (unit: mm)
+                // Direction goes 1->0 when sensors reads more than Range Hi filter (unit: mm)
+                if(event.direction == 1) {
+                    //There are something front of EXA21 ToF sensor, let's start inventory
+                    StartInventoryStream();
+                }
+                else {
+                    //Nothing seen at front of ToF sensor. It's time to stop inventory.
+                    StopInventoryStream();
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -488,7 +539,7 @@ public class Inventory extends Activity {
                     if(event.tagsAdded>0) {
                         //At least one new tag found
                         if(MainActivity.IsAccessorySupported())
-                            mAccessoryApi.beepAsync(20); //Beep on device
+                            mAccExt.beepAsync(20); //Beep on device
                         else
                             Beeper.beep(Beeper.BEEP_40MS); //Cannot beep on device so we beep on phone
 
@@ -515,9 +566,9 @@ public class Inventory extends Activity {
             }
             catch (Exception ex)
             {
-                mStatusTextView.setText(ex.getMessage());
-                mUiStatusColor = Color.RED;
-                showOnUI();
+                //mStatusTextView.setText(ex.getMessage());
+               // mUiStatusColor = Color.RED;
+                //showOnUI();
             }
         }
         @Override

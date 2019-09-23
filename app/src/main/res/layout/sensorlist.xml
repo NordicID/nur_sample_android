@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout android:layout_width="match_parent"
+
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:id="@+id/textViewSensorListHdr"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:textAlignment="gravity"
+        android:textColor="#000"
+        android:text="Sensors (Select sensor from list)" />
+
+    <ListView
+        android:id="@+id/sensors_listview"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:choiceMode="singleChoice"
+        android:background="#000000"
+        android:divider="#fff"
+        android:dividerHeight="1dp"
+        android:listSelector="#070"
+       >
+
+    </ListView>
+
+
+
+</LinearLayout>

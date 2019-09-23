@@ -5,9 +5,9 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -20,6 +20,9 @@ import com.nordicid.nurapi.BleScanner;
 import com.nordicid.nuraccessory.*;
 import com.nordicid.nurapi.*;
 
+import nordicid.com.nurupdate.NurDeviceUpdate;
+import nordicid.com.nurupdate.NurUpdateParams;
+
 public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "NUR_SAMPLE"; //Can be used for filtering Log's at Logcat
@@ -27,7 +30,8 @@ public class MainActivity extends AppCompatActivity {
 
     private NurApiAutoConnectTransport hAcTr;
     private static NurApi mNurApi;
-    private static NurAccessoryExtension mAccessoryApi = null;
+    private static AccessoryExtension mAccExt;
+    private static NurAccessoryExtension mNurAndroidApiAccessoryApi = null;
 
     //Need to keep track connection state with NurApi IsConnected
     private boolean mIsConnected;
@@ -36,7 +40,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView mConnectionStatusTextView;
 
     public static NurApi GetNurApi() {return mNurApi;}
-    public static NurAccessoryExtension GetNurAccessory() {return mAccessoryApi;}
+    public static AccessoryExtension GetAccessoryExtensionApi() {return mAccExt;}
+
+    public static NurAccessoryExtension GetNurAccessory() {return mNurAndroidApiAccessoryApi;}
 
     //When connected, this flag is set depending if Accessories like barcode scan, beep etc supported.
     private static boolean mIsAccessorySupported;
@@ -93,7 +99,12 @@ public class MainActivity extends AppCompatActivity {
         mNurApi = new NurApi();
 
         //Accessory extension contains device specific API like barcode read, beep etc..
-        mAccessoryApi = new NurAccessoryExtension(mNurApi);
+        //This included in NurApi.jar
+        mAccExt = new AccessoryExtension(mNurApi);
+
+        //Obsolete: Accessory extension contains device specific API like barcode read, beep etc..
+        //This is included in NurApiAndroid.aar and needed by NurUpdate library
+        mNurAndroidApiAccessoryApi = new NurAccessoryExtension(mNurApi);
 
         // In this activity, we use mNurApiListener for receiving events
         mNurApi.setListener(mNurApiListener);
@@ -109,6 +120,21 @@ public class MainActivity extends AppCompatActivity {
 
     static boolean mShowingSmartPair = false;
     static boolean mAppPaused = false;
+
+    boolean showNurUpdateUI()
+    {
+        try {
+            Log.d(TAG, "showNurUpdateUI()");
+            Intent startIntent = new Intent(this, Class.forName ("nordicid.com.nurupdate.NurDeviceUpdate"));
+            startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(startIntent);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 
     boolean showSmartPairUI()
     {
@@ -199,12 +225,12 @@ public class MainActivity extends AppCompatActivity {
             //Device is connected.
             // Let's find out is device provided with accessory support (Barcode reader, battery info...) like EXA
             try {
-                if(mAccessoryApi.isSupported())
+                if(mAccExt.isSupported())
                 {
                     //Yes. Accessories supported
                     mIsAccessorySupported=true;
                     //Let's take name of device from Accessory api
-                    mUiConnStatusText = "Connected to " + mAccessoryApi.getConfig().name;
+                    mUiConnStatusText = "Connected to " + mAccExt.getConfig().name;
                 }
                 else {
                     //Accessories not supported. Probably fixed reader.
@@ -243,18 +269,68 @@ public class MainActivity extends AppCompatActivity {
         public void tagTrackingChangeEvent(NurEventTagTrackingChange event) { }
     };
 
-
-    /**
-     * Handle setup button click.
-     * @param v View parameter as passed from the system when the button is clicked.
-     */
-    public void onButtonSetup(View v)
-    {
+    public void onButtonSensors(View v) {
         try {
             if (mNurApi.isConnected()) {
-                //Intent setupIntent = new Intent(MainActivity.this, Barcode.class);
-                //startActivityForResult(setupIntent,0);
-                Toast.makeText(MainActivity.this, "Under construction", Toast.LENGTH_LONG).show();
+                if(IsAccessorySupported()) {
+                    Intent sensorIntent = new Intent(MainActivity.this, Sensor.class);
+                    startActivityForResult(sensorIntent, 0);
+                }
+                else
+                    Toast.makeText(MainActivity.this, "Sensors not supported!", Toast.LENGTH_LONG).show();
+            }
+            else
+            {
+                Toast.makeText(MainActivity.this, "Reader not connected!", Toast.LENGTH_LONG).show();
+            }
+        }
+        catch(Exception ex)
+        {
+            Toast.makeText(MainActivity.this, ex.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+    /**
+     * Device firmware update from local zip file or from Nordic ID server
+     * Update packets are uncompressed zip files containing firmware files and UpdateInfo.json file.
+     * UpdateInfo.json described files and versions
+     */
+    private void UpdateFirmware(int selection) {
+
+        try {
+            if (mNurApi.isConnected()) {
+
+                //Set parameters for Update job
+                NurUpdateParams updateParams = new NurUpdateParams();
+                //NurApi instance
+                updateParams.setNurApi(mNurApi);
+                //Possible Nur accessory instance
+                updateParams.setNurAccessoryExtension(GetNurAccessory());
+                //If we are connected to device via Bluetooth, give current ble address.
+                updateParams.setDeviceAddress(hAcTr.getAddress());
+
+                /**
+                 *
+                 * Zip path string may be empty or URL or Uri
+                 * Empty zipPath allow users to browse zip file from local file system
+                 */
+
+                try {
+                    if (selection == 0) {
+                        //Force user to select zip from the filesystem
+                        updateParams.setZipPath("");
+                    } else if (selection == 1) {
+                        //Load from Nordic ID server.
+                        updateParams.setZipPath("https://raw.githubusercontent.com/NordicID/nur_firmware/master/zip/NIDLatestFW.zip");
+                    }
+                    else
+                        return;
+
+                    //Update params has been given. Show update Intent
+                    showNurUpdateUI();
+                }
+                catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "Error loading ZIP " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
             }
             else
             {
@@ -268,6 +344,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     *
+     * @param v
+     */
+    public void onButtonUpdateServer(View v)
+    {
+        UpdateFirmware(1);
+    }
+
+    public void onButtonUpdateLocal(View v)
+    {
+        UpdateFirmware(0);
+    }
+    /**
      * Handle barcode scan click. Start Barcode activity (only if reader support acessories). See Barcode.java
      * @param v View parameter as passed from the system when the button is clicked.
      */
@@ -276,11 +365,18 @@ public class MainActivity extends AppCompatActivity {
         try {
             if (mNurApi.isConnected()) {
                 if(IsAccessorySupported()) {
+                    //Accessories is supported but all devices doesn't have barcode scanner
+                    AccConfig cfg = mAccExt.getConfig();
+                    if(cfg.hasImagerScanner() == false) {
+                        Toast.makeText(MainActivity.this, "Barcode not supported!", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
                     Intent barcodeIntent = new Intent(MainActivity.this, Barcode.class);
                     startActivityForResult(barcodeIntent, 0);
                 }
                 else
-                    Toast.makeText(MainActivity.this, "Barcode not supported!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "No accessories on device!", Toast.LENGTH_LONG).show();
             }
             else
             {
@@ -370,7 +466,7 @@ public class MainActivity extends AppCompatActivity {
             if (mNurApi.isConnected()) {
 
                 if(IsAccessorySupported()) { //Only device with accessory can be power off by command
-                    mAccessoryApi.powerDown(); //Power off device
+                    mAccExt.powerDown(); //Power off device
                     Toast.makeText(MainActivity.this, "Device Power OFF!", Toast.LENGTH_LONG).show();
                 }
                 else Toast.makeText(MainActivity.this, "PowerOff not supported!", Toast.LENGTH_LONG).show();
@@ -552,12 +648,18 @@ public class MainActivity extends AppCompatActivity {
         nurApiAndroidVersion.setText(getString(R.string.about_dialog_nurapiandroid) + " " + NurApiAndroid.getVersion());
         nurApiAndroidVersion.setVisibility(View.VISIBLE);
 
+        final TextView nurUpdateLibVersion = (TextView) dialogLayout.findViewById(R.id.nur_updatelib_version);
+        nurUpdateLibVersion.setText(getString(R.string.about_dialog_updatelib) + " " + NurDeviceUpdate.getVersion());
+        nurUpdateLibVersion.setVisibility(View.VISIBLE);
+
         if (mNurApi != null && mNurApi.isConnected()) {
 
             readerAttachedTextView.setText(getString(R.string.attached_reader_info));
 
             try {
                 NurRespReaderInfo readerInfo = mNurApi.getReaderInfo();
+                NurRespDevCaps devCaps = mNurApi.getDeviceCaps();
+
 
                 final TextView modelTextView = (TextView) dialogLayout.findViewById(R.id.reader_info_model);
                 modelTextView.setText(getString(R.string.about_dialog_model) + " " + readerInfo.name);
@@ -579,10 +681,18 @@ public class MainActivity extends AppCompatActivity {
                 bootloaderTextView.setText(getString(R.string.about_dialog_bootloader) + " " + mNurApi.getVersions().secondaryVersion);
                 bootloaderTextView.setVisibility(View.VISIBLE);
 
+                final TextView secChipTextView = (TextView) dialogLayout.findViewById(R.id.reader_sec_chip_version);
+                secChipTextView.setText(getString(R.string.about_dialog_sec_chip) + " " + devCaps.secChipMajorVersion+"." + devCaps.secChipMinorVersion+"."+ devCaps.secChipMaintenanceVersion+"." + devCaps.secChipReleaseVersion);
+                secChipTextView.setVisibility(View.VISIBLE);
+
                 if (IsAccessorySupported()) {
                     final TextView accessoryTextView = (TextView) dialogLayout.findViewById(R.id.accessory_version);
-                    accessoryTextView.setText(getString(R.string.about_dialog_accessory) + " " + mAccessoryApi.getFwVersion().getFullApplicationVersion());
+                    accessoryTextView.setText(getString(R.string.about_dialog_accessory) + " " + mAccExt.getFwVersion().getFullApplicationVersion());
                     accessoryTextView.setVisibility(View.VISIBLE);
+
+                    final TextView accessoryBldrTextView = (TextView) dialogLayout.findViewById(R.id.accessory_bootloader_version);
+                    accessoryBldrTextView.setText(getString(R.string.about_dialog_accessory_bldr) + " " + mAccExt.getFwVersion().getBootloaderVersion());
+                    accessoryBldrTextView.setVisibility(View.VISIBLE);
                 }
 
             } catch (Exception e) {

@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
     defaultConfig {
         applicationId "example.nordicid.com.nursampleandroid"
         minSdkVersion 21
-        targetSdkVersion 27
-        versionCode 6
-        versionName "1.6"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        targetSdkVersion 28
+        versionCode 30
+        versionName "3.0"
+        //testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -34,14 +34,15 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:27.1.0'
-    implementation 'no.nordicsemi.android.support.v18:scanner:1.0.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'no.nordicsemi.android.support.v18:scanner:1.4.0'
+    implementation 'no.nordicsemi.android:dfu:1.9.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.2'
     implementation project(':NurApiAndroid')
+    implementation project(':NurDeviceUpdate')
     implementation project(':NurSmartPair')
     implementation files('../nurapi/NurApi.jar')
     implementation files('../TDTLib/TDTLib.jar')
+    implementation files('../NiduLib/NiduLib.jar')
+    implementation 'com.google.android.material:material:1.0.0'
 }

@@ -10,8 +10,11 @@
     <string name="about_dialog_device_serial">Device serial number:</string>
     <string name="about_dialog_firmware">Firmware:</string>
     <string name="about_dialog_bootloader">Bootloader:</string>
+    <string name="about_dialog_sec_chip">Secondary chip:</string>
     <string name="about_dialog_nurapi">NurApi java:</string>
     <string name="about_dialog_nurapiandroid">NurApi Android:</string>
+    <string name="about_dialog_updatelib">NurDeviceUpdate:</string>
+    <string name="about_dialog_accessory_bldr">Accessory bootloader</string>
     <string name="about_dialog_accessory">Accessory:</string>
 
     <string name="inventory_hdr">Inventory</string>
@@ -45,5 +48,7 @@
     <string name="barcode_line_3">3. Release trigger for starting scan.</string>
     <string name="barcode_status">Waiting trigger..</string>
 
-
+    <string name="title_activity_sensor">Sensor</string>
+    <string name="sensor_hdr">Sensor</string>
+    <string name="sensor_texthint">Select sensor from list</string>
 </resources>

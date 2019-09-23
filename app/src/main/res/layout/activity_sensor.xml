@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/sensor_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/sensor_txt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="1dp"
+        android:layout_marginTop="20dp"
+        android:background="@android:color/black"
+        android:gravity="center"
+        android:text="@string/sensor_hdr"
+        android:textAlignment="center"
+        android:textColor="@android:color/holo_green_light"
+        android:textSize="30sp" />
+
+    <include
+        layout="@layout/sensorlist"
+        android:layout_width="match_parent"
+        android:layout_height="100dp" />
+
+    <LinearLayout
+        android:id="@+id/layoutModeCheckboxes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+
+    <CheckBox
+        android:id="@+id/checkBoxModeGpio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Mode Gpio" />
+    <CheckBox
+        android:id="@+id/checkBoxModeStream"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Mode Stream" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/buttonApplyMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Apply Mode" />
+
+    <LinearLayout
+        android:id="@+id/layoutFiltersRange"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+
+        <CheckBox
+            android:id="@+id/checkBoxFilterRange"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.3"
+            android:text="Range (mm) filter" />
+
+        <TextView
+            android:id="@+id/textView14"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:gravity="right"
+            android:text="Lo" />
+
+        <EditText
+            android:id="@+id/editTextRangeLo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:maxLength="4"
+            android:inputType="number"
+            android:ems="10"
+            android:text="0" />
+
+        <TextView
+            android:id="@+id/textView15"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:gravity="right"
+            android:text="Hi" />
+
+        <EditText
+            android:id="@+id/editTextRangeHi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:maxLength="4"
+            android:ems="10"
+            android:inputType="number"
+            android:text="0" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutFilterTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+
+        <CheckBox
+            android:id="@+id/checkBoxFilterTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.3"
+            android:text="Time (ms) filter" />
+
+        <TextView
+            android:id="@+id/textViewLoTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:gravity="right"
+            android:text="Lo" />
+
+        <EditText
+            android:id="@+id/editTextTimeLo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:maxLength="4"
+            android:inputType="number"
+            android:ems="10"
+            android:text="0" />
+
+        <TextView
+            android:id="@+id/textViewTimeHi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:gravity="right"
+            android:text="Hi" />
+
+        <EditText
+            android:id="@+id/editTextTimeHi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:maxLength="4"
+            android:ems="10"
+            android:inputType="number"
+            android:text="0" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/buttonApplyFilter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Apply Filter" />
+
+    <LinearLayout
+        android:id="@+id/layoutRangeData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+
+        <TextView
+            android:id="@+id/textViewRangeHdr"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#000"
+            android:textSize="16dp"
+            android:text="Range:" />
+
+        <TextView
+            android:id="@+id/textViewRange"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#070"
+            android:textSize="16dp"
+            android:text="0 mm" />
+        <Button
+            android:id="@+id/buttonReadRange"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Read range" />
+
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBarRange"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/textViewIOEvent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#000"
+        android:text="Logger (tap to clear)" />
+
+    <EditText
+        android:id="@+id/editIOEvent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:inputType="none"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:background="#000000"
+        android:enabled="true"
+        android:textColor="#ffffff"
+        android:textIsSelectable="false"
+        android:textSize="10dp"
+        android:textStyle="normal"
+        android:focusableInTouchMode="false"
+         />
+
+</LinearLayout>
+

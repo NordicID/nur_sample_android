@@ -1,1 +1,1 @@
-include ':app', ':NurApiAndroid', ':NurSmartPair'
+include ':app', ':NurApiAndroid', ':NurSmartPair', ':NurDeviceUpdate', ':NiduLib'
