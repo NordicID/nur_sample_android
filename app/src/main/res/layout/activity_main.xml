@@ -57,12 +57,12 @@
                 tools:layout_editor_absoluteY="3dp" />
 
             <Button
-                android:id="@+id/button_setup"
+                android:id="@+id/button_sensors"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:onClick="onButtonSetup"
-                android:text="---"
+                android:onClick="onButtonSensors"
+                android:text="Sensors"
                 tools:layout_editor_absoluteX="5dp"
                 tools:layout_editor_absoluteY="3dp" />
 
@@ -117,6 +117,35 @@
                 android:layout_weight="1"
                 android:onClick="onButtonWrite"
                 android:text="Write"
+                tools:layout_editor_absoluteX="5dp"
+                tools:layout_editor_absoluteY="3dp" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="125dp"
+            android:background="@android:color/black">
+
+            <Button
+                android:id="@+id/button_update_local"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:background="@android:color/holo_blue_light"
+                android:onClick="onButtonUpdateLocal"
+                android:text="Update from local..."
+                tools:layout_editor_absoluteX="5dp"
+                tools:layout_editor_absoluteY="3dp" />
+
+            <Button
+                android:id="@+id/button_update_server"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:onClick="onButtonUpdateServer"
+                android:text="Update from server"
+                android:background="@android:color/holo_orange_light"
                 tools:layout_editor_absoluteX="5dp"
                 tools:layout_editor_absoluteY="3dp" />
 

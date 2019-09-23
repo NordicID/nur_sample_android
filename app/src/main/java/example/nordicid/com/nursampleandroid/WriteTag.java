@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
-import android.graphics.ColorSpace;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
@@ -14,13 +13,9 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.RadioButton;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.nordicid.nuraccessory.*;
 import com.nordicid.nurapi.*;
 
 import java.util.ArrayList;
@@ -30,7 +25,6 @@ public class WriteTag extends Activity {
 
     //Handles of these will be fetch from MainActivity
     private static NurApi mNurApi;
-    private static NurAccessoryExtension mAccessoryApi;
 
     //In here found tags stored
     private NurTagStorage mTagStorage = new NurTagStorage();
@@ -55,7 +49,6 @@ public class WriteTag extends Activity {
 
         //Get NurApi and Accessory handles from MainActivity
         mNurApi = MainActivity.GetNurApi();
-        mAccessoryApi = MainActivity.GetNurAccessory();
 
         //Set event listener for this activity
         mNurApi.setListener(mNurApiEventListener);
@@ -149,6 +142,7 @@ public class WriteTag extends Activity {
             try {
                 //Do write operation
                 mNurApi.writeEpcByEpc(epcBuffer, epcBufferLength, newEpcBufferLength, newEpcBuffer);
+                //mNurApi.writeTagByEpc(epcBuffer,epcBufferLength,NurApi.BANK_USER,0,newEpcBufferLength,newEpcBuffer);
             }
             catch (Exception e)
             {

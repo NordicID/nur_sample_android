@@ -1,10 +1,6 @@
 package example.nordicid.com.nursampleandroid;
 
 import android.app.Activity;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.graphics.Color;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
@@ -21,7 +17,7 @@ public class Barcode extends Activity {
     public static final String TAG = "NUR_SAMPLE";
 
     private static NurApi mNurApi;
-    private static NurAccessoryExtension mAccessoryApi;
+    private static AccessoryExtension mAccExt;
 
     //UI
     private TextView mResultTextView;
@@ -45,12 +41,13 @@ public class Barcode extends Activity {
 
         //Get NurApi and Accessory handles from MainActivity
         mNurApi = MainActivity.GetNurApi();
-        mAccessoryApi = MainActivity.GetNurAccessory();
+        mAccExt = MainActivity.GetAccessoryExtensionApi();
 
         //Set event listener for this activity
         mNurApi.setListener(mNurApiEventListener);
+        mAccExt.registerBarcodeResultListener(mBarcodeResult);
 
-        mAccessoryApi.registerBarcodeResultListener(mResultListener);
+        mNurApi.setLogLevel(NurApi.LOG_VERBOSE);
 
         mResultTextView = (TextView)findViewById(R.id.text_result);
         mStatusTextView = (TextView)findViewById(R.id.text_status);
@@ -91,6 +88,54 @@ public class Barcode extends Activity {
         });
     }
 
+    private AccBarcodeResultListener mBarcodeResult = new AccBarcodeResultListener() {
+        @Override
+        public void onBarcodeResult(AccBarcodeResult accBarcodeResult) {
+            Log.i(TAG, "BarcodeResult " + accBarcodeResult.strBarcode + " Status = " + accBarcodeResult.status);
+            if (accBarcodeResult.status == NurApiErrors.NO_TAG) {
+                mUiStatusText="No barcode found";
+                Beeper.beep(Beeper.FAIL);
+                mScanning=false;
+            }
+            else if (accBarcodeResult.status == NurApiErrors.NOT_READY) {
+                mUiStatusText = "Cancelled";
+            }
+            else if (accBarcodeResult.status == NurApiErrors.HW_MISMATCH) {
+                //This reader does'nt support imager.
+                mUiStatusText = "No hardware found";
+                Beeper.beep(Beeper.FAIL);
+                mScanning=false;
+            }
+            else if (accBarcodeResult.status != NurApiErrors.NUR_SUCCESS) {
+                mUiStatusText = "Error: " + accBarcodeResult.status;
+                Beeper.beep(Beeper.FAIL);
+                mScanning=false;
+            }
+            else {
+                //Barcode scan success. Show result on the screen.
+                mUiResultText = accBarcodeResult.strBarcode;
+                mUiStatusText = "Waiting trigger...";
+                Beeper.beep(Beeper.BEEP_100MS); //Beep on phone
+
+                try {
+                    mAccExt.beepAsync(100); //Beep on device
+                    if (mAccExt.getConfig().hasVibrator()) {
+                        //Device has vibra so vibrate.
+                        mAccExt.vibrate(200);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    mToastLong = "Error! " + ex.getMessage();
+                }
+
+                mScanning=false;
+            }
+
+            showOnUI();
+        }
+    };
+
     /**
      * Barcode result handling
      */
@@ -127,10 +172,10 @@ public class Barcode extends Activity {
                 Beeper.beep(Beeper.BEEP_100MS); //Beep on phone
 
                 try {
-                    mAccessoryApi.beepAsync(100); //Beep on device
-                    if (mAccessoryApi.getConfig().hasVibrator()) {
+                    mAccExt.beepAsync(100); //Beep on device
+                    if (mAccExt.getConfig().hasVibrator()) {
                         //Device has vibra so vibrate.
-                        mAccessoryApi.vibrate(200);
+                        mAccExt.vibrate(200);
                     }
                 }
                 catch (Exception ex)
@@ -163,12 +208,12 @@ public class Barcode extends Activity {
             if (event.source == 100 && event.direction == 1) {
                 if(mScanning) {
                     //There is mScanning ongoing so we need just abort it
-                    mAccessoryApi.cancelBarcodeAsync();
+                    mAccExt.cancelBarcodeAsync();
                     Log.i(TAG, "Cancelling..");
                 }
                 else {
                     mAiming = true;
-                    mAccessoryApi.imagerAIM(mAiming);
+                    mAccExt.imagerAIM(mAiming);
                     mUiStatusText = "Aiming...";
                 }
             } else if (event.source == 100 && event.direction == 0) {
@@ -179,8 +224,8 @@ public class Barcode extends Activity {
                 }
                 //Trigger released. Stop aiming and start mScanning
                 mAiming = false;
-                mAccessoryApi.imagerAIM(mAiming);
-                mAccessoryApi.readBarcodeAsync(5000); //5 sec timeout
+                mAccExt.imagerAIM(mAiming);
+                mAccExt.readBarcodeAsync(5000); //5 sec timeout
                 mUiStatusText = "Scanning barcode...";
                 mScanning = true;
             }
@@ -216,12 +261,12 @@ public class Barcode extends Activity {
         try {
             if (mScanning) {
                 //There is mScanning ongoing so we need just abort it
-                mAccessoryApi.cancelBarcodeAsync();
+                mAccExt.cancelBarcodeAsync();
             }
 
             if (mAiming) {
                 mAiming = false;
-                mAccessoryApi.imagerAIM(mAiming);
+                mAccExt.imagerAIM(mAiming);
             }
         }
         catch (Exception ex) {
@@ -245,7 +290,9 @@ public class Barcode extends Activity {
         @Override
         public void nxpEasAlarmEvent(NurEventNxpAlarm event) { }
         @Override
-        public void logEvent(int level, String txt) { }
+        public void logEvent(int level, String txt) {
+            Log.w(TAG,txt);
+        }
         @Override
         public void inventoryStreamEvent(NurEventInventory event) { }
         @Override
@@ -272,7 +319,7 @@ public class Barcode extends Activity {
         public void bootEvent(String event) {}
         @Override
         public void IOChangeEvent(NurEventIOChange event) {
-             HandleIOEvent(event);
+            HandleIOEvent(event);
         }
         @Override
         public void autotuneEvent(NurEventAutotune event) { }
