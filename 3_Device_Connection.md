@@ -32,7 +32,7 @@ Following definitions are required in order to connect reader using Bluetooth LE
 ````
 dependencies {  
   ...
-  implementation 'no.nordicsemi.android.support.v18:scanner:1.0.0'  
+  implementation 'no.nordicsemi.android.support.v18:scanner:1.4.0'  
   ...
 }
 ````
