@@ -433,6 +433,100 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    int ReadNur2Reg(int type, int _reg) throws Exception
+    {
+        byte[] data = new byte[5];
+        data[0] = (byte)type;
+        NurPacket.PacketDword(data, 1, _reg);
+        byte[] ret = mNurApi.customCmd(0x90, data);
+        int retval = NurPacket.BytesToDword(ret, 0);
+        Log.w(TAG, "Read reg [" + type + "]  " + String.format("%x", _reg) + " = " + String.format("%x", retval));
+        return retval;
+    }
+
+    void WriteNur2Reg(int type, int _reg, int _val) throws Exception
+    {
+        byte[] data = new byte[9];
+
+        data[0] = (byte)type;
+        NurPacket.PacketDword(data, 1, _reg);
+        NurPacket.PacketDword(data, 5, _val);
+        byte[] ret = mNurApi.customCmd(0x91, data);
+        Log.w(TAG, "Write reg [" + type + "]  " + String.format("%x", _reg) + " = " + String.format("%x", _val));
+        ReadNur2Reg(type, _reg);
+    }
+
+    int BandToFreq(int band)
+    {
+        return 850 + (band * 20);
+    }
+
+    public void onButtonProdTune(View v)
+    {
+        final Button b = (Button)findViewById(R.id.button_prod_tune);
+
+        try {
+            int A0 = 0xfaffec57;
+
+            // Write MAC
+            WriteNur2Reg(0, 0x0B2B, A0);
+            WriteNur2Reg(0, 0xF000, 0x21);
+
+            // Write OEM
+            WriteNur2Reg(1, 0x93, A0);
+
+            // Read back
+            //int ival = ReadNur2Reg(0, 0x0B2B);
+            int ival = ReadNur2Reg(1, 0x93);
+            Log.w(TAG, "ival " + ival);
+            double dval = (double) ival / 16777216.0;
+            Log.w(TAG, "dval " + dval);
+
+            b.setEnabled(false);
+            b.setText("Calibration in progress..");
+            Toast.makeText(MainActivity.this, "Calibration started\nPlease wait", Toast.LENGTH_SHORT).show();
+
+            Thread calThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String result = "Calibration done\n";
+                    try {
+                        // Run calibration
+                        NurTuneResponse[] resp = ((NurCmdProdTune) mNurApi.exchangeCommand(new NurCmdProdTune(), 10000)).getResponse();
+
+                        result = "Calibration done\n";
+                        for (int n = 0; n < resp.length; n++) {
+                            result += String.format("%d = %f; ", resp[n].frequency, resp[n].dBm);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        result = ex.getMessage();
+                    }
+
+                    final String uiMsg = result;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            b.setEnabled(true);
+                            b.setText("RF Calibration");
+                            Toast.makeText(MainActivity.this, uiMsg, Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            });
+            calThread.start();
+
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+            b.setEnabled(true);
+            b.setText("RF Calibration");
+            Toast.makeText(MainActivity.this, ex.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
     /**
      * Handle tag trace click. Start Write Tag activity. See Trace.java
      * @param v View parameter as passed from the system when the button is clicked.
@@ -565,7 +659,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "onPause()");
         super.onPause();
         //if (hAcTr != null)
-        //    hAcTr.onPause();
+            //hAcTr.onPause();
     }
 
     @Override

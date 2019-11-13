@@ -128,6 +128,23 @@
             android:background="@android:color/black">
 
             <Button
+                android:id="@+id/button_prod_tune"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:onClick="onButtonProdTune"
+                android:text="RF Calibration"
+                tools:layout_editor_absoluteX="5dp"
+                tools:layout_editor_absoluteY="3dp" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="125dp"
+            android:background="@android:color/black">
+
+            <Button
                 android:id="@+id/button_update_local"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
