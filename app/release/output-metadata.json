@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "example.nordicid.com.nursampleandroid",
+  "variantName": "processReleaseResources",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "versionCode": 31,
+      "versionName": "3.1",
+      "outputFile": "NurSampleAndroid_v3.1.apk"
+    }
+  ]
+}

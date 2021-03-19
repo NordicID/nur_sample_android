@@ -44,5 +44,5 @@ In your app declare the API instance and the accessory extension. The latter tak
 ````  
 private NurApi mApi = new NurApi();  
 private NurAccessoryExtension mExtension = new NurAccessoryExtension(mApi);  
-
+````  
 Next: [Event listener](2_EventListener.md) Add event listener for receiving events from NurApi.

@@ -73,7 +73,6 @@ public class Inventory extends Activity {
 
         //Get NurApi and Accessory handles from MainActivity
         mNurApi = MainActivity.GetNurApi();
-        //mAccessoryApi = MainActivity.GetNurAccessory();
         mAccExt = MainActivity.GetAccessoryExtensionApi();
 
         //Set event listener for this activity

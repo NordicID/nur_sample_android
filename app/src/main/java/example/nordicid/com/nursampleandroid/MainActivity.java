@@ -20,6 +20,8 @@ import com.nordicid.nurapi.BleScanner;
 import com.nordicid.nuraccessory.*;
 import com.nordicid.nurapi.*;
 
+import java.util.ArrayList;
+
 import nordicid.com.nurupdate.NurDeviceUpdate;
 import nordicid.com.nurupdate.NurUpdateParams;
 
@@ -30,8 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
     private NurApiAutoConnectTransport hAcTr;
     private static NurApi mNurApi;
-    private static AccessoryExtension mAccExt;
-    private static NurAccessoryExtension mNurAndroidApiAccessoryApi = null;
+    private static AccessoryExtension mAccExt; //accessories of reader like barcode scanner, beeper, vibration..
 
     //Need to keep track connection state with NurApi IsConnected
     private boolean mIsConnected;
@@ -41,8 +42,6 @@ public class MainActivity extends AppCompatActivity {
 
     public static NurApi GetNurApi() {return mNurApi;}
     public static AccessoryExtension GetAccessoryExtensionApi() {return mAccExt;}
-
-    public static NurAccessoryExtension GetNurAccessory() {return mNurAndroidApiAccessoryApi;}
 
     //When connected, this flag is set depending if Accessories like barcode scan, beep etc supported.
     private static boolean mIsAccessorySupported;
@@ -101,10 +100,6 @@ public class MainActivity extends AppCompatActivity {
         //Accessory extension contains device specific API like barcode read, beep etc..
         //This included in NurApi.jar
         mAccExt = new AccessoryExtension(mNurApi);
-
-        //Obsolete: Accessory extension contains device specific API like barcode read, beep etc..
-        //This is included in NurApiAndroid.aar and needed by NurUpdate library
-        mNurAndroidApiAccessoryApi = new NurAccessoryExtension(mNurApi);
 
         // In this activity, we use mNurApiListener for receiving events
         mNurApi.setListener(mNurApiListener);
@@ -273,8 +268,15 @@ public class MainActivity extends AppCompatActivity {
         try {
             if (mNurApi.isConnected()) {
                 if(IsAccessorySupported()) {
-                    Intent sensorIntent = new Intent(MainActivity.this, Sensor.class);
-                    startActivityForResult(sensorIntent, 0);
+                    //There is accessories but is there sensors like ToF..
+                    ArrayList<AccSensorConfig> sensorList = mAccExt.accSensorEnumerate();
+
+                    if(sensorList.size() > 0) {
+                        Intent sensorIntent = new Intent(MainActivity.this, Sensor.class);
+                        startActivityForResult(sensorIntent, 0);
+                    }
+                    else
+                        Toast.makeText(MainActivity.this, "No sensors", Toast.LENGTH_LONG).show();
                 }
                 else
                     Toast.makeText(MainActivity.this, "Sensors not supported!", Toast.LENGTH_LONG).show();
@@ -304,12 +306,11 @@ public class MainActivity extends AppCompatActivity {
                 //NurApi instance
                 updateParams.setNurApi(mNurApi);
                 //Possible Nur accessory instance
-                updateParams.setNurAccessoryExtension(GetNurAccessory());
+                updateParams.setAccessoryExtension(GetAccessoryExtensionApi());
                 //If we are connected to device via Bluetooth, give current ble address.
                 updateParams.setDeviceAddress(hAcTr.getAddress());
 
                 /**
-                 *
                  * Zip path string may be empty or URL or Uri
                  * Empty zipPath allow users to browse zip file from local file system
                  */
@@ -371,7 +372,7 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this, "Barcode not supported!", Toast.LENGTH_LONG).show();
                         return;
                     }
-
+                    //Yes, barcode scanner found. Show activity to play with scanner.
                     Intent barcodeIntent = new Intent(MainActivity.this, Barcode.class);
                     startActivityForResult(barcodeIntent, 0);
                 }
