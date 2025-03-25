@@ -175,7 +175,7 @@ public class Sensor extends Activity {
                 //Apply sensor mode
 
                 if(selectedSensor == -1) {
-
+                    Toast.makeText(getApplicationContext(), "Please select a sensor first", Toast.LENGTH_SHORT).show();
                     //passkeyInput();
                     return;
                 }
@@ -208,16 +208,8 @@ public class Sensor extends Activity {
         mButtonApplyFilter.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 try {
-                    if(selectedSensor == -1) {
-
-                        try {
-                            String txt = mAccExt.getBLEPasskey();
-                            Toast.makeText(getApplicationContext(), "Passkey=" + txt, Toast.LENGTH_LONG).show();
-                        }
-                        catch (Exception e) {
-                            Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-                        }
-
+                    if (selectedSensor == -1) {
+                        Toast.makeText(getApplicationContext(), "Please select a sensor first", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     AccSensorConfig cfg = sensorList.get(selectedSensor);
@@ -251,16 +243,9 @@ public class Sensor extends Activity {
             @Override
             public void onClick(View v) {
 
-                if(selectedSensor == -1) {
-
-                    try {
-                        mAccExt.clearBLEPasskey();
-                    }
-                    catch (Exception e) {
-                        Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-
-                    return; //No sensor selected
+                if (selectedSensor == -1) {
+                    Toast.makeText(getApplicationContext(), "Please select a sensor first", Toast.LENGTH_SHORT).show();
+                    return;
                 }
                 //For reading sensor range value, we need to know source of selected sensor and cast response to AccSensorRangeData
                 try {
