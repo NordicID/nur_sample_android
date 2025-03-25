@@ -11,9 +11,9 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 32,
-      "versionName": "3.2",
-      "outputFile": "NurSampleAndroid_v3.2.apk"
+      "versionCode": 33,
+      "versionName": "3.3",
+      "outputFile": "NurSampleAndroid_v3.3.apk"
     }
   ],
   "elementType": "File"
