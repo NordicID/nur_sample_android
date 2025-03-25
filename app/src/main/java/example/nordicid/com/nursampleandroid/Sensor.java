@@ -176,7 +176,6 @@ public class Sensor extends Activity {
 
                 if(selectedSensor == -1) {
                     Toast.makeText(getApplicationContext(), "Please select a sensor first", Toast.LENGTH_SHORT).show();
-                    //passkeyInput();
                     return;
                 }
 
@@ -283,44 +282,6 @@ public class Sensor extends Activity {
 
         }catch (Exception e) {}
 
-    }
-
-    /**
-     * Passkey set input test for EXA21 BLE. Do not use!
-     */
-    private void passkeyInput()
-    {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("passkey");
-
-        final EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_NUMBER);
-        try {
-            input.setText(mAccExt.getBLEPasskey());
-        }catch (Exception e) {}
-        builder.setView(input);
-
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                try {
-                    mAccExt.setBLEPasskey(input.getText().toString());
-                    String txt = mAccExt.getBLEPasskey();
-                    Toast.makeText(getApplicationContext(), "Passkey=" + txt, Toast.LENGTH_LONG).show();
-                }
-                catch (Exception e) {
-                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        builder.show();
     }
 
     private void UpdateSensorControls() {
